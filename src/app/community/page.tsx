@@ -1,177 +1,42 @@
 "use client";
 
 import { useState } from "react";
-import dynamic from "next/dynamic";
 import Link from "next/link";
-
-// Dynamically import UI components
-const Card = dynamic(
-  () => import("@/components/ui/card").then((mod) => ({ default: mod.Card })),
-  { ssr: false }
-);
-const CardContent = dynamic(
-  () =>
-    import("@/components/ui/card").then((mod) => ({
-      default: mod.CardContent,
-    })),
-  { ssr: false }
-);
-const CardHeader = dynamic(
-  () =>
-    import("@/components/ui/card").then((mod) => ({ default: mod.CardHeader })),
-  { ssr: false }
-);
-const CardTitle = dynamic(
-  () =>
-    import("@/components/ui/card").then((mod) => ({ default: mod.CardTitle })),
-  { ssr: false }
-);
-const Button = dynamic(
-  () =>
-    import("@/components/ui/button").then((mod) => ({ default: mod.Button })),
-  { ssr: false }
-);
-const Input = dynamic(() => import("@/components/ui/input"), { ssr: false });
-const Badge = dynamic(
-  () => import("@/components/ui/badge").then((mod) => ({ default: mod.Badge })),
-  { ssr: false }
-);
-const Tabs = dynamic(
-  () => import("@/components/ui/tabs").then((mod) => ({ default: mod.Tabs })),
-  { ssr: false }
-);
-const TabsContent = dynamic(
-  () =>
-    import("@/components/ui/tabs").then((mod) => ({
-      default: mod.TabsContent,
-    })),
-  { ssr: false }
-);
-const TabsList = dynamic(
-  () =>
-    import("@/components/ui/tabs").then((mod) => ({ default: mod.TabsList })),
-  { ssr: false }
-);
-const TabsTrigger = dynamic(
-  () =>
-    import("@/components/ui/tabs").then((mod) => ({
-      default: mod.TabsTrigger,
-    })),
-  { ssr: false }
-);
-
-// Dynamically import icons
-const Icons = {
-  Users: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.Users })),
-    { ssr: false }
-  ),
-  MessageSquare: dynamic(
-    () =>
-      import("lucide-react").then((mod) => ({ default: mod.MessageSquare })),
-    { ssr: false }
-  ),
-  Calendar: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.Calendar })),
-    { ssr: false }
-  ),
-  Trophy: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.Trophy })),
-    { ssr: false }
-  ),
-  Heart: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.Heart })),
-    { ssr: false }
-  ),
-  Share2: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.Share2 })),
-    { ssr: false }
-  ),
-  ThumbsUp: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.ThumbsUp })),
-    { ssr: false }
-  ),
-  Eye: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.Eye })),
-    { ssr: false }
-  ),
-  Clock: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.Clock })),
-    { ssr: false }
-  ),
-  MapPin: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.MapPin })),
-    { ssr: false }
-  ),
-  ExternalLink: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.ExternalLink })),
-    { ssr: false }
-  ),
-  Send: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.Send })),
-    { ssr: false }
-  ),
-  Star: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.Star })),
-    { ssr: false }
-  ),
-  Sparkles: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.Sparkles })),
-    { ssr: false }
-  ),
-  TrendingUp: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.TrendingUp })),
-    { ssr: false }
-  ),
-  Zap: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.Zap })),
-    { ssr: false }
-  ),
-  Home: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.Home })),
-    { ssr: false }
-  ),
-  Github: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.Github })),
-    { ssr: false }
-  ),
-  Twitter: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.Twitter })),
-    { ssr: false }
-  ),
-  Youtube: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.Youtube })),
-    { ssr: false }
-  ),
-  Mic: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.Mic })),
-    { ssr: false }
-  ),
-  Award: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.Award })),
-    { ssr: false }
-  ),
-  Target: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.Target })),
-    { ssr: false }
-  ),
-  BookOpen: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.BookOpen })),
-    { ssr: false }
-  ),
-  HelpCircle: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.HelpCircle })),
-    { ssr: false }
-  ),
-  Coffee: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.Coffee })),
-    { ssr: false }
-  ),
-  Gamepad2: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.Gamepad2 })),
-    { ssr: false }
-  ),
-};
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Navbar from "@/components/navbar";
+import {
+  Users,
+  MessageSquare,
+  Calendar,
+  Trophy,
+  Heart,
+  Share2,
+  ThumbsUp,
+  Eye,
+  Clock,
+  MapPin,
+  ExternalLink,
+  Send,
+  Star,
+  Sparkles,
+  TrendingUp,
+  Zap,
+  Home,
+  Github,
+  Twitter,
+  Youtube,
+  Mic,
+  Award,
+  Target,
+  BookOpen,
+  HelpCircle,
+  Coffee,
+  Gamepad2,
+} from "lucide-react";
 
 export default function CommunityPage() {
   const [activeTab, setActiveTab] = useState("discussions");
@@ -181,25 +46,25 @@ export default function CommunityPage() {
     {
       label: "Total Members",
       value: "12,543",
-      icon: Icons.Users,
+      icon: Users,
       change: "+1.2k this month",
     },
     {
       label: "Active Discussions",
       value: "2,847",
-      icon: Icons.MessageSquare,
+      icon: MessageSquare,
       change: "+284 this week",
     },
     {
       label: "Community Events",
       value: "47",
-      icon: Icons.Calendar,
+      icon: Calendar,
       change: "12 upcoming",
     },
     {
       label: "Expert Contributors",
       value: "156",
-      icon: Icons.Award,
+      icon: Award,
       change: "+23 verified",
     },
   ];
@@ -211,7 +76,7 @@ export default function CommunityPage() {
       description: "General discussions about RWA tokenization",
       posts: 1247,
       members: 3892,
-      icon: Icons.MessageSquare,
+      icon: MessageSquare,
       color: "blue",
     },
     {
@@ -220,7 +85,7 @@ export default function CommunityPage() {
       description: "Asset-backed lending and DeFi protocols",
       posts: 892,
       members: 2156,
-      icon: Icons.TrendingUp,
+      icon: TrendingUp,
       color: "green",
     },
     {
@@ -229,7 +94,7 @@ export default function CommunityPage() {
       description: "Get help with platform features and issues",
       posts: 634,
       members: 1847,
-      icon: Icons.HelpCircle,
+      icon: HelpCircle,
       color: "orange",
     },
     {
@@ -238,7 +103,7 @@ export default function CommunityPage() {
       description: "Official updates and platform news",
       posts: 89,
       members: 8234,
-      icon: Icons.Sparkles,
+      icon: Sparkles,
       color: "purple",
     },
   ];
@@ -407,693 +272,708 @@ export default function CommunityPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30">
-      <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-        {/* Header */}
-        <div className="text-center space-y-6">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-              <Icons.Users className="w-8 h-8 text-white" />
-            </div>
-          </div>
-          <h1 className="text-5xl font-bold tracking-tight bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent">
-            TangibleFi Community
-          </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Connect with fellow users, share knowledge, and stay updated with
-            the latest in real-world asset tokenization
-          </p>
-
-          {/* Community Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-12">
-            {communityStats.map((stat, index) => (
-              <Card
-                key={index}
-                className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300"
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center">
-                      <stat.icon className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-600">{stat.label}</p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {stat.value}
-                      </p>
-                      <p className="text-xs text-emerald-600">{stat.change}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="space-y-8"
-        >
-          <div className="flex items-center justify-center">
-            <TabsList className="grid w-full max-w-2xl grid-cols-4 bg-white/80 backdrop-blur-sm shadow-lg">
-              <TabsTrigger
-                value="discussions"
-                className="flex items-center gap-2"
-              >
-                <Icons.MessageSquare className="w-4 h-4" />
-                Discussions
-              </TabsTrigger>
-              <TabsTrigger value="events" className="flex items-center gap-2">
-                <Icons.Calendar className="w-4 h-4" />
-                Events
-              </TabsTrigger>
-              <TabsTrigger
-                value="leaderboard"
-                className="flex items-center gap-2"
-              >
-                <Icons.Trophy className="w-4 h-4" />
-                Leaderboard
-              </TabsTrigger>
-              <TabsTrigger
-                value="resources"
-                className="flex items-center gap-2"
-              >
-                <Icons.BookOpen className="w-4 h-4" />
-                Resources
-              </TabsTrigger>
-            </TabsList>
-          </div>
-
-          <TabsContent value="discussions" className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-              {/* Forum Categories */}
-              <div className="space-y-6">
-                <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Icons.Target className="w-5 h-5 text-blue-600" />
-                      Forum Categories
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {forumCategories.map((category) => (
-                      <div
-                        key={category.id}
-                        className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-all duration-300 cursor-pointer"
-                      >
-                        <div className="flex items-start gap-3">
-                          <div
-                            className={`w-10 h-10 bg-${category.color}-100 rounded-lg flex items-center justify-center`}
-                          >
-                            <category.icon
-                              className={`w-5 h-5 text-${category.color}-600`}
-                            />
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900 text-sm">
-                              {category.name}
-                            </h4>
-                            <p className="text-xs text-gray-600 mt-1">
-                              {category.description}
-                            </p>
-                            <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                              <span>{category.posts} posts</span>
-                              <span>{category.members} members</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-
-                {/* Quick Actions */}
-                <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200">
-                  <CardContent className="p-6 space-y-4">
-                    <h3 className="font-semibold text-blue-900 flex items-center gap-2">
-                      <Icons.Zap className="w-5 h-5" />
-                      Quick Actions
-                    </h3>
-                    <div className="space-y-2">
-                      <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white justify-start">
-                        <Icons.Send className="w-4 h-4 mr-2" />
-                        Start New Discussion
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start border-blue-300 text-blue-700"
-                      >
-                        <Icons.HelpCircle className="w-4 h-4 mr-2" />
-                        Ask for Help
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start border-purple-300 text-purple-700"
-                      >
-                        <Icons.Sparkles className="w-4 h-4 mr-2" />
-                        Share Achievement
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Recent Discussions */}
-              <div className="lg:col-span-3 space-y-6">
-                <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <span className="flex items-center gap-2">
-                        <Icons.MessageSquare className="w-5 h-5 text-blue-600" />
-                        Recent Discussions
-                      </span>
-                      <Button
-                        size="sm"
-                        className="bg-blue-600 hover:bg-blue-700 text-white"
-                      >
-                        New Post
-                      </Button>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {recentDiscussions.map((discussion) => (
-                      <div
-                        key={discussion.id}
-                        className="p-6 border border-gray-200 rounded-lg hover:shadow-md transition-all duration-300"
-                      >
-                        <div className="flex items-start gap-4">
-                          <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-                            {discussion.author
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
-                          </div>
-
-                          <div className="flex-1">
-                            <div className="flex items-start justify-between">
-                              <div>
-                                <div className="flex items-center gap-2 mb-2">
-                                  {discussion.isPinned && (
-                                    <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">
-                                      <Icons.Star className="w-3 h-3 mr-1" />
-                                      Pinned
-                                    </Badge>
-                                  )}
-                                  <Badge variant="outline" className="text-xs">
-                                    {discussion.category}
-                                  </Badge>
-                                </div>
-                                <h3 className="text-lg font-semibold text-gray-900 hover:text-blue-600 cursor-pointer">
-                                  {discussion.title}
-                                </h3>
-                                <div className="flex items-center gap-2 mt-2">
-                                  <span className="text-sm font-medium text-gray-700">
-                                    {discussion.author}
-                                  </span>
-                                  <Badge
-                                    className={getBadgeColor(
-                                      discussion.authorRole.includes("Expert")
-                                        ? "Expert"
-                                        : discussion.authorRole.includes("Team")
-                                          ? "Team"
-                                          : discussion.authorRole.includes(
-                                                "Leader"
-                                              )
-                                            ? "Leader"
-                                            : "Active"
-                                    )}
-                                  >
-                                    {discussion.authorRole}
-                                  </Badge>
-                                  <span className="text-sm text-gray-500">
-                                    •
-                                  </span>
-                                  <span className="text-sm text-gray-500">
-                                    {formatTimeAgo(discussion.timeAgo)}
-                                  </span>
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-4 text-sm text-gray-500">
-                                <div className="flex items-center gap-1">
-                                  <Icons.MessageSquare className="w-4 h-4" />
-                                  {discussion.replies}
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <Icons.Eye className="w-4 h-4" />
-                                  {discussion.views}
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <Icons.ThumbsUp className="w-4 h-4" />
-                                  {discussion.likes}
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-2 mt-3">
-                              {discussion.tags.map((tag, index) => (
-                                <Badge
-                                  key={index}
-                                  variant="outline"
-                                  className="text-xs text-blue-600 border-blue-300"
-                                >
-                                  #{tag}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30">
+        <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+          {/* Header */}
+          <div className="text-center space-y-6">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                <Users className="w-8 h-8 text-white" />
               </div>
             </div>
-          </TabsContent>
+            <h1 className="text-5xl font-bold tracking-tight bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent">
+              TangibleFi Community
+            </h1>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              Connect with fellow users, share knowledge, and stay updated with
+              the latest in real-world asset tokenization
+            </p>
 
-          <TabsContent value="events" className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Upcoming Events */}
-              <div className="lg:col-span-2 space-y-6">
-                <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Icons.Calendar className="w-5 h-5 text-blue-600" />
-                      Upcoming Events
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {upcomingEvents.map((event) => (
-                      <div
-                        key={event.id}
-                        className="p-6 border border-gray-200 rounded-lg hover:shadow-md transition-all duration-300"
-                      >
-                        <div className="flex items-start justify-between mb-4">
-                          <div>
-                            <div className="flex items-center gap-2 mb-2">
-                              <Badge
-                                className={`${
-                                  event.type === "Webinar"
-                                    ? "bg-blue-100 text-blue-800"
-                                    : event.type === "AMA"
-                                      ? "bg-purple-100 text-purple-800"
-                                      : "bg-emerald-100 text-emerald-800"
-                                }`}
-                              >
-                                {event.type}
-                              </Badge>
-                              {event.isRegistered && (
-                                <Badge className="bg-green-100 text-green-800">
-                                  <Icons.Star className="w-3 h-3 mr-1" />
-                                  Registered
-                                </Badge>
-                              )}
-                            </div>
-                            <h3 className="text-xl font-semibold text-gray-900">
-                              {event.title}
-                            </h3>
-                            <p className="text-gray-600 mt-2">
-                              {event.description}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-6 text-sm text-gray-600 mb-4">
-                          <div className="flex items-center gap-2">
-                            <Icons.Calendar className="w-4 h-4" />
-                            {event.date}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Icons.Clock className="w-4 h-4" />
-                            {event.time}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Icons.Mic className="w-4 h-4" />
-                            {event.speaker}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <span className="text-sm text-gray-600">
-                              {event.attendees}/{event.maxAttendees} attendees
-                            </span>
-                            <div className="w-32 bg-gray-200 rounded-full h-2">
-                              <div
-                                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                                style={{
-                                  width: `${(event.attendees / event.maxAttendees) * 100}%`,
-                                }}
-                              />
-                            </div>
-                          </div>
-
-                          <Button
-                            className={`${
-                              event.isRegistered
-                                ? "bg-green-600 hover:bg-green-700"
-                                : "bg-blue-600 hover:bg-blue-700"
-                            } text-white`}
-                            disabled={event.attendees >= event.maxAttendees}
-                          >
-                            {event.isRegistered ? "Registered" : "Register"}
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Event Categories & Info */}
-              <div className="space-y-6">
-                <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Icons.Coffee className="w-5 h-5 text-orange-600" />
-                      Event Types
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {[
-                      {
-                        type: "Webinars",
-                        description: "Educational sessions on RWA topics",
-                        count: 12,
-                        icon: Icons.BookOpen,
-                      },
-                      {
-                        type: "AMAs",
-                        description: "Ask Me Anything with experts",
-                        count: 8,
-                        icon: Icons.MessageSquare,
-                      },
-                      {
-                        type: "Workshops",
-                        description: "Hands-on learning experiences",
-                        count: 15,
-                        icon: Icons.Target,
-                      },
-                      {
-                        type: "Networking",
-                        description: "Connect with community members",
-                        count: 6,
-                        icon: Icons.Users,
-                      },
-                    ].map((eventType, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg"
-                      >
-                        <eventType.icon className="w-5 h-5 text-blue-600" />
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900 text-sm">
-                            {eventType.type}
-                          </h4>
-                          <p className="text-xs text-gray-600">
-                            {eventType.description}
-                          </p>
-                        </div>
-                        <Badge variant="outline" className="text-xs">
-                          {eventType.count}
-                        </Badge>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-
-                <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
-                  <CardContent className="p-6">
-                    <h3 className="font-semibold text-purple-900 mb-3 flex items-center gap-2">
-                      <Icons.Sparkles className="w-5 h-5" />
-                      Community Perks
-                    </h3>
-                    <ul className="space-y-2 text-sm text-purple-800">
-                      <li className="flex items-start gap-2">
-                        <Icons.Star className="w-4 h-4 mt-0.5 text-purple-600" />
-                        Early access to new features
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <Icons.Award className="w-4 h-4 mt-0.5 text-purple-600" />
-                        Exclusive community badges
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <Icons.Gamepad2 className="w-4 h-4 mt-0.5 text-purple-600" />
-                        Monthly community challenges
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <Icons.Trophy className="w-4 h-4 mt-0.5 text-purple-600" />
-                        Recognition rewards program
-                      </li>
-                    </ul>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="leaderboard" className="space-y-8">
-            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Icons.Trophy className="w-5 h-5 text-yellow-600" />
-                  Top Contributors
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {topContributors.map((contributor) => (
-                    <div
-                      key={contributor.rank}
-                      className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:shadow-md transition-all duration-300"
-                    >
-                      <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white ${
-                          contributor.rank === 1
-                            ? "bg-yellow-500"
-                            : contributor.rank === 2
-                              ? "bg-gray-400"
-                              : contributor.rank === 3
-                                ? "bg-orange-600"
-                                : "bg-gray-600"
-                        }`}
-                      >
-                        {contributor.rank}
-                      </div>
-
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-                        {contributor.avatar}
-                      </div>
-
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-lg font-semibold text-gray-900">
-                            {contributor.name}
-                          </h3>
-                          <Badge className={getBadgeColor(contributor.badge)}>
-                            {contributor.badge}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-gray-600">
-                          {contributor.role}
-                        </p>
-                      </div>
-
-                      <div className="text-right">
-                        <div className="text-lg font-bold text-blue-600">
-                          {contributor.reputation}
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          {contributor.contributions} contributions
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="resources" className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[
-                {
-                  title: "Community Guidelines",
-                  description:
-                    "Learn about our community rules and best practices",
-                  icon: Icons.BookOpen,
-                  color: "blue",
-                  link: "#guidelines",
-                },
-                {
-                  title: "Getting Started Guide",
-                  description: "New to TangibleFi? Start your journey here",
-                  icon: Icons.Target,
-                  color: "emerald",
-                  link: "#getting-started",
-                },
-                {
-                  title: "FAQ & Help Center",
-                  description: "Find answers to commonly asked questions",
-                  icon: Icons.HelpCircle,
-                  color: "orange",
-                  link: "#faq",
-                },
-                {
-                  title: "Developer Resources",
-                  description: "Technical documentation and API guides",
-                  icon: Icons.Github,
-                  color: "purple",
-                  link: "/docs",
-                },
-                {
-                  title: "Video Tutorials",
-                  description: "Watch step-by-step tutorials and walkthroughs",
-                  icon: Icons.Youtube,
-                  color: "red",
-                  link: "#videos",
-                },
-                {
-                  title: "Community Tools",
-                  description: "Useful tools and calculators for the community",
-                  icon: Icons.Zap,
-                  color: "yellow",
-                  link: "/dashboard/calculator",
-                },
-              ].map((resource, index) => (
+            {/* Community Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-12">
+              {communityStats.map((stat, index) => (
                 <Card
                   key={index}
                   className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300"
                 >
                   <CardContent className="p-6">
-                    <div
-                      className={`w-12 h-12 bg-${resource.color}-100 rounded-lg flex items-center justify-center mb-4`}
-                    >
-                      <resource.icon
-                        className={`w-6 h-6 text-${resource.color}-600`}
-                      />
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center">
+                        <stat.icon className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-600">{stat.label}</p>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {stat.value}
+                        </p>
+                        <p className="text-xs text-emerald-600">
+                          {stat.change}
+                        </p>
+                      </div>
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      {resource.title}
-                    </h3>
-                    <p className="text-gray-600 text-sm mb-4">
-                      {resource.description}
-                    </p>
-                    <Button
-                      variant="outline"
-                      className={`w-full border-${resource.color}-300 text-${resource.color}-700 hover:bg-${resource.color}-50`}
-                      asChild
-                    >
-                      <Link href={resource.link}>
-                        Access Resource
-                        <Icons.ExternalLink className="w-4 h-4 ml-2" />
-                      </Link>
-                    </Button>
                   </CardContent>
                 </Card>
               ))}
             </div>
-          </TabsContent>
-        </Tabs>
+          </div>
 
-        {/* Social Links */}
-        <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
-          <CardContent className="p-8">
-            <div className="text-center space-y-6">
-              <h2 className="text-2xl font-bold text-gray-900">
-                Stay Connected
-              </h2>
-              <p className="text-gray-600 max-w-2xl mx-auto">
-                Join our social channels for the latest updates, discussions,
-                and community highlights
-              </p>
-
-              <div className="flex items-center justify-center gap-4">
-                <Button
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                  asChild
+          {/* Main Content */}
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="space-y-8"
+          >
+            <div className="flex items-center justify-center">
+              <TabsList className="grid w-full max-w-2xl grid-cols-4 bg-white/80 backdrop-blur-sm shadow-lg">
+                <TabsTrigger
+                  value="discussions"
+                  className="flex items-center gap-2"
                 >
-                  <a
-                    href="https://discord.gg/tangiblefi"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Icons.MessageSquare className="w-4 h-4 mr-2" />
-                    Discord
-                  </a>
-                </Button>
-                <Button
-                  variant="outline"
-                  className="border-blue-300 text-blue-700"
-                  asChild
+                  <MessageSquare className="w-4 h-4" />
+                  Discussions
+                </TabsTrigger>
+                <TabsTrigger value="events" className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  Events
+                </TabsTrigger>
+                <TabsTrigger
+                  value="leaderboard"
+                  className="flex items-center gap-2"
                 >
-                  <a
-                    href="https://twitter.com/tangiblefi"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Icons.Twitter className="w-4 h-4 mr-2" />
-                    Twitter
-                  </a>
-                </Button>
-                <Button
-                  variant="outline"
-                  className="border-gray-300 text-gray-700"
-                  asChild
+                  <Trophy className="w-4 h-4" />
+                  Leaderboard
+                </TabsTrigger>
+                <TabsTrigger
+                  value="resources"
+                  className="flex items-center gap-2"
                 >
-                  <a
-                    href="https://github.com/tangiblefi"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Icons.Github className="w-4 h-4 mr-2" />
-                    GitHub
-                  </a>
-                </Button>
-                <Button
-                  variant="outline"
-                  className="border-red-300 text-red-700"
-                  asChild
-                >
-                  <a
-                    href="https://youtube.com/@tangiblefi"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Icons.Youtube className="w-4 h-4 mr-2" />
-                    YouTube
-                  </a>
-                </Button>
-              </div>
+                  <BookOpen className="w-4 h-4" />
+                  Resources
+                </TabsTrigger>
+              </TabsList>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Footer */}
-        <div className="text-center py-8 border-t border-gray-200">
-          <p className="text-gray-600 mb-4">
-            Join our thriving community of {communityStats[0].value} members
-            building the future of RWA tokenization
-          </p>
-          <div className="flex items-center justify-center gap-4">
-            <Link
-              href="/"
-              className="text-blue-600 hover:text-blue-700 flex items-center gap-1"
-            >
-              <Icons.Home className="w-4 h-4" />
-              Back to Dashboard
-            </Link>
-            <Link href="/docs" className="text-blue-600 hover:text-blue-700">
-              Documentation
-            </Link>
-            <Link href="/support" className="text-blue-600 hover:text-blue-700">
-              Support
-            </Link>
+            <TabsContent value="discussions" className="space-y-8">
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                {/* Forum Categories */}
+                <div className="space-y-6">
+                  <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Target className="w-5 h-5 text-blue-600" />
+                        Forum Categories
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {forumCategories.map((category) => (
+                        <div
+                          key={category.id}
+                          className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-all duration-300 cursor-pointer"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div
+                              className={`w-10 h-10 bg-${category.color}-100 rounded-lg flex items-center justify-center`}
+                            >
+                              <category.icon
+                                className={`w-5 h-5 text-${category.color}-600`}
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-gray-900 text-sm">
+                                {category.name}
+                              </h4>
+                              <p className="text-xs text-gray-600 mt-1">
+                                {category.description}
+                              </p>
+                              <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                                <span>{category.posts} posts</span>
+                                <span>{category.members} members</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+
+                  {/* Quick Actions */}
+                  <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200">
+                    <CardContent className="p-6 space-y-4">
+                      <h3 className="font-semibold text-blue-900 flex items-center gap-2">
+                        <Zap className="w-5 h-5" />
+                        Quick Actions
+                      </h3>
+                      <div className="space-y-2">
+                        <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white justify-start">
+                          <Send className="w-4 h-4 mr-2" />
+                          Start New Discussion
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start border-blue-300 text-blue-700"
+                        >
+                          <HelpCircle className="w-4 h-4 mr-2" />
+                          Ask for Help
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start border-purple-300 text-purple-700"
+                        >
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          Share Achievement
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Recent Discussions */}
+                <div className="lg:col-span-3 space-y-6">
+                  <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                    <CardHeader>
+                      <CardTitle className="flex items-center justify-between">
+                        <span className="flex items-center gap-2">
+                          <MessageSquare className="w-5 h-5 text-blue-600" />
+                          Recent Discussions
+                        </span>
+                        <Button
+                          size="sm"
+                          className="bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                          New Post
+                        </Button>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {recentDiscussions.map((discussion) => (
+                        <div
+                          key={discussion.id}
+                          className="p-6 border border-gray-200 rounded-lg hover:shadow-md transition-all duration-300"
+                        >
+                          <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                              {discussion.author
+                                .split(" ")
+                                .map((n) => n[0])
+                                .join("")}
+                            </div>
+
+                            <div className="flex-1">
+                              <div className="flex items-start justify-between">
+                                <div>
+                                  <div className="flex items-center gap-2 mb-2">
+                                    {discussion.isPinned && (
+                                      <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">
+                                        <Star className="w-3 h-3 mr-1" />
+                                        Pinned
+                                      </Badge>
+                                    )}
+                                    <Badge
+                                      variant="outline"
+                                      className="text-xs"
+                                    >
+                                      {discussion.category}
+                                    </Badge>
+                                  </div>
+                                  <h3 className="text-lg font-semibold text-gray-900 hover:text-blue-600 cursor-pointer">
+                                    {discussion.title}
+                                  </h3>
+                                  <div className="flex items-center gap-2 mt-2">
+                                    <span className="text-sm font-medium text-gray-700">
+                                      {discussion.author}
+                                    </span>
+                                    <Badge
+                                      className={getBadgeColor(
+                                        discussion.authorRole.includes("Expert")
+                                          ? "Expert"
+                                          : discussion.authorRole.includes(
+                                                "Team"
+                                              )
+                                            ? "Team"
+                                            : discussion.authorRole.includes(
+                                                  "Leader"
+                                                )
+                                              ? "Leader"
+                                              : "Active"
+                                      )}
+                                    >
+                                      {discussion.authorRole}
+                                    </Badge>
+                                    <span className="text-sm text-gray-500">
+                                      •
+                                    </span>
+                                    <span className="text-sm text-gray-500">
+                                      {formatTimeAgo(discussion.timeAgo)}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-4 text-sm text-gray-500">
+                                  <div className="flex items-center gap-1">
+                                    <MessageSquare className="w-4 h-4" />
+                                    {discussion.replies}
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <Eye className="w-4 h-4" />
+                                    {discussion.views}
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <ThumbsUp className="w-4 h-4" />
+                                    {discussion.likes}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-2 mt-3">
+                                {discussion.tags.map((tag, index) => (
+                                  <Badge
+                                    key={index}
+                                    variant="outline"
+                                    className="text-xs text-blue-600 border-blue-300"
+                                  >
+                                    #{tag}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="events" className="space-y-8">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Upcoming Events */}
+                <div className="lg:col-span-2 space-y-6">
+                  <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Calendar className="w-5 h-5 text-blue-600" />
+                        Upcoming Events
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      {upcomingEvents.map((event) => (
+                        <div
+                          key={event.id}
+                          className="p-6 border border-gray-200 rounded-lg hover:shadow-md transition-all duration-300"
+                        >
+                          <div className="flex items-start justify-between mb-4">
+                            <div>
+                              <div className="flex items-center gap-2 mb-2">
+                                <Badge
+                                  className={`${
+                                    event.type === "Webinar"
+                                      ? "bg-blue-100 text-blue-800"
+                                      : event.type === "AMA"
+                                        ? "bg-purple-100 text-purple-800"
+                                        : "bg-emerald-100 text-emerald-800"
+                                  }`}
+                                >
+                                  {event.type}
+                                </Badge>
+                                {event.isRegistered && (
+                                  <Badge className="bg-green-100 text-green-800">
+                                    <Star className="w-3 h-3 mr-1" />
+                                    Registered
+                                  </Badge>
+                                )}
+                              </div>
+                              <h3 className="text-xl font-semibold text-gray-900">
+                                {event.title}
+                              </h3>
+                              <p className="text-gray-600 mt-2">
+                                {event.description}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-6 text-sm text-gray-600 mb-4">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="w-4 h-4" />
+                              {event.date}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Clock className="w-4 h-4" />
+                              {event.time}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Mic className="w-4 h-4" />
+                              {event.speaker}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <span className="text-sm text-gray-600">
+                                {event.attendees}/{event.maxAttendees} attendees
+                              </span>
+                              <div className="w-32 bg-gray-200 rounded-full h-2">
+                                <div
+                                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                  style={{
+                                    width: `${(event.attendees / event.maxAttendees) * 100}%`,
+                                  }}
+                                />
+                              </div>
+                            </div>
+
+                            <Button
+                              className={`${
+                                event.isRegistered
+                                  ? "bg-green-600 hover:bg-green-700"
+                                  : "bg-blue-600 hover:bg-blue-700"
+                              } text-white`}
+                              disabled={event.attendees >= event.maxAttendees}
+                            >
+                              {event.isRegistered ? "Registered" : "Register"}
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Event Categories & Info */}
+                <div className="space-y-6">
+                  <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Coffee className="w-5 h-5 text-orange-600" />
+                        Event Types
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {[
+                        {
+                          type: "Webinars",
+                          description: "Educational sessions on RWA topics",
+                          count: 12,
+                          icon: BookOpen,
+                        },
+                        {
+                          type: "AMAs",
+                          description: "Ask Me Anything with experts",
+                          count: 8,
+                          icon: MessageSquare,
+                        },
+                        {
+                          type: "Workshops",
+                          description: "Hands-on learning experiences",
+                          count: 15,
+                          icon: Target,
+                        },
+                        {
+                          type: "Networking",
+                          description: "Connect with community members",
+                          count: 6,
+                          icon: Users,
+                        },
+                      ].map((eventType, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg"
+                        >
+                          <eventType.icon className="w-5 h-5 text-blue-600" />
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-gray-900 text-sm">
+                              {eventType.type}
+                            </h4>
+                            <p className="text-xs text-gray-600">
+                              {eventType.description}
+                            </p>
+                          </div>
+                          <Badge variant="outline" className="text-xs">
+                            {eventType.count}
+                          </Badge>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+                    <CardContent className="p-6">
+                      <h3 className="font-semibold text-purple-900 mb-3 flex items-center gap-2">
+                        <Sparkles className="w-5 h-5" />
+                        Community Perks
+                      </h3>
+                      <ul className="space-y-2 text-sm text-purple-800">
+                        <li className="flex items-start gap-2">
+                          <Star className="w-4 h-4 mt-0.5 text-purple-600" />
+                          Early access to new features
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <Award className="w-4 h-4 mt-0.5 text-purple-600" />
+                          Exclusive community badges
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <Gamepad2 className="w-4 h-4 mt-0.5 text-purple-600" />
+                          Monthly community challenges
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <Trophy className="w-4 h-4 mt-0.5 text-purple-600" />
+                          Recognition rewards program
+                        </li>
+                      </ul>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="leaderboard" className="space-y-8">
+              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Trophy className="w-5 h-5 text-yellow-600" />
+                    Top Contributors
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {topContributors.map((contributor) => (
+                      <div
+                        key={contributor.rank}
+                        className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:shadow-md transition-all duration-300"
+                      >
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white ${
+                            contributor.rank === 1
+                              ? "bg-yellow-500"
+                              : contributor.rank === 2
+                                ? "bg-gray-400"
+                                : contributor.rank === 3
+                                  ? "bg-orange-600"
+                                  : "bg-gray-600"
+                          }`}
+                        >
+                          {contributor.rank}
+                        </div>
+
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                          {contributor.avatar}
+                        </div>
+
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-lg font-semibold text-gray-900">
+                              {contributor.name}
+                            </h3>
+                            <Badge className={getBadgeColor(contributor.badge)}>
+                              {contributor.badge}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            {contributor.role}
+                          </p>
+                        </div>
+
+                        <div className="text-right">
+                          <div className="text-lg font-bold text-blue-600">
+                            {contributor.reputation}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            {contributor.contributions} contributions
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="resources" className="space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[
+                  {
+                    title: "Community Guidelines",
+                    description:
+                      "Learn about our community rules and best practices",
+                    icon: BookOpen,
+                    color: "blue",
+                    link: "#guidelines",
+                  },
+                  {
+                    title: "Getting Started Guide",
+                    description: "New to TangibleFi? Start your journey here",
+                    icon: Target,
+                    color: "emerald",
+                    link: "#getting-started",
+                  },
+                  {
+                    title: "FAQ & Help Center",
+                    description: "Find answers to commonly asked questions",
+                    icon: HelpCircle,
+                    color: "orange",
+                    link: "#faq",
+                  },
+                  {
+                    title: "Developer Resources",
+                    description: "Technical documentation and API guides",
+                    icon: Github,
+                    color: "purple",
+                    link: "/docs",
+                  },
+                  {
+                    title: "Video Tutorials",
+                    description:
+                      "Watch step-by-step tutorials and walkthroughs",
+                    icon: Youtube,
+                    color: "red",
+                    link: "#videos",
+                  },
+                  {
+                    title: "Community Tools",
+                    description:
+                      "Useful tools and calculators for the community",
+                    icon: Zap,
+                    color: "yellow",
+                    link: "/dashboard/calculator",
+                  },
+                ].map((resource, index) => (
+                  <Card
+                    key={index}
+                    className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300"
+                  >
+                    <CardContent className="p-6">
+                      <div
+                        className={`w-12 h-12 bg-${resource.color}-100 rounded-lg flex items-center justify-center mb-4`}
+                      >
+                        <resource.icon
+                          className={`w-6 h-6 text-${resource.color}-600`}
+                        />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        {resource.title}
+                      </h3>
+                      <p className="text-gray-600 text-sm mb-4">
+                        {resource.description}
+                      </p>
+                      <Button
+                        variant="outline"
+                        className={`w-full border-${resource.color}-300 text-${resource.color}-700 hover:bg-${resource.color}-50`}
+                        asChild
+                      >
+                        <Link href={resource.link}>
+                          Access Resource
+                          <ExternalLink className="w-4 h-4 ml-2" />
+                        </Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          {/* Social Links */}
+          <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+            <CardContent className="p-8">
+              <div className="text-center space-y-6">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  Stay Connected
+                </h2>
+                <p className="text-gray-600 max-w-2xl mx-auto">
+                  Join our social channels for the latest updates, discussions,
+                  and community highlights
+                </p>
+
+                <div className="flex items-center justify-center gap-4">
+                  <Button
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    asChild
+                  >
+                    <a
+                      href="https://discord.gg/tangiblefi"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <MessageSquare className="w-4 h-4 mr-2" />
+                      Discord
+                    </a>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="border-blue-300 text-blue-700"
+                    asChild
+                  >
+                    <a
+                      href="https://twitter.com/tangiblefi"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Twitter className="w-4 h-4 mr-2" />
+                      Twitter
+                    </a>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="border-gray-300 text-gray-700"
+                    asChild
+                  >
+                    <a
+                      href="https://github.com/tangiblefi"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Github className="w-4 h-4 mr-2" />
+                      GitHub
+                    </a>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="border-red-300 text-red-700"
+                    asChild
+                  >
+                    <a
+                      href="https://youtube.com/@tangiblefi"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Youtube className="w-4 h-4 mr-2" />
+                      YouTube
+                    </a>
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Footer */}
+          <div className="text-center py-8 border-t border-gray-200">
+            <p className="text-gray-600 mb-4">
+              Join our thriving community of {communityStats[0].value} members
+              building the future of RWA tokenization
+            </p>
+            <div className="flex items-center justify-center gap-4">
+              <Link
+                href="/"
+                className="text-blue-600 hover:text-blue-700 flex items-center gap-1"
+              >
+                <Home className="w-4 h-4" />
+                Back to Dashboard
+              </Link>
+              <Link href="/docs" className="text-blue-600 hover:text-blue-700">
+                Documentation
+              </Link>
+              <Link
+                href="/support"
+                className="text-blue-600 hover:text-blue-700"
+              >
+                Support
+              </Link>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -1,166 +1,37 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import dynamic from "next/dynamic";
-
-// Dynamically import UI components for better performance
-const Card = dynamic(
-  () => import("@/components/ui/card").then((mod) => ({ default: mod.Card })),
-  { ssr: false }
-);
-const CardContent = dynamic(
-  () =>
-    import("@/components/ui/card").then((mod) => ({
-      default: mod.CardContent,
-    })),
-  { ssr: false }
-);
-const CardHeader = dynamic(
-  () =>
-    import("@/components/ui/card").then((mod) => ({ default: mod.CardHeader })),
-  { ssr: false }
-);
-const CardTitle = dynamic(
-  () =>
-    import("@/components/ui/card").then((mod) => ({ default: mod.CardTitle })),
-  { ssr: false }
-);
-const Button = dynamic(
-  () =>
-    import("@/components/ui/button").then((mod) => ({ default: mod.Button })),
-  { ssr: false }
-);
-const Input = dynamic(() => import("@/components/ui/input"), { ssr: false });
-const Label = dynamic(() => import("@/components/ui/label"), { ssr: false });
-const Badge = dynamic(
-  () => import("@/components/ui/badge").then((mod) => ({ default: mod.Badge })),
-  { ssr: false }
-);
-const Slider = dynamic(
-  () =>
-    import("@/components/ui/slider").then((mod) => ({ default: mod.Slider })),
-  { ssr: false }
-);
-const Select = dynamic(
-  () =>
-    import("@/components/ui/select").then((mod) => ({ default: mod.Select })),
-  { ssr: false }
-);
-const SelectContent = dynamic(
-  () =>
-    import("@/components/ui/select").then((mod) => ({
-      default: mod.SelectContent,
-    })),
-  { ssr: false }
-);
-const SelectItem = dynamic(
-  () =>
-    import("@/components/ui/select").then((mod) => ({
-      default: mod.SelectItem,
-    })),
-  { ssr: false }
-);
-const SelectTrigger = dynamic(
-  () =>
-    import("@/components/ui/select").then((mod) => ({
-      default: mod.SelectTrigger,
-    })),
-  { ssr: false }
-);
-const SelectValue = dynamic(
-  () =>
-    import("@/components/ui/select").then((mod) => ({
-      default: mod.SelectValue,
-    })),
-  { ssr: false }
-);
-const Tabs = dynamic(
-  () => import("@/components/ui/tabs").then((mod) => ({ default: mod.Tabs })),
-  { ssr: false }
-);
-const TabsContent = dynamic(
-  () =>
-    import("@/components/ui/tabs").then((mod) => ({
-      default: mod.TabsContent,
-    })),
-  { ssr: false }
-);
-const TabsList = dynamic(
-  () =>
-    import("@/components/ui/tabs").then((mod) => ({ default: mod.TabsList })),
-  { ssr: false }
-);
-const TabsTrigger = dynamic(
-  () =>
-    import("@/components/ui/tabs").then((mod) => ({
-      default: mod.TabsTrigger,
-    })),
-  { ssr: false }
-);
-
-// Dynamically import icons
-const Icons = {
-  Calculator: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.Calculator })),
-    { ssr: false }
-  ),
-  DollarSign: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.DollarSign })),
-    { ssr: false }
-  ),
-  Percent: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.Percent })),
-    { ssr: false }
-  ),
-  Calendar: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.Calendar })),
-    { ssr: false }
-  ),
-  TrendingUp: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.TrendingUp })),
-    { ssr: false }
-  ),
-  Info: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.Info })),
-    { ssr: false }
-  ),
-  Download: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.Download })),
-    { ssr: false }
-  ),
-  BarChart3: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.BarChart3 })),
-    { ssr: false }
-  ),
-  PieChart: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.PieChart })),
-    { ssr: false }
-  ),
-  Target: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.Target })),
-    { ssr: false }
-  ),
-  Zap: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.Zap })),
-    { ssr: false }
-  ),
-  Shield: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.Shield })),
-    { ssr: false }
-  ),
-  RefreshCw: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.RefreshCw })),
-    { ssr: false }
-  ),
-  Eye: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.Eye })),
-    { ssr: false }
-  ),
-  Clock: dynamic(
-    () => import("lucide-react").then((mod) => ({ default: mod.Clock })),
-    { ssr: false }
-  ),
-};
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Calculator,
+  DollarSign,
+  Percent,
+  Calendar,
+  TrendingUp,
+  Info,
+  Download,
+  BarChart3,
+  PieChart,
+  Target,
+  Zap,
+  Shield,
+  RefreshCw,
+  Eye,
+  Clock,
+} from "lucide-react";
 
 export default function LoanCalculatorPage() {
   const [calculationType, setCalculationType] = useState("payment");
@@ -331,7 +202,7 @@ export default function LoanCalculatorPage() {
         <div className="text-center space-y-4">
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-              <Icons.Calculator className="w-8 h-8 text-white" />
+              <Calculator className="w-8 h-8 text-white" />
             </div>
           </div>
           <h1 className="text-5xl font-bold tracking-tight bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent">
@@ -343,11 +214,11 @@ export default function LoanCalculatorPage() {
           </p>
           <div className="flex items-center justify-center gap-4 mt-6">
             <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">
-              <Icons.Zap className="w-3 h-3 mr-1" />
+              <Zap className="w-3 h-3 mr-1" />
               Real-time Calculations
             </Badge>
             <Badge className="bg-blue-100 text-blue-800 border-blue-200">
-              <Icons.Shield className="w-3 h-3 mr-1" />
+              <Shield className="w-3 h-3 mr-1" />
               Secure & Private
             </Badge>
           </div>
@@ -357,7 +228,7 @@ export default function LoanCalculatorPage() {
         <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
           <CardHeader className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 border-b border-gray-100">
             <CardTitle className="flex items-center gap-2">
-              <Icons.Target className="w-5 h-5 text-blue-600" />
+              <Target className="w-5 h-5 text-blue-600" />
               Quick Scenarios
             </CardTitle>
           </CardHeader>
@@ -395,7 +266,7 @@ export default function LoanCalculatorPage() {
             <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
               <CardHeader className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 border-b border-gray-100">
                 <CardTitle className="flex items-center gap-2">
-                  <Icons.Calculator className="w-5 h-5 text-blue-600" />
+                  <Calculator className="w-5 h-5 text-blue-600" />
                   Loan Parameters
                 </CardTitle>
               </CardHeader>
@@ -403,11 +274,11 @@ export default function LoanCalculatorPage() {
                 {/* Asset Value */}
                 <div className="space-y-3">
                   <Label className="flex items-center gap-2 font-semibold">
-                    <Icons.DollarSign className="w-4 h-4 text-green-600" />
+                    <DollarSign className="w-4 h-4 text-green-600" />
                     Asset Value
                   </Label>
                   <div className="relative">
-                    <Icons.DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <Input
                       type="number"
                       value={loanInputs.assetValue}
@@ -429,7 +300,7 @@ export default function LoanCalculatorPage() {
                 <div className="space-y-4">
                   <Label className="flex items-center justify-between font-semibold">
                     <span className="flex items-center gap-2">
-                      <Icons.Percent className="w-4 h-4 text-blue-600" />
+                      <Percent className="w-4 h-4 text-blue-600" />
                       Loan-to-Value Ratio
                     </span>
                     <Badge
@@ -475,11 +346,11 @@ export default function LoanCalculatorPage() {
                 {/* Loan Amount */}
                 <div className="space-y-3">
                   <Label className="flex items-center gap-2 font-semibold">
-                    <Icons.DollarSign className="w-4 h-4 text-purple-600" />
+                    <DollarSign className="w-4 h-4 text-purple-600" />
                     Loan Amount
                   </Label>
                   <div className="relative">
-                    <Icons.DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <Input
                       type="number"
                       value={loanInputs.loanAmount}
@@ -497,11 +368,11 @@ export default function LoanCalculatorPage() {
                 {/* Interest Rate */}
                 <div className="space-y-3">
                   <Label className="flex items-center gap-2 font-semibold">
-                    <Icons.Percent className="w-4 h-4 text-orange-600" />
+                    <Percent className="w-4 h-4 text-orange-600" />
                     Interest Rate
                   </Label>
                   <div className="relative">
-                    <Icons.Percent className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Percent className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <Input
                       type="number"
                       step="0.1"
@@ -531,7 +402,7 @@ export default function LoanCalculatorPage() {
                 {/* Loan Term */}
                 <div className="space-y-3">
                   <Label className="flex items-center gap-2 font-semibold">
-                    <Icons.Calendar className="w-4 h-4 text-indigo-600" />
+                    <Calendar className="w-4 h-4 text-indigo-600" />
                     Loan Term (Months)
                   </Label>
                   <Select
@@ -566,7 +437,7 @@ export default function LoanCalculatorPage() {
                   onClick={resetCalculator}
                   className="w-full h-12 border-gray-200 hover:bg-gray-50"
                 >
-                  <Icons.RefreshCw className="w-4 h-4 mr-2" />
+                  <RefreshCw className="w-4 h-4 mr-2" />
                   Reset Calculator
                 </Button>
               </CardContent>
@@ -580,7 +451,7 @@ export default function LoanCalculatorPage() {
               <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-3">
-                    <Icons.DollarSign className="w-8 h-8 text-blue-600" />
+                    <DollarSign className="w-8 h-8 text-blue-600" />
                     <Badge className="bg-blue-200 text-blue-800">Monthly</Badge>
                   </div>
                   <div className="space-y-1">
@@ -597,7 +468,7 @@ export default function LoanCalculatorPage() {
               <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-3">
-                    <Icons.TrendingUp className="w-8 h-8 text-emerald-600" />
+                    <TrendingUp className="w-8 h-8 text-emerald-600" />
                     <Badge className="bg-emerald-200 text-emerald-800">
                       Total
                     </Badge>
@@ -616,7 +487,7 @@ export default function LoanCalculatorPage() {
               <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-3">
-                    <Icons.BarChart3 className="w-8 h-8 text-purple-600" />
+                    <BarChart3 className="w-8 h-8 text-purple-600" />
                     <Badge className="bg-purple-200 text-purple-800">
                       Total
                     </Badge>
@@ -635,7 +506,7 @@ export default function LoanCalculatorPage() {
               <Card className="border-0 shadow-lg bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-3">
-                    <Icons.Target className="w-8 h-8 text-orange-600" />
+                    <Target className="w-8 h-8 text-orange-600" />
                     <Badge className="bg-orange-200 text-orange-800">Max</Badge>
                   </div>
                   <div className="space-y-1">
@@ -657,21 +528,21 @@ export default function LoanCalculatorPage() {
                   value="schedule"
                   className="flex items-center gap-2"
                 >
-                  <Icons.Calendar className="w-4 h-4" />
+                  <Calendar className="w-4 h-4" />
                   Payment Schedule
                 </TabsTrigger>
                 <TabsTrigger
                   value="breakdown"
                   className="flex items-center gap-2"
                 >
-                  <Icons.PieChart className="w-4 h-4" />
+                  <PieChart className="w-4 h-4" />
                   Cost Breakdown
                 </TabsTrigger>
                 <TabsTrigger
                   value="insights"
                   className="flex items-center gap-2"
                 >
-                  <Icons.Eye className="w-4 h-4" />
+                  <Eye className="w-4 h-4" />
                   Insights
                 </TabsTrigger>
               </TabsList>
@@ -680,7 +551,7 @@ export default function LoanCalculatorPage() {
                 <Card className="border-0 shadow-lg">
                   <CardHeader className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 border-b border-gray-100">
                     <CardTitle className="flex items-center gap-2">
-                      <Icons.Calendar className="w-5 h-5 text-blue-600" />
+                      <Calendar className="w-5 h-5 text-blue-600" />
                       Amortization Schedule (First 24 Months)
                     </CardTitle>
                   </CardHeader>
@@ -739,7 +610,7 @@ export default function LoanCalculatorPage() {
                   <Card className="border-0 shadow-lg">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <Icons.PieChart className="w-5 h-5 text-blue-600" />
+                        <PieChart className="w-5 h-5 text-blue-600" />
                         Payment Breakdown
                       </CardTitle>
                     </CardHeader>
@@ -776,7 +647,7 @@ export default function LoanCalculatorPage() {
                   <Card className="border-0 shadow-lg">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <Icons.Info className="w-5 h-5 text-emerald-600" />
+                        <Info className="w-5 h-5 text-emerald-600" />
                         Loan Summary
                       </CardTitle>
                     </CardHeader>
@@ -824,7 +695,7 @@ export default function LoanCalculatorPage() {
                 <Card className="border-0 shadow-lg">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Icons.Eye className="w-5 h-5 text-indigo-600" />
+                      <Eye className="w-5 h-5 text-indigo-600" />
                       Financial Insights & Recommendations
                     </CardTitle>
                   </CardHeader>
@@ -896,12 +767,12 @@ export default function LoanCalculatorPage() {
 
                     <div className="bg-gray-50 p-6 rounded-lg">
                       <h4 className="font-semibold mb-3 flex items-center gap-2">
-                        <Icons.Target className="w-5 h-5 text-blue-600" />
+                        <Target className="w-5 h-5 text-blue-600" />
                         Optimization Suggestions
                       </h4>
                       <ul className="space-y-2 text-sm">
                         <li className="flex items-start gap-2">
-                          <Icons.Clock className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                          <Clock className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
                           <span>
                             Reducing loan term to{" "}
                             {Math.max(6, loanInputs.loanTerm - 12)} months could
@@ -913,7 +784,7 @@ export default function LoanCalculatorPage() {
                           </span>
                         </li>
                         <li className="flex items-start gap-2">
-                          <Icons.Percent className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
+                          <Percent className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
                           <span>
                             A 1% rate reduction would save{" "}
                             <span className="font-semibold text-green-600">
@@ -927,7 +798,7 @@ export default function LoanCalculatorPage() {
                           </span>
                         </li>
                         <li className="flex items-start gap-2">
-                          <Icons.DollarSign className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
+                          <DollarSign className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
                           <span>
                             Making extra monthly payments of{" "}
                             <span className="font-semibold text-blue-600">
