@@ -305,7 +305,7 @@ export default function DashboardNavbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur-sm shadow-sm">
+    <nav className="sticky top-0 z-[100] w-full border-b border-gray-200 bg-white shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Left: Logo */}
@@ -438,7 +438,7 @@ export default function DashboardNavbar() {
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                className="w-56 shadow-lg border-0 bg-white/95 backdrop-blur-sm"
+                className="z-[9999] w-56 shadow-lg border-0 bg-white"
               >
                 <DropdownMenuLabel className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
                   Quick Actions
@@ -526,15 +526,15 @@ export default function DashboardNavbar() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="relative hover:bg-gray-50 transition-all duration-200 group"
+                  className="relative hover:bg-gray-50 group"
                 >
-                  <Bell className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                  <Bell className="h-4 w-4" />
                   {unreadCount > 0 && (
                     <div className="absolute -top-1 -right-1 flex items-center justify-center">
                       {/* Main notification badge */}
                       <div
                         className={cn(
-                          "relative w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-lg transform transition-all duration-200 hover:scale-110",
+                          "relative w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-lg",
                           highPriorityUnread > 0
                             ? "bg-gradient-to-r from-red-500 to-red-600 shadow-red-200"
                             : "bg-gradient-to-r from-blue-500 to-blue-600 shadow-blue-200"
@@ -560,36 +560,36 @@ export default function DashboardNavbar() {
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                className="w-80 shadow-lg border-0 bg-white/95 backdrop-blur-sm max-h-96 overflow-y-auto"
+                className="z-[9999] w-80 shadow-lg border-0 bg-white max-h-96 overflow-y-auto"
               >
-                <div className="flex items-center justify-between p-3 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-purple-50">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-purple-50">
                   <div className="flex items-center gap-2">
                     <h3 className="font-semibold text-gray-900">
                       Notifications
                     </h3>
                     {unreadCount > 0 && (
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        <span className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
+                        <span className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
                           {unreadCount} new
                         </span>
                       </div>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    {highPriorityUnread > 0 && (
+                    {/* {highPriorityUnread > 0 && (
                       <div className="flex items-center gap-1 bg-red-100 px-2 py-1 rounded-full">
                         <AlertTriangle className="h-3 w-3 text-red-600" />
                         <span className="text-xs font-bold text-red-600">
                           {highPriorityUnread} urgent
                         </span>
                       </div>
-                    )}
+                    )} */}
                     {unreadCount > 0 && (
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-100 transition-colors"
+                        className="text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-100 px-2 py-1"
                         onClick={markAllAsRead}
                       >
                         Mark all read
@@ -599,26 +599,28 @@ export default function DashboardNavbar() {
                 </div>
 
                 {notifications.length > 0 ? (
-                  <div className="py-2">
+                  <div className="py-1">
                     {notifications.slice(0, 5).map((notification) => (
                       <div
                         key={notification.id}
                         className={cn(
-                          "p-3 hover:bg-gray-50 cursor-pointer transition-colors border-l-2",
+                          "px-4 py-3 hover:bg-gray-50 cursor-pointer border-l-4 mx-1 my-1 rounded-r-md",
                           notification.read
                             ? "border-l-transparent"
                             : notification.priority === "high"
-                              ? "border-l-red-500"
+                              ? "border-l-red-500 bg-red-50/30"
                               : notification.priority === "medium"
-                                ? "border-l-yellow-500"
-                                : "border-l-blue-500"
+                                ? "border-l-yellow-500 bg-yellow-50/30"
+                                : "border-l-blue-500 bg-blue-50/30"
                         )}
                         onClick={() => markNotificationAsRead(notification.id)}
                       >
                         <div className="flex items-start gap-3">
-                          {getNotificationIcon(notification.type)}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between mb-1">
+                          <div className="mt-0.5">
+                            {getNotificationIcon(notification.type)}
+                          </div>
+                          <div className="flex-1 min-w-0 space-y-1">
+                            <div className="flex items-center justify-between">
                               <p
                                 className={cn(
                                   "text-sm font-medium truncate",
@@ -630,7 +632,7 @@ export default function DashboardNavbar() {
                                 {notification.title}
                               </p>
                               {!notification.read && (
-                                <div className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0 ml-2" />
+                                <div className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0 ml-3" />
                               )}
                             </div>
                             <p
@@ -643,7 +645,7 @@ export default function DashboardNavbar() {
                             >
                               {notification.message}
                             </p>
-                            <p className="text-xs text-gray-400 mt-1">
+                            <p className="text-xs text-gray-400 mt-2">
                               {formatNotificationTime(notification.timestamp)}
                             </p>
                           </div>
@@ -652,11 +654,11 @@ export default function DashboardNavbar() {
                     ))}
 
                     {notifications.length > 5 && (
-                      <div className="p-3 border-t border-gray-100">
+                      <div className="px-4 py-3 border-t border-gray-100 bg-gray-50/50">
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="w-full text-blue-600 hover:text-blue-700"
+                          className="w-full text-blue-600 hover:text-blue-700 hover:bg-blue-50 py-2"
                         >
                           View all notifications
                           <ArrowUpRight className="h-3 w-3 ml-1" />
@@ -665,10 +667,13 @@ export default function DashboardNavbar() {
                     )}
                   </div>
                 ) : (
-                  <div className="p-6 text-center">
-                    <Bell className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                    <p className="text-sm text-gray-500">
+                  <div className="px-6 py-12 text-center">
+                    <Bell className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+                    <p className="text-sm font-medium text-gray-900 mb-1">
                       No notifications yet
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      We'll notify you when something important happens
                     </p>
                   </div>
                 )}
@@ -681,11 +686,11 @@ export default function DashboardNavbar() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="flex items-center gap-3 hover:bg-gray-50 transition-all duration-200 p-2 rounded-lg group"
+                  className="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg group"
                 >
                   {/* User Avatar with Active Status */}
                   <div className="relative">
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-200">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-md">
                       <span className="text-white text-sm font-bold">
                         {getUserInitials()}
                       </span>
@@ -710,12 +715,12 @@ export default function DashboardNavbar() {
                   </div>
 
                   {/* Dropdown Arrow */}
-                  <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                  <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                className="w-80 shadow-lg border-0 bg-white/95 backdrop-blur-sm"
+                className="z-[9999] w-80 shadow-lg border-0 bg-white"
               >
                 <DropdownMenuLabel>
                   <div className="flex flex-col">

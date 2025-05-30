@@ -13,6 +13,9 @@ import {
   TrendingUp,
   Shield,
   Users,
+  Building2,
+  Coins,
+  Truck,
 } from "lucide-react";
 import UserProfile from "./user-profile";
 import {
@@ -46,29 +49,29 @@ export default async function Navbar() {
         </div>
       </div> */}
 
-      <nav className="sticky top-0 z-50 w-full border-b border-gray-200/80 bg-white/95 backdrop-blur-md shadow-sm">
+      <nav className="sticky top-0 z-[100] w-full border-b border-gray-200 bg-white shadow-sm">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center h-16">
-            {/* Logo and Brand */}
-            <div className="flex items-center gap-8">
-              <Link href="/" className="flex items-center gap-3 group">
-                <div className="relative">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform">
-                    <Wallet className="h-5 w-5 text-white" />
-                  </div>
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+            {/* Left: Logo */}
+            <div className="flex items-center">
+              <Link href="/" className="flex items-center gap-2 group">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center shadow-md">
+                  <Wallet className="h-4 w-4 text-white" />
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-                    RWA Lending
+                <div>
+                  <span className="text-lg font-bold text-gray-900">
+                    RWA Lending Platform
                   </span>
-                  <span className="text-xs text-gray-500 -mt-1">
-                    Multi-Chain Platform
-                  </span>
+                  <div className="flex items-center gap-1 -mt-1">
+                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                    <span className="text-xs text-gray-500">Multi-Chain</span>
+                  </div>
                 </div>
               </Link>
+            </div>
 
-              {/* Desktop Navigation */}
+            {/* Center: Navigation */}
+            <div className="hidden lg:flex items-center space-x-8">
               <div className="hidden lg:flex items-center space-x-1">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -159,26 +162,50 @@ export default async function Navbar() {
                         Use Cases
                       </div>
                       <DropdownMenuItem asChild>
-                        <Link href="#real-estate" className="p-3 rounded-lg">
-                          <div className="font-medium">Real Estate</div>
-                          <div className="text-sm text-gray-500">
-                            Property tokenization & lending
+                        <Link
+                          href="#real-estate"
+                          className="flex items-center gap-3 p-3 rounded-lg"
+                        >
+                          <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                            <Building2 className="w-4 h-4 text-orange-600" />
+                          </div>
+                          <div>
+                            <div className="font-medium">Real Estate</div>
+                            <div className="text-sm text-gray-500">
+                              Property tokenization & lending
+                            </div>
                           </div>
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href="#commodities" className="p-3 rounded-lg">
-                          <div className="font-medium">Commodities</div>
-                          <div className="text-sm text-gray-500">
-                            Gold, silver, oil tokenization
+                        <Link
+                          href="#commodities"
+                          className="flex items-center gap-3 p-3 rounded-lg"
+                        >
+                          <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                            <Coins className="w-4 h-4 text-yellow-600" />
+                          </div>
+                          <div>
+                            <div className="font-medium">Commodities</div>
+                            <div className="text-sm text-gray-500">
+                              Gold, silver, oil tokenization
+                            </div>
                           </div>
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href="#equipment" className="p-3 rounded-lg">
-                          <div className="font-medium">Equipment Finance</div>
-                          <div className="text-sm text-gray-500">
-                            Machinery & vehicle lending
+                        <Link
+                          href="#equipment"
+                          className="flex items-center gap-3 p-3 rounded-lg"
+                        >
+                          <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+                            <Truck className="w-4 h-4 text-emerald-600" />
+                          </div>
+                          <div>
+                            <div className="font-medium">Equipment Finance</div>
+                            <div className="text-sm text-gray-500">
+                              Machinery & vehicle lending
+                            </div>
                           </div>
                         </Link>
                       </DropdownMenuItem>
@@ -217,43 +244,12 @@ export default async function Navbar() {
                 </Button>
               </div>
 
-              {user ? (
-                <>
-                  {/* Notifications */}
-                  <Button variant="ghost" size="icon" className="relative">
-                    <Bell className="h-5 w-5" />
-                    <Badge
-                      variant="destructive"
-                      className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs"
-                    >
-                      3
-                    </Badge>
-                  </Button>
-
-
-                  <UserProfile />
-                </>
-              ) : (
-                <div className="flex items-center gap-3">
-                  <Link
-                    href="/sign-in"
-                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
-                  >
-                    Sign In
-                  </Link>
-                  <Link
-                    href="/sign-up"
-                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-sm hover:shadow-md"
-                  >
-                    Get Started
-                    <Sparkles className="w-4 h-4" />
-                  </Link>
-                </div>
-              )}
+              {/* User Profile */}
+              <UserProfile />
 
               {/* Mobile menu button */}
-              <Button variant="ghost" size="icon" className="lg:hidden">
-                <Menu className="h-5 w-5" />
+              <Button variant="ghost" size="sm" className="lg:hidden">
+                <Menu className="w-5 h-5" />
               </Button>
             </div>
           </div>
