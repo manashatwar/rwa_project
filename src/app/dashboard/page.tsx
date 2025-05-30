@@ -1,30 +1,4 @@
-import DashboardNavbar from "@/components/dashboard-navbar";
-import {
-  InfoIcon,
-  UserCircle,
-  TrendingUp,
-  TrendingDown,
-  AlertTriangle,
-  Search,
-  Filter,
-  Plus,
-  ArrowUpRight,
-  RefreshCw,
-  Calendar,
-  DollarSign,
-  CheckCircle,
-  BarChart3,
-  Coins,
-  FileCheck,
-  Globe,
-  Landmark,
-  Wallet,
-  Clock,
-  XCircle,
-  Activity,
-  Trophy,
-} from "lucide-react";
-import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { createClient } from "../../../supabase/server";
 import {
   Card,
@@ -33,13 +7,58 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import Link from "next/link";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import {
+  RefreshCw,
+  Search,
+  Filter,
+  Calendar,
+  TrendingUp,
+  TrendingDown,
+  BarChart3,
+  Landmark,
+  DollarSign,
+  Wallet,
+  Shield,
+  InfoIcon,
+  Users,
+  FileText,
+  PlusCircle,
+  ChevronRight,
+  Target,
+  Clock,
+  Globe,
+  Zap,
+  AlertTriangle,
+  CheckCircle,
+  Building,
+  Home,
+  Car,
+  Coins,
+  ArrowUpRight,
+  Activity,
+  Network,
+  Link as LinkIcon,
+  Percent,
+  CreditCard,
+  Banknote,
+  Plus,
+  Layers,
+  Trophy,
+  XCircle,
+  FileCheck,
+  ExternalLink,
+  Send,
+  ArrowUpDown,
+  ShieldCheck,
+} from "lucide-react";
 import { SubmitButton } from "@/components/submit-button";
+import Link from "next/link";
+import { redirect } from "next/navigation";
 
 interface Asset {
   id: string;
@@ -350,7 +369,6 @@ export default async function Dashboard({
 
   return (
     <>
-      <DashboardNavbar />
       <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 animate-fadeIn">
         <div className="container mx-auto px-4 py-8 space-y-8">
           {/* Header Section */}

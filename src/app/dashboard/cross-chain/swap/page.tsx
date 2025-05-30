@@ -1,6 +1,8 @@
-import DashboardNavbar from "@/components/dashboard-navbar";
-import { redirect } from "next/navigation";
-import { createClient } from "../../../../../supabase/server";
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "../../../../../supabase/client";
 import {
   Card,
   CardContent,
@@ -18,77 +20,98 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft,
   ArrowUpDown,
-  Wallet,
-  TrendingUp,
-  AlertTriangle,
-  CheckCircle,
   DollarSign,
   Clock,
+  Shield,
+  CheckCircle,
+  AlertTriangle,
   Zap,
+  Activity,
+  TrendingUp,
+  Coins,
 } from "lucide-react";
 import Link from "next/link";
-import { SubmitButton } from "@/components/submit-button";
+import { toast } from "@/components/ui/use-toast";
 
-async function swapAssetAction(formData: FormData) {
-  "use server";
+export default function SwapPage() {
+  const router = useRouter();
+  const [positions, setPositions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
 
-  const supabase = await createClient();
+  useEffect(() => {
+    const loadData = async () => {
+      const supabase = createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-  if (!user) {
-    return redirect("/sign-in");
+      if (!user) {
+        router.push("/sign-in");
+        return;
+      }
+
+      setUser(user);
+
+      // Fetch user's positions for selection
+      const { data: positions } = await supabase
+        .from("cross_chain_positions")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("usd_value", { ascending: false });
+
+      setPositions(positions || []);
+      setLoading(false);
+    };
+
+    loadData();
+  }, [router]);
+
+  const handleSubmit = async (formData: FormData) => {
+    if (!user) return;
+
+    const fromAssetId = formData.get("from_asset_id") as string;
+    const toAssetSymbol = formData.get("to_asset_symbol") as string;
+    const amount = parseFloat(formData.get("amount") as string);
+    const slippage = formData.get("slippage") as string;
+
+    // Mock transaction - in reality, this would interact with DEX protocols
+    const transactionHash = "0x" + Math.random().toString(16).substring(2, 66);
+
+    // Here you would implement actual DEX interaction logic
+    console.log("Swapping assets:", {
+      fromAssetId,
+      toAssetSymbol,
+      amount,
+      slippage,
+      transactionHash,
+    });
+
+    toast({
+      title: "Swap Initiated",
+      description: "Your asset swap has been initiated.",
+    });
+
+    router.push("/dashboard/cross-chain?swapped=true");
+  };
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
+          <div className="text-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading...</p>
+          </div>
+        </div>
+      </main>
+    );
   }
-
-  const fromAssetId = formData.get("from_asset_id") as string;
-  const toAssetSymbol = formData.get("to_asset_symbol") as string;
-  const amount = parseFloat(formData.get("amount") as string);
-  const slippage = formData.get("slippage") as string;
-
-  // Mock transaction - in reality, this would interact with DEX protocols
-  const transactionHash = "0x" + Math.random().toString(16).substring(2, 66);
-
-  // Here you would implement actual DEX interaction logic
-  console.log("Swapping assets:", {
-    fromAssetId,
-    toAssetSymbol,
-    amount,
-    slippage,
-    transactionHash,
-  });
-
-  return redirect("/dashboard/cross-chain?swapped=true");
-}
-
-export default async function SwapPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return redirect("/sign-in");
-  }
-
-  const params = await searchParams;
-  const selectedFromAssetId = params.from as string;
-
-  // Fetch user's positions for selection
-  const { data: positions } = await supabase
-    .from("cross_chain_positions")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("usd_value", { ascending: false });
 
   const availableTokens = [
     { symbol: "USDC", name: "USD Coin" },
@@ -103,7 +126,6 @@ export default async function SwapPage({
 
   return (
     <>
-      <DashboardNavbar />
       <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
         <div className="container mx-auto px-4 py-8 max-w-4xl">
           {/* Header */}
@@ -138,11 +160,11 @@ export default async function SwapPage({
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-8">
-                  <form action={swapAssetAction} className="space-y-8">
+                  <form action={handleSubmit} className="space-y-8">
                     {/* From Asset */}
                     <div className="space-y-3">
                       <Label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                        <Wallet className="h-4 w-4" />
+                        <DollarSign className="h-4 w-4" />
                         From Asset *
                       </Label>
                       <div className="border border-gray-200 bg-gray-50/30 rounded-lg p-6">
@@ -151,11 +173,7 @@ export default async function SwapPage({
                             <Label className="text-sm text-muted-foreground">
                               Asset
                             </Label>
-                            <Select
-                              name="from_asset_id"
-                              defaultValue={selectedFromAssetId}
-                              required
-                            >
+                            <Select name="from_asset_id" required>
                               <SelectTrigger className="h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20">
                                 <SelectValue placeholder="Select asset to swap" />
                               </SelectTrigger>
@@ -318,13 +336,13 @@ export default async function SwapPage({
                     </div>
 
                     <div className="border-t border-gray-200 pt-8 flex gap-4">
-                      <SubmitButton
+                      <Button
+                        type="submit"
                         className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
-                        pendingText="Processing Swap..."
                       >
                         <ArrowUpDown className="h-4 w-4 mr-2" />
                         Execute Swap
-                      </SubmitButton>
+                      </Button>
                       <Button
                         type="button"
                         variant="outline"

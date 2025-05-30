@@ -1,6 +1,8 @@
-import DashboardNavbar from "@/components/dashboard-navbar";
-import { redirect } from "next/navigation";
-import { createClient } from "../../../../../supabase/server";
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "../../../../../supabase/client";
 import {
   Card,
   CardContent,
@@ -9,18 +11,23 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft,
   Wallet,
-  Plus,
+  Globe,
+  Shield,
   CheckCircle,
   AlertTriangle,
-  Shield,
+  Plus,
+  Settings,
+  Link as LinkIcon,
   Zap,
-  Globe,
+  Activity,
   ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
+import { toast } from "@/components/ui/use-toast";
 import MetaMaskConnect from "@/components/metamask-connect";
 
 const supportedWallets = [
@@ -90,67 +97,60 @@ const supportedNetworks = [
   },
 ];
 
-async function connectWalletAction(formData: FormData) {
-  "use server";
+export default function ConnectWalletPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
 
-  const supabase = await createClient();
+  useEffect(() => {
+    const loadUser = async () => {
+      const supabase = createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-  if (!user) {
-    return redirect("/sign-in");
-  }
+      if (!user) {
+        router.push("/sign-in");
+        return;
+      }
 
-  const walletType = formData.get("wallet_type") as string;
+      setUser(user);
+      setLoading(false);
+    };
 
-  // Mock wallet connection - in reality, this would handle wallet integration
-  console.log("Connecting wallet:", walletType);
+    loadUser();
+  }, [router]);
 
-  // Simulate adding sample cross-chain positions
-  const samplePositions = [
-    {
-      user_id: user.id,
-      blockchain: "ethereum",
-      asset_address: "0xA0b86a33E6B5e8C5FaE44e1A9B7c7C9F8A1e4B5B",
-      asset_symbol: "USDC",
-      balance: 15000.0,
-      usd_value: 15000.0,
-      position_type: "stablecoin",
-    },
-    {
-      user_id: user.id,
-      blockchain: "polygon",
-      asset_address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
-      asset_symbol: "USDC",
-      balance: 8500.0,
-      usd_value: 8500.0,
-      position_type: "stablecoin",
-    },
-  ];
+  const handleWalletConnect = async (walletType: string) => {
+    if (!user) return;
 
-  for (const position of samplePositions) {
-    await supabase.from("cross_chain_positions").upsert(position);
-  }
+    console.log("Connecting wallet:", walletType);
 
-  return redirect("/dashboard/cross-chain?connected=true");
-}
+    // Mock wallet connection success
+    toast({
+      title: "Wallet Connected",
+      description: `Successfully connected ${walletType}`,
+    });
 
-export default async function ConnectWalletPage() {
-  const supabase = await createClient();
+    router.push("/dashboard/cross-chain?connected=true");
+  };
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return redirect("/sign-in");
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
+        <div className="container mx-auto px-4 py-8 max-w-6xl">
+          <div className="text-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading...</p>
+          </div>
+        </div>
+      </main>
+    );
   }
 
   return (
     <>
-      <DashboardNavbar />
       <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
         <div className="container mx-auto px-4 py-8 max-w-6xl">
           {/* Header */}
@@ -191,12 +191,13 @@ export default async function ConnectWalletPage() {
                     <MetaMaskConnect />
 
                     {supportedWallets.map((wallet) => (
-                      <form key={wallet.name} action={connectWalletAction}>
-                        <input
-                          type="hidden"
-                          name="wallet_type"
-                          value={wallet.name.toLowerCase()}
-                        />
+                      <form
+                        key={wallet.name}
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          handleWalletConnect(wallet.name.toLowerCase());
+                        }}
+                      >
                         <button
                           type="submit"
                           className="w-full border border-gray-200 bg-white hover:bg-gray-50 rounded-xl p-6 text-left transition-all duration-200 hover:shadow-lg hover:-translate-y-1 group"

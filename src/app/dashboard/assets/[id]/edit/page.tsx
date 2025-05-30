@@ -1,6 +1,8 @@
-import DashboardNavbar from "@/components/dashboard-navbar";
-import { redirect, notFound } from "next/navigation";
-import { createClient } from "../../../../../../supabase/server";
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "../../../../../../supabase/client";
 import {
   Card,
   CardContent,
@@ -21,20 +23,22 @@ import {
 } from "@/components/ui/select";
 import {
   ArrowLeft,
-  Save,
   Building,
   MapPin,
   DollarSign,
-  Globe,
+  Calendar,
+  Save,
+  Upload,
+  FileText,
+  CheckCircle,
   AlertTriangle,
   Clock,
+  Globe,
   Shield,
-  CheckCircle,
-  FileText,
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { SubmitButton } from "@/components/submit-button";
+import { toast } from "@/components/ui/use-toast";
 
 interface Asset {
   id: string;
@@ -50,78 +54,107 @@ interface Asset {
   created_at: string;
 }
 
-async function updateAssetAction(formData: FormData) {
-  "use server";
+export default function EditAssetPage({ params }: { params: { id: string } }) {
+  const router = useRouter();
+  const [asset, setAsset] = useState<Asset | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
 
-  const supabase = await createClient();
+  useEffect(() => {
+    const loadAsset = async () => {
+      const supabase = createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-  if (!user) {
-    return redirect("/sign-in");
+      if (!user) {
+        router.push("/sign-in");
+        return;
+      }
+
+      setUser(user);
+
+      const { data: asset, error } = await supabase
+        .from("assets")
+        .select("*")
+        .eq("id", params.id)
+        .eq("user_id", user.id)
+        .single();
+
+      if (error || !asset) {
+        router.push("/dashboard/assets");
+        return;
+      }
+
+      setAsset(asset);
+      setLoading(false);
+    };
+
+    loadAsset();
+  }, [params.id, router]);
+
+  const handleSubmit = async (formData: FormData) => {
+    if (!asset || !user) return;
+
+    const supabase = createClient();
+
+    const name = formData.get("name") as string;
+    const assetType = formData.get("asset_type") as string;
+    const description = formData.get("description") as string;
+    const location = formData.get("location") as string;
+    const currentValue = parseFloat(formData.get("current_value") as string);
+    const blockchain = formData.get("blockchain") as string;
+
+    const { error } = await supabase
+      .from("assets")
+      .update({
+        name,
+        asset_type: assetType,
+        description,
+        location,
+        current_value: currentValue,
+        blockchain,
+      })
+      .eq("id", asset.id)
+      .eq("user_id", user.id);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update asset. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Success",
+      description: "Asset updated successfully.",
+    });
+
+    router.push(`/dashboard/assets/${asset.id}`);
+  };
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
+          <div className="text-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading asset...</p>
+          </div>
+        </div>
+      </main>
+    );
   }
 
-  const id = formData.get("id") as string;
-  const name = formData.get("name") as string;
-  const assetType = formData.get("asset_type") as string;
-  const description = formData.get("description") as string;
-  const location = formData.get("location") as string;
-  const currentValue = parseFloat(formData.get("current_value") as string);
-  const blockchain = formData.get("blockchain") as string;
-
-  const { error } = await supabase
-    .from("assets")
-    .update({
-      name,
-      asset_type: assetType,
-      description,
-      location,
-      current_value: currentValue,
-      blockchain,
-    })
-    .eq("id", id)
-    .eq("user_id", user.id);
-
-  if (error) {
-    console.error("Error updating asset:", error);
-    return;
-  }
-
-  return redirect(`/dashboard/assets/${id}`);
-}
-
-export default async function EditAssetPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return redirect("/sign-in");
-  }
-
-  const { data: asset, error } = await supabase
-    .from("assets")
-    .select("*")
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .single();
-
-  if (error || !asset) {
-    return notFound();
+  if (!asset) {
+    return null;
   }
 
   return (
     <>
-      <DashboardNavbar />
       <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 animate-fadeIn">
         <div className="container mx-auto px-4 py-8 max-w-7xl">
           {/* Enhanced Header */}
@@ -173,7 +206,7 @@ export default async function EditAssetPage({
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-8">
-                  <form action={updateAssetAction} className="space-y-8">
+                  <form action={handleSubmit} className="space-y-8">
                     <input type="hidden" name="id" value={asset.id} />
 
                     {/* Basic Information Section */}

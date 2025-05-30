@@ -1,5 +1,3 @@
-import DashboardNavbar from "@/components/dashboard-navbar";
-import { redirect } from "next/navigation";
 import { createClient } from "../../../../../supabase/server";
 import {
   Card,
@@ -20,19 +18,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  ArrowLeft,
-  Upload,
-  Info,
   Building,
+  Upload,
+  Plus,
+  ArrowLeft,
+  FileText,
+  Camera,
   MapPin,
   DollarSign,
-  FileText,
-  Globe,
+  Calendar,
+  Shield,
   CheckCircle,
-  Clock,
+  AlertTriangle,
+  Globe,
   Sparkles,
+  Info,
 } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { SubmitButton } from "@/components/submit-button";
 
 async function createAssetAction(formData: FormData) {
@@ -89,7 +92,6 @@ export default async function NewAssetPage() {
 
   return (
     <>
-      <DashboardNavbar />
       <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 animate-fadeIn">
         <div className="container mx-auto px-4 py-8 max-w-7xl">
           {/* Enhanced Header with Back Button */}
@@ -110,7 +112,7 @@ export default async function NewAssetPage() {
                 </Link>
               </Button>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Clock className="h-4 w-4" />
+                <Calendar className="h-4 w-4" />
                 <span>Estimated time: 5-10 minutes</span>
               </div>
             </div>

@@ -1,6 +1,8 @@
-import DashboardNavbar from "@/components/dashboard-navbar";
-import { redirect } from "next/navigation";
-import { createClient } from "../../../../supabase/server";
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "../../../../supabase/client";
 import {
   Card,
   CardContent,
@@ -8,8 +10,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -17,55 +20,78 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import {
-  Coins,
   CreditCard,
   Calendar,
+  DollarSign,
   CheckCircle,
   Clock,
-  XCircle,
-  ArrowRight,
-  Wallet,
-  Activity,
+  AlertTriangle,
   TrendingUp,
-  Building,
-  DollarSign,
+  Wallet,
+  Plus,
+  ArrowRight,
+  Banknote,
+  Target,
 } from "lucide-react";
-import { SubmitButton } from "@/components/submit-button";
+import { toast } from "@/components/ui/use-toast";
 
 interface Payment {
   id: string;
+  loan_id: string;
   amount: number;
-  currency: string;
-  crypto_currency: string;
-  exchange_rate: number;
-  transaction_hash: string;
-  blockchain: string;
-  payment_status: string;
-  payment_date: string;
-  loans: {
-    id: string;
-    loan_amount: number;
-    monthly_payment: number;
-    assets: {
+  due_date: string;
+  status: "pending" | "paid" | "overdue";
+  payment_type: "monthly" | "interest_only" | "principal";
+  loan: {
+    asset: {
       name: string;
     };
   };
 }
 
-interface Loan {
-  id: string;
-  loan_amount: number;
-  outstanding_balance: number;
-  monthly_payment: number;
-  next_payment_date: string;
-  assets: {
-    name: string;
-  };
-}
+const mockPayments: Payment[] = [
+  {
+    id: "1",
+    loan_id: "loan_1",
+    amount: 2500,
+    due_date: "2024-02-15",
+    status: "pending",
+    payment_type: "monthly",
+    loan: {
+      asset: {
+        name: "Downtown Office Building",
+      },
+    },
+  },
+  {
+    id: "2",
+    loan_id: "loan_2",
+    amount: 1800,
+    due_date: "2024-02-20",
+    status: "pending",
+    payment_type: "monthly",
+    loan: {
+      asset: {
+        name: "Luxury Apartment Complex",
+      },
+    },
+  },
+  {
+    id: "3",
+    loan_id: "loan_3",
+    amount: 3200,
+    due_date: "2024-01-28",
+    status: "paid",
+    payment_type: "monthly",
+    loan: {
+      asset: {
+        name: "Industrial Warehouse",
+      },
+    },
+  },
+];
 
 function getStatusBadge(status: string) {
   const colors = {
@@ -77,7 +103,7 @@ function getStatusBadge(status: string) {
   const icons = {
     completed: CheckCircle,
     pending: Clock,
-    failed: XCircle,
+    failed: AlertTriangle,
   };
 
   const Icon = icons[status as keyof typeof icons] || Clock;
@@ -101,148 +127,87 @@ const cryptoCurrencies = [
   { symbol: "MATIC", name: "Polygon", rate: 1.25 },
 ];
 
-async function processPaymentAction(formData: FormData) {
-  "use server";
+export default function PaymentsPage() {
+  const router = useRouter();
+  const [payments, setPayments] = useState<Payment[]>(mockPayments);
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
 
-  const supabase = await createClient();
+  useEffect(() => {
+    const loadData = async () => {
+      const supabase = createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-  if (!user) {
-    return redirect("/sign-in");
+      if (!user) {
+        router.push("/sign-in");
+        return;
+      }
+
+      setUser(user);
+      setLoading(false);
+    };
+
+    loadData();
+  }, [router]);
+
+  const handlePayment = async (formData: FormData) => {
+    if (!user) return;
+
+    const loanId = formData.get("loan_id") as string;
+    const amount = parseFloat(formData.get("amount") as string);
+    const cryptoCurrency = formData.get("crypto_currency") as string;
+    const blockchain = formData.get("blockchain") as string;
+
+    // Find the selected crypto rate
+    const selectedCrypto = cryptoCurrencies.find(
+      (c) => c.symbol === cryptoCurrency
+    );
+    const exchangeRate = selectedCrypto?.rate || 1.0;
+
+    // Generate a mock transaction hash
+    const transactionHash = "0x" + Math.random().toString(16).substring(2, 66);
+
+    console.log("Processing payment:", {
+      loanId,
+      amount,
+      cryptoCurrency,
+      blockchain,
+      exchangeRate,
+      transactionHash,
+    });
+
+    toast({
+      title: "Payment Processed",
+      description: "Your loan payment has been successfully processed.",
+    });
+  };
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
+          <div className="text-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading payments...</p>
+          </div>
+        </div>
+      </main>
+    );
   }
 
-  const loanId = formData.get("loan_id") as string;
-  const amount = parseFloat(formData.get("amount") as string);
-  const cryptoCurrency = formData.get("crypto_currency") as string;
-  const blockchain = formData.get("blockchain") as string;
-
-  // Find the selected crypto rate
-  const selectedCrypto = cryptoCurrencies.find(
-    (c) => c.symbol === cryptoCurrency
-  );
-  const exchangeRate = selectedCrypto?.rate || 1.0;
-
-  // Generate a mock transaction hash
-  const transactionHash = "0x" + Math.random().toString(16).substring(2, 66);
-
-  // Insert payment record
-  const { error: paymentError } = await supabase.from("payments").insert({
-    user_id: user.id,
-    loan_id: loanId,
-    amount,
-    currency: "USD",
-    crypto_currency: cryptoCurrency,
-    exchange_rate: exchangeRate,
-    transaction_hash: transactionHash,
-    blockchain,
-    payment_status: "completed",
-    payment_date: new Date().toISOString(),
-  });
-
-  if (paymentError) {
-    console.error("Error creating payment:", paymentError);
-    return;
-  }
-
-  // Update loan outstanding balance
-  const { data: loan } = await supabase
-    .from("loans")
-    .select("outstanding_balance")
-    .eq("id", loanId)
-    .single();
-
-  if (loan) {
-    const newBalance = Math.max(0, loan.outstanding_balance - amount);
-    await supabase
-      .from("loans")
-      .update({
-        outstanding_balance: newBalance,
-        loan_status: newBalance === 0 ? "completed" : "active",
-      })
-      .eq("id", loanId);
-  }
-
-  return redirect("/dashboard/payments?success=true");
-}
-
-export default async function PaymentsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return redirect("/sign-in");
-  }
-
-  const params = await searchParams;
-  const selectedLoanId = params.loan as string;
-  const showSuccess = params.success === "true";
-
-  // Fetch recent payments
-  const { data: payments } = await supabase
-    .from("payments")
-    .select(
-      `
-      *,
-      loans!payments_loan_id_fkey (
-        id,
-        loan_amount,
-        monthly_payment,
-        assets!loans_asset_id_fkey (
-          name
-        )
-      )
-    `
-    )
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(10);
-
-  // Fetch active loans for payment selection
-  const { data: loans } = await supabase
-    .from("loans")
-    .select(
-      `
-      *,
-      assets!loans_asset_id_fkey (
-        name
-      )
-    `
-    )
-    .eq("user_id", user.id)
-    .eq("loan_status", "active")
-    .order("next_payment_date", { ascending: true });
-
-  const totalPaid =
-    payments?.reduce((sum, payment) => sum + payment.amount, 0) || 0;
-  const completedPayments =
-    payments?.filter((payment) => payment.payment_status === "completed")
-      .length || 0;
-  const pendingPayments =
-    payments?.filter((payment) => payment.payment_status === "pending")
-      .length || 0;
-
-  const thisMonthPaid =
-    payments
-      ?.filter(
-        (p) =>
-          new Date(p.payment_date).getMonth() === new Date().getMonth() &&
-          new Date(p.payment_date).getFullYear() === new Date().getFullYear()
-      )
-      .reduce((sum, p) => sum + p.amount, 0) || 0;
+  const totalPaid = payments.reduce((sum, payment) => sum + payment.amount, 0);
+  const completedPayments = payments.filter(
+    (payment) => payment.status === "paid"
+  ).length;
+  const pendingPayments = payments.filter(
+    (payment) => payment.status === "pending"
+  ).length;
 
   return (
     <>
-      <DashboardNavbar />
       <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
         <div className="container mx-auto px-4 py-8 max-w-7xl">
           {/* Header */}
@@ -255,31 +220,12 @@ export default async function PaymentsPage({
             </p>
           </div>
 
-          {/* Success Message */}
-          {showSuccess && (
-            <Card className="border border-emerald-200 shadow-lg bg-gradient-to-br from-emerald-50/50 to-green-50/50 mb-8">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="h-6 w-6 text-emerald-600" />
-                  <div>
-                    <h3 className="font-semibold text-emerald-900">
-                      Payment Successful!
-                    </h3>
-                    <p className="text-emerald-700">
-                      Your payment has been processed and recorded.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100/50 backdrop-blur-sm hover:shadow-xl transition-all duration-200 hover:-translate-y-1">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-semibold text-blue-600 flex items-center gap-2 uppercase tracking-wide">
-                  <Coins className="h-5 w-5" />
+                  <DollarSign className="h-5 w-5" />
                   Total Paid
                 </CardTitle>
               </CardHeader>
@@ -326,7 +272,7 @@ export default async function PaymentsPage({
                   {pendingPayments}
                 </p>
                 <div className="flex items-center gap-1 text-yellow-600 mt-2">
-                  <Building className="h-4 w-4" />
+                  <AlertTriangle className="h-4 w-4" />
                   <span className="text-sm font-medium">Processing</span>
                 </div>
               </CardContent>
@@ -341,7 +287,7 @@ export default async function PaymentsPage({
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold text-gray-900">
-                  ${thisMonthPaid.toLocaleString()}
+                  ${totalPaid.toLocaleString()}
                 </p>
                 <div className="flex items-center gap-1 text-purple-600 mt-2">
                   <DollarSign className="h-4 w-4" />
@@ -364,7 +310,7 @@ export default async function PaymentsPage({
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-8">
-                <form action={processPaymentAction} className="space-y-6">
+                <form action={handlePayment} className="space-y-6">
                   <div className="space-y-3">
                     <Label
                       htmlFor="loan_id"
@@ -372,23 +318,19 @@ export default async function PaymentsPage({
                     >
                       Select Loan *
                     </Label>
-                    <Select
-                      name="loan_id"
-                      defaultValue={selectedLoanId}
-                      required
-                    >
+                    <Select name="loan_id" required>
                       <SelectTrigger className="h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20">
                         <SelectValue placeholder="Choose a loan to pay" />
                       </SelectTrigger>
                       <SelectContent>
-                        {loans?.map((loan: Loan) => (
-                          <SelectItem key={loan.id} value={loan.id}>
+                        {payments.map((payment) => (
+                          <SelectItem key={payment.id} value={payment.id}>
                             <div className="flex items-center justify-between w-full">
                               <span className="font-medium">
-                                {loan.assets?.name}
+                                {payment.loan.asset.name}
                               </span>
                               <span className="text-sm text-muted-foreground ml-4">
-                                ${loan.monthly_payment.toLocaleString()} due
+                                ${payment.amount.toLocaleString()} due
                               </span>
                             </div>
                           </SelectItem>
@@ -513,7 +455,7 @@ export default async function PaymentsPage({
                     size="lg"
                     pendingText="Processing Payment..."
                   >
-                    <ArrowRight className="h-4 w-4 mr-2" />
+                    <ArrowUpRight className="h-4 w-4 mr-2" />
                     Process Payment
                   </SubmitButton>
                 </form>
@@ -532,11 +474,11 @@ export default async function PaymentsPage({
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-8">
-                {loans && loans.length > 0 ? (
+                {payments && payments.length > 0 ? (
                   <div className="space-y-6">
-                    {loans.slice(0, 5).map((loan: Loan) => {
+                    {payments.slice(0, 5).map((payment) => {
                       const daysUntil = Math.ceil(
-                        (new Date(loan.next_payment_date).getTime() -
+                        (new Date(payment.due_date).getTime() -
                           new Date().getTime()) /
                           (1000 * 60 * 60 * 24)
                       );
@@ -545,7 +487,7 @@ export default async function PaymentsPage({
 
                       return (
                         <div
-                          key={loan.id}
+                          key={payment.id}
                           className={`p-6 rounded-xl border transition-all duration-200 ${
                             isOverdue
                               ? "border-red-200 bg-red-50/30 shadow-md"
@@ -557,22 +499,23 @@ export default async function PaymentsPage({
                           <div className="flex items-center justify-between mb-4">
                             <div>
                               <p className="font-semibold text-lg text-gray-900">
-                                {loan.assets?.name}
+                                {payment.loan.asset.name}
                               </p>
                               <p className="text-base text-muted-foreground">
                                 Due:{" "}
-                                {new Date(
-                                  loan.next_payment_date
-                                ).toLocaleDateString("en-US", {
-                                  year: "numeric",
-                                  month: "long",
-                                  day: "numeric",
-                                })}
+                                {new Date(payment.due_date).toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    year: "numeric",
+                                    month: "long",
+                                    day: "numeric",
+                                  }
+                                )}
                               </p>
                             </div>
                             <div className="text-right">
                               <p className="font-bold text-2xl text-gray-900">
-                                ${loan.monthly_payment.toLocaleString()}
+                                ${payment.amount.toLocaleString()}
                               </p>
                               <p
                                 className={`text-sm font-medium ${
@@ -597,7 +540,7 @@ export default async function PaymentsPage({
                             variant="outline"
                             asChild
                           >
-                            <a href={`/dashboard/payments?loan=${loan.id}`}>
+                            <a href={`/dashboard/payments?loan=${payment.id}`}>
                               {isOverdue ? "Pay Now (Overdue)" : "Pay Now"}
                             </a>
                           </Button>
@@ -629,17 +572,17 @@ export default async function PaymentsPage({
             <CardContent className="p-8">
               {payments && payments.length > 0 ? (
                 <div className="space-y-6">
-                  {payments.map((payment: Payment) => (
+                  {payments.map((payment) => (
                     <div
                       key={payment.id}
                       className="flex items-center justify-between p-6 border border-gray-200 rounded-xl bg-gray-50/30 hover:shadow-md transition-all duration-200"
                     >
                       <div className="space-y-2">
                         <p className="font-semibold text-lg text-gray-900">
-                          {payment.loans?.assets?.name || "Loan Payment"}
+                          {payment.loan.asset.name || "Loan Payment"}
                         </p>
                         <p className="text-base text-muted-foreground">
-                          {new Date(payment.payment_date).toLocaleDateString(
+                          {new Date(payment.due_date).toLocaleDateString(
                             "en-US",
                             {
                               year: "numeric",
@@ -647,27 +590,15 @@ export default async function PaymentsPage({
                               day: "numeric",
                             }
                           )}{" "}
-                          • {payment.crypto_currency || payment.currency}
+                          • {payment.amount.toLocaleString()}
                         </p>
-                        {payment.transaction_hash && (
-                          <p className="text-sm text-muted-foreground font-mono bg-gray-100 px-2 py-1 rounded w-fit">
-                            {payment.transaction_hash.slice(0, 10)}...
-                            {payment.transaction_hash.slice(-8)}
-                          </p>
-                        )}
                       </div>
                       <div className="text-right space-y-2">
                         <p className="font-bold text-2xl text-gray-900">
                           ${payment.amount.toLocaleString()}
                         </p>
                         <div className="flex items-center gap-3">
-                          {getStatusBadge(payment.payment_status)}
-                          <Badge
-                            variant="outline"
-                            className="text-xs bg-gray-50/80 text-gray-700 border-gray-200"
-                          >
-                            {payment.blockchain}
-                          </Badge>
+                          {getStatusBadge(payment.status)}
                         </div>
                       </div>
                     </div>
@@ -675,7 +606,7 @@ export default async function PaymentsPage({
                 </div>
               ) : (
                 <div className="text-center py-16">
-                  <Coins className="h-20 w-20 mx-auto mb-6 text-muted-foreground opacity-40" />
+                  <DollarSign className="h-20 w-20 mx-auto mb-6 text-muted-foreground opacity-40" />
                   <h3 className="text-2xl font-bold mb-3 text-gray-900">
                     No payment history
                   </h3>

@@ -1,5 +1,3 @@
-import DashboardNavbar from "@/components/dashboard-navbar";
-import { redirect, notFound } from "next/navigation";
 import { createClient } from "../../../../../supabase/server";
 import {
   Card,
@@ -8,29 +6,28 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
-  ArrowLeft,
-  Edit,
-  MapPin,
-  Calendar,
-  Globe,
-  DollarSign,
-  TrendingUp,
-  TrendingDown,
   Building,
+  DollarSign,
+  Calendar,
+  MapPin,
   FileText,
-  Shield,
-  Wallet,
+  TrendingUp,
   Activity,
-  BarChart3,
   Clock,
   CheckCircle,
-  Eye,
+  AlertTriangle,
+  ArrowLeft,
+  Edit,
+  Share,
   Download,
+  Eye,
+  ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
 interface Asset {
   id: string;
@@ -101,7 +98,6 @@ export default async function AssetViewPage({
 
   return (
     <>
-      <DashboardNavbar />
       <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 animate-fadeIn">
         <div className="container mx-auto px-4 py-8 max-w-7xl">
           {/* Enhanced Header */}
@@ -195,7 +191,7 @@ export default async function AssetViewPage({
                     </div>
                     <div className="p-6 bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl border border-purple-200 hover:shadow-md transition-all duration-200">
                       <h3 className="text-sm font-semibold text-purple-600 mb-3 uppercase tracking-wide flex items-center gap-2">
-                        <Globe className="h-4 w-4" />
+                        <ExternalLink className="h-4 w-4" />
                         Blockchain
                       </h3>
                       <p className="text-xl font-bold text-gray-900 capitalize">
@@ -233,7 +229,7 @@ export default async function AssetViewPage({
                 <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-emerald-50/50 to-green-50/50">
                   <CardTitle className="flex items-center gap-3 text-2xl">
                     <div className="w-12 h-12 bg-gradient-to-br from-emerald-600 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-                      <BarChart3 className="h-6 w-6 text-white" />
+                      <DollarSign className="h-6 w-6 text-white" />
                     </div>
                     Valuation
                   </CardTitle>

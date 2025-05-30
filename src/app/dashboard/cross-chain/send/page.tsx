@@ -1,6 +1,8 @@
-import DashboardNavbar from "@/components/dashboard-navbar";
-import { redirect } from "next/navigation";
-import { createClient } from "../../../../../supabase/server";
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "../../../../../supabase/client";
 import {
   Card,
   CardContent,
@@ -18,79 +20,102 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft,
   Send,
-  Wallet,
-  Network,
-  AlertTriangle,
-  CheckCircle,
+  Globe,
   DollarSign,
+  Clock,
+  Shield,
+  CheckCircle,
+  AlertTriangle,
+  ArrowRight,
+  Zap,
+  Network,
+  Wallet,
 } from "lucide-react";
 import Link from "next/link";
-import { SubmitButton } from "@/components/submit-button";
+import { toast } from "@/components/ui/use-toast";
 
-async function sendAssetAction(formData: FormData) {
-  "use server";
+export default function SendPage() {
+  const router = useRouter();
+  const [positions, setPositions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
 
-  const supabase = await createClient();
+  useEffect(() => {
+    const loadData = async () => {
+      const supabase = createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-  if (!user) {
-    return redirect("/sign-in");
+      if (!user) {
+        router.push("/sign-in");
+        return;
+      }
+
+      setUser(user);
+
+      // Fetch user's positions for selection
+      const { data: positions } = await supabase
+        .from("cross_chain_positions")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("usd_value", { ascending: false });
+
+      setPositions(positions || []);
+      setLoading(false);
+    };
+
+    loadData();
+  }, [router]);
+
+  const handleSubmit = async (formData: FormData) => {
+    if (!user) return;
+
+    const assetId = formData.get("asset_id") as string;
+    const recipientAddress = formData.get("recipient_address") as string;
+    const amount = parseFloat(formData.get("amount") as string);
+    const network = formData.get("network") as string;
+
+    // Mock transaction - in reality, this would interact with blockchain
+    const transactionHash = "0x" + Math.random().toString(16).substring(2, 66);
+
+    // Here you would implement actual blockchain transaction logic
+    console.log("Sending transaction:", {
+      assetId,
+      recipientAddress,
+      amount,
+      network,
+      transactionHash,
+    });
+
+    toast({
+      title: "Transaction Sent",
+      description: "Your asset transfer has been initiated.",
+    });
+
+    router.push("/dashboard/cross-chain?sent=true");
+  };
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
+          <div className="text-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading...</p>
+          </div>
+        </div>
+      </main>
+    );
   }
-
-  const assetId = formData.get("asset_id") as string;
-  const recipientAddress = formData.get("recipient_address") as string;
-  const amount = parseFloat(formData.get("amount") as string);
-  const network = formData.get("network") as string;
-
-  // Mock transaction - in reality, this would interact with blockchain
-  const transactionHash = "0x" + Math.random().toString(16).substring(2, 66);
-
-  // Here you would implement actual blockchain transaction logic
-  console.log("Sending transaction:", {
-    assetId,
-    recipientAddress,
-    amount,
-    network,
-    transactionHash,
-  });
-
-  return redirect("/dashboard/cross-chain?sent=true");
-}
-
-export default async function SendPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return redirect("/sign-in");
-  }
-
-  const params = await searchParams;
-  const selectedAssetId = params.asset as string;
-
-  // Fetch user's positions for selection
-  const { data: positions } = await supabase
-    .from("cross_chain_positions")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("usd_value", { ascending: false });
 
   return (
     <>
-      <DashboardNavbar />
       <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
         <div className="container mx-auto px-4 py-8 max-w-4xl">
           {/* Header */}
@@ -125,7 +150,7 @@ export default async function SendPage({
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-8">
-                  <form action={sendAssetAction} className="space-y-8">
+                  <form action={handleSubmit} className="space-y-8">
                     <div className="space-y-3">
                       <Label
                         htmlFor="asset_id"
@@ -134,11 +159,7 @@ export default async function SendPage({
                         <Wallet className="h-4 w-4" />
                         Select Asset *
                       </Label>
-                      <Select
-                        name="asset_id"
-                        defaultValue={selectedAssetId}
-                        required
-                      >
+                      <Select name="asset_id" required>
                         <SelectTrigger className="h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20">
                           <SelectValue placeholder="Choose asset to send" />
                         </SelectTrigger>
@@ -246,13 +267,13 @@ export default async function SendPage({
                     </div>
 
                     <div className="border-t border-gray-200 pt-8 flex gap-4">
-                      <SubmitButton
+                      <Button
+                        type="submit"
                         className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
-                        pendingText="Sending Transaction..."
                       >
                         <Send className="h-4 w-4 mr-2" />
                         Send Transaction
-                      </SubmitButton>
+                      </Button>
                       <Button
                         type="button"
                         variant="outline"

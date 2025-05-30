@@ -1,5 +1,3 @@
-import DashboardNavbar from "@/components/dashboard-navbar";
-import { redirect } from "next/navigation";
 import { createClient } from "../../../../supabase/server";
 import {
   Card,
@@ -27,6 +25,9 @@ import {
   Activity,
   Package,
   Home,
+  Clock,
+  Globe,
+  ArrowUpRight,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -106,7 +107,6 @@ export default async function AssetsPage() {
 
   return (
     <>
-      <DashboardNavbar />
       <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 animate-fadeIn">
         <div className="container mx-auto px-4 py-8 max-w-7xl">
           {/* Header */}

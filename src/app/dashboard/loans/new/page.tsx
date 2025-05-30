@@ -1,5 +1,3 @@
-import DashboardNavbar from "@/components/dashboard-navbar";
-import { redirect } from "next/navigation";
 import { createClient } from "../../../../../supabase/server";
 import {
   Card,
@@ -19,20 +17,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft,
+  Building,
   DollarSign,
   Percent,
   Calendar,
-  Building,
+  Landmark,
   Shield,
-  TrendingUp,
-  FileText,
-  AlertTriangle,
   CheckCircle,
+  AlertTriangle,
+  Calculator,
+  FileText,
+  Coins,
 } from "lucide-react";
 import Link from "next/link";
 import { SubmitButton } from "@/components/submit-button";
+import { createLoanRequestAction } from "./actions";
+import { redirect } from "next/navigation";
 
 interface Asset {
   id: string;
@@ -41,67 +44,6 @@ interface Asset {
   current_value: number;
   verification_status: string;
   collateralization_status: string;
-}
-
-async function createLoanRequestAction(formData: FormData) {
-  "use server";
-
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return redirect("/sign-in");
-  }
-
-  const assetId = formData.get("asset_id") as string;
-  const loanAmount = parseFloat(formData.get("loan_amount") as string);
-  const loanTermMonths = parseInt(formData.get("loan_term_months") as string);
-  const interestRate = parseFloat(formData.get("interest_rate") as string);
-  const purpose = formData.get("purpose") as string;
-  const blockchain = formData.get("blockchain") as string;
-
-  // Calculate monthly payment (simple interest calculation)
-  const monthlyInterestRate = interestRate / 100 / 12;
-  const monthlyPayment =
-    (loanAmount *
-      monthlyInterestRate *
-      Math.pow(1 + monthlyInterestRate, loanTermMonths)) /
-    (Math.pow(1 + monthlyInterestRate, loanTermMonths) - 1);
-
-  // Calculate next payment date (30 days from now)
-  const nextPaymentDate = new Date();
-  nextPaymentDate.setDate(nextPaymentDate.getDate() + 30);
-
-  const { error } = await supabase.from("loans").insert({
-    user_id: user.id,
-    asset_id: assetId,
-    loan_amount: loanAmount,
-    outstanding_balance: loanAmount,
-    interest_rate: interestRate,
-    loan_term_months: loanTermMonths,
-    monthly_payment: monthlyPayment,
-    next_payment_date: nextPaymentDate.toISOString(),
-    loan_status: "pending",
-    blockchain,
-    purpose,
-  });
-
-  if (error) {
-    console.error("Error creating loan request:", error);
-    return;
-  }
-
-  // Update asset collateralization status
-  await supabase
-    .from("assets")
-    .update({ collateralization_status: "collateralized" })
-    .eq("id", assetId)
-    .eq("user_id", user.id);
-
-  return redirect("/dashboard/loans");
 }
 
 export default async function NewLoanPage() {
@@ -126,7 +68,6 @@ export default async function NewLoanPage() {
 
   return (
     <>
-      <DashboardNavbar />
       <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
         <div className="container mx-auto px-4 py-8 max-w-4xl">
           {/* Header */}
@@ -366,7 +307,7 @@ export default async function NewLoanPage() {
                 <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
                   <CardHeader className="border-b border-gray-100">
                     <CardTitle className="flex items-center gap-2 text-lg">
-                      <TrendingUp className="h-5 w-5 text-emerald-600" />
+                      <Calculator className="h-5 w-5 text-emerald-600" />
                       Loan Preview
                     </CardTitle>
                   </CardHeader>

@@ -1,5 +1,3 @@
-import DashboardNavbar from "@/components/dashboard-navbar";
-import { redirect } from "next/navigation";
 import { createClient } from "../../../../supabase/server";
 import {
   Card,
@@ -12,16 +10,20 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
-  Landmark,
-  Calendar,
   DollarSign,
-  Percent,
-  Plus,
-  CreditCard,
-  Clock,
-  Activity,
   TrendingUp,
+  Calendar,
+  Clock,
+  Landmark,
+  Activity,
+  Plus,
   Building,
+  CreditCard,
+  Percent,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  ArrowUpRight,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -106,7 +108,6 @@ export default async function LoansPage() {
 
   return (
     <>
-      <DashboardNavbar />
       <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
         <div className="container mx-auto px-4 py-8 max-w-7xl">
           {/* Header */}
