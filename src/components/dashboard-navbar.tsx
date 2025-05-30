@@ -311,17 +311,8 @@ export default function DashboardNavbar() {
           {/* Left: Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center gap-2 group">
-              <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform shadow-md">
-                <span className="text-xl font-bold text-white italic">Tf</span>
-              </div>
-              <div>
-                <span className="text-xl font-bold text-gray-900 group-hover:text-blue-700 transition-colors">
-                  TangibleFi
-                </span>
-                <div className="flex items-center gap-1 -mt-1">
-                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-xs text-gray-500">Multi-Chain</span>
-                </div>
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform shadow-md ring-1 ring-inset ring-white/20">
+                <span className="text-2xl font-extrabold text-white">Tf</span>
               </div>
             </Link>
           </div>
