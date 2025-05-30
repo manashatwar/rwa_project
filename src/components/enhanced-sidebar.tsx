@@ -411,6 +411,15 @@ const EnhancedSidebar = memo(function EnhancedSidebar() {
   const { isCollapsed, setIsCollapsed } = useSidebar();
   const [mounted, setMounted] = useState(false);
 
+  // Move useMemo before any potential early returns to maintain hooks order
+  const groupedItems = useMemo(() => {
+    return Object.entries(categoryLabels).map(([category, label]) => ({
+      category,
+      label,
+      items: sidebarItems.filter((item) => item.category === category),
+    }));
+  }, []);
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -468,14 +477,6 @@ const EnhancedSidebar = memo(function EnhancedSidebar() {
     if (!address) return "";
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
-
-  const groupedItems = useMemo(() => {
-    return Object.entries(categoryLabels).map(([category, label]) => ({
-      category,
-      label,
-      items: sidebarItems.filter((item) => item.category === category),
-    }));
-  }, []);
 
   return (
     <aside
