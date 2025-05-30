@@ -2,39 +2,42 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { createClient } from "../../../../../supabase/client";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import {
-  ArrowLeft,
-  Send,
-  Globe,
-  DollarSign,
-  Clock,
-  Shield,
-  CheckCircle,
-  AlertTriangle,
-  ArrowRight,
-  Zap,
-  Network,
-  Wallet,
-} from "lucide-react";
+
+// Dynamically import UI components
+const Card = dynamic(() => import("@/components/ui/card").then(mod => ({ default: mod.Card })), { ssr: false });
+const CardContent = dynamic(() => import("@/components/ui/card").then(mod => ({ default: mod.CardContent })), { ssr: false });
+const CardDescription = dynamic(() => import("@/components/ui/card").then(mod => ({ default: mod.CardDescription })), { ssr: false });
+const CardHeader = dynamic(() => import("@/components/ui/card").then(mod => ({ default: mod.CardHeader })), { ssr: false });
+const CardTitle = dynamic(() => import("@/components/ui/card").then(mod => ({ default: mod.CardTitle })), { ssr: false });
+
+const Button = dynamic(() => import("@/components/ui/button").then(mod => ({ default: mod.Button })), { ssr: false });
+const Input = dynamic(() => import("@/components/ui/input"), { ssr: false });
+const Label = dynamic(() => import("@/components/ui/label"), { ssr: false });
+const Select = dynamic(() => import("@/components/ui/select").then(mod => ({ default: mod.Select })), { ssr: false });
+const SelectContent = dynamic(() => import("@/components/ui/select").then(mod => ({ default: mod.SelectContent })), { ssr: false });
+const SelectItem = dynamic(() => import("@/components/ui/select").then(mod => ({ default: mod.SelectItem })), { ssr: false });
+const SelectTrigger = dynamic(() => import("@/components/ui/select").then(mod => ({ default: mod.SelectTrigger })), { ssr: false });
+const SelectValue = dynamic(() => import("@/components/ui/select").then(mod => ({ default: mod.SelectValue })), { ssr: false });
+const Badge = dynamic(() => import("@/components/ui/badge").then(mod => ({ default: mod.Badge })), { ssr: false });
+
+// Dynamically import icons
+const Icons = {
+  ArrowLeft: dynamic(() => import("lucide-react").then(mod => ({ default: mod.ArrowLeft })), { ssr: false }),
+  Send: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Send })), { ssr: false }),
+  Globe: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Globe })), { ssr: false }),
+  DollarSign: dynamic(() => import("lucide-react").then(mod => ({ default: mod.DollarSign })), { ssr: false }),
+  Clock: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Clock })), { ssr: false }),
+  Shield: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Shield })), { ssr: false }),
+  CheckCircle: dynamic(() => import("lucide-react").then(mod => ({ default: mod.CheckCircle })), { ssr: false }),
+  AlertTriangle: dynamic(() => import("lucide-react").then(mod => ({ default: mod.AlertTriangle })), { ssr: false }),
+  ArrowRight: dynamic(() => import("lucide-react").then(mod => ({ default: mod.ArrowRight })), { ssr: false }),
+  Zap: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Zap })), { ssr: false }),
+  Network: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Network })), { ssr: false }),
+  Wallet: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Wallet })), { ssr: false }),
+};
+
 import Link from "next/link";
 import { toast } from "@/components/ui/use-toast";
 
@@ -122,7 +125,7 @@ export default function SendPage() {
           <div className="flex items-center gap-4 mb-8">
             <Button variant="outline" size="sm" asChild className="shadow-sm">
               <Link href="/dashboard/cross-chain">
-                <ArrowLeft className="h-4 w-4 mr-2" />
+                <Icons.ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Cross-Chain
               </Link>
             </Button>
@@ -142,7 +145,7 @@ export default function SendPage() {
               <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
                 <CardHeader className="border-b border-gray-100">
                   <CardTitle className="flex items-center gap-2 text-xl">
-                    <Send className="h-6 w-6 text-blue-600" />
+                    <Icons.Send className="h-6 w-6 text-blue-600" />
                     Transfer Details
                   </CardTitle>
                   <CardDescription className="text-base">
@@ -156,7 +159,7 @@ export default function SendPage() {
                         htmlFor="asset_id"
                         className="flex items-center gap-2 text-sm font-semibold text-gray-700"
                       >
-                        <Wallet className="h-4 w-4" />
+                        <Icons.Wallet className="h-4 w-4" />
                         Select Asset *
                       </Label>
                       <Select name="asset_id" required>
@@ -202,7 +205,7 @@ export default function SendPage() {
                           htmlFor="amount"
                           className="flex items-center gap-2 text-sm font-semibold text-gray-700"
                         >
-                          <DollarSign className="h-4 w-4" />
+                          <Icons.DollarSign className="h-4 w-4" />
                           Amount *
                         </Label>
                         <Input
@@ -210,8 +213,7 @@ export default function SendPage() {
                           name="amount"
                           type="number"
                           step="0.000001"
-                          min="0"
-                          placeholder="0.0"
+                          placeholder="0.00"
                           required
                           className="h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
                         />
@@ -222,141 +224,150 @@ export default function SendPage() {
                           htmlFor="network"
                           className="flex items-center gap-2 text-sm font-semibold text-gray-700"
                         >
-                          <Network className="h-4 w-4" />
-                          Network *
+                          <Icons.Network className="h-4 w-4" />
+                          Destination Network *
                         </Label>
                         <Select name="network" required>
                           <SelectTrigger className="h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20">
                             <SelectValue placeholder="Select network" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="ethereum">Ethereum</SelectItem>
-                            <SelectItem value="polygon">Polygon</SelectItem>
-                            <SelectItem value="arbitrum">Arbitrum</SelectItem>
-                            <SelectItem value="optimism">Optimism</SelectItem>
-                            <SelectItem value="bsc">BNB Smart Chain</SelectItem>
+                            <SelectItem value="ethereum">
+                              <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 bg-blue-600 rounded-full"></div>
+                                Ethereum
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="polygon">
+                              <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 bg-purple-600 rounded-full"></div>
+                                Polygon
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="arbitrum">
+                              <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
+                                Arbitrum
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="optimism">
+                              <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 bg-red-500 rounded-full"></div>
+                                Optimism
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="bsc">
+                              <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 bg-yellow-500 rounded-full"></div>
+                                BSC
+                              </div>
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                     </div>
 
-                    <div className="border border-gray-200 bg-gray-50/30 rounded-lg p-6 space-y-3">
-                      <h3 className="font-semibold text-gray-900 mb-4">
-                        Transaction Summary
-                      </h3>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Asset:</span>
-                        <span className="font-medium">USDC</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Amount:</span>
-                        <span className="font-medium">100.00 USDC</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">
-                          Network Fee:
-                        </span>
-                        <span className="font-medium">~$2.50</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">
-                          Estimated Time:
-                        </span>
-                        <span className="font-medium">2-5 minutes</span>
-                      </div>
-                    </div>
-
-                    <div className="border-t border-gray-200 pt-8 flex gap-4">
-                      <Button
-                        type="submit"
-                        className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
-                      >
-                        <Send className="h-4 w-4 mr-2" />
-                        Send Transaction
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="h-12 px-8"
-                        asChild
-                      >
-                        <Link href="/dashboard/cross-chain">Cancel</Link>
-                      </Button>
-                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                    >
+                      <Icons.Send className="h-5 w-5 mr-2" />
+                      Send Assets
+                    </Button>
                   </form>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Sidebar */}
+            {/* Info Panel */}
             <div className="space-y-6">
-              {/* Security Tips */}
-              <Card className="border border-emerald-200 shadow-lg bg-gradient-to-br from-emerald-50/50 to-blue-50/50">
-                <CardHeader className="border-b border-emerald-200">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <CheckCircle className="h-5 w-5 text-emerald-600" />
-                    Security Tips
+              {/* Network Status */}
+              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg text-green-800">
+                    <Icons.Globe className="h-5 w-5" />
+                    Network Status
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6">
-                  <ul className="space-y-3 text-sm text-gray-600">
-                    <li className="flex items-start gap-3">
-                      <div className="w-2 h-2 bg-emerald-600 rounded-full mt-2 flex-shrink-0" />
-                      <span>Always double-check the recipient address</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="w-2 h-2 bg-emerald-600 rounded-full mt-2 flex-shrink-0" />
-                      <span>Start with a small test transaction</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="w-2 h-2 bg-emerald-600 rounded-full mt-2 flex-shrink-0" />
-                      <span>Verify the network matches the recipient</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="w-2 h-2 bg-emerald-600 rounded-full mt-2 flex-shrink-0" />
-                      <span>Keep transaction hash for your records</span>
-                    </li>
-                  </ul>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Ethereum</span>
+                    <Badge className="bg-green-100 text-green-800 border-green-200">
+                      Online
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Polygon</span>
+                    <Badge className="bg-green-100 text-green-800 border-green-200">
+                      Online
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Arbitrum</span>
+                    <Badge className="bg-green-100 text-green-800 border-green-200">
+                      Online
+                    </Badge>
+                  </div>
                 </CardContent>
               </Card>
 
-              {/* Important Notes */}
-              <Card className="border border-yellow-200 shadow-lg bg-gradient-to-br from-yellow-50/50 to-orange-50/50">
-                <CardHeader className="border-b border-yellow-200">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <AlertTriangle className="h-5 w-5 text-yellow-600" />
-                    Important Notes
+              {/* Transfer Fees */}
+              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg text-blue-800">
+                    <Icons.DollarSign className="h-5 w-5" />
+                    Transfer Fees
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6">
-                  <ul className="space-y-3 text-sm text-gray-600">
-                    <li className="flex items-start gap-3">
-                      <div className="w-1.5 h-1.5 bg-yellow-600 rounded-full mt-2 flex-shrink-0" />
-                      <span>Transactions are irreversible once confirmed</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="w-1.5 h-1.5 bg-yellow-600 rounded-full mt-2 flex-shrink-0" />
-                      <span>Network fees vary based on congestion</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="w-1.5 h-1.5 bg-yellow-600 rounded-full mt-2 flex-shrink-0" />
-                      <span>Cross-chain transfers may take longer</span>
-                    </li>
-                  </ul>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Base Fee</span>
+                    <span className="text-sm font-medium">$2.50</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Network Fee</span>
+                    <span className="text-sm font-medium">Dynamic</span>
+                  </div>
+                  <div className="border-t pt-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold text-gray-900">
+                        Estimated Total
+                      </span>
+                      <span className="text-sm font-bold text-blue-600">
+                        $3.75 - $12.50
+                      </span>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
 
-              {/* Support */}
-              <Card className="border border-blue-200 shadow-lg bg-gradient-to-br from-blue-50/50 to-purple-50/50">
-                <CardContent className="p-6">
-                  <h3 className="font-bold mb-3 text-gray-900">Need Help?</h3>
-                  <p className="text-sm text-gray-600 mb-6 leading-relaxed">
-                    Our support team can help with cross-chain transfers and
-                    troubleshooting.
-                  </p>
-                  <Button variant="outline" size="lg" className="w-full">
-                    Contact Support
-                  </Button>
+              {/* Security Notice */}
+              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg text-amber-800">
+                    <Icons.Shield className="h-5 w-5" />
+                    Security Notice
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <Icons.CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm text-gray-700">
+                      All transfers are secured by blockchain technology
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Icons.CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm text-gray-700">
+                      Smart contracts ensure automated execution
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Icons.AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm text-gray-700">
+                      Double-check recipient address before sending
+                    </span>
+                  </div>
                 </CardContent>
               </Card>
             </div>

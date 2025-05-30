@@ -1,46 +1,175 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Navbar from "@/components/navbar";
-import WalletGuard from "@/components/wallet-guard";
-import EnhancedSidebar from "@/components/enhanced-sidebar";
+import dynamic from "next/dynamic";
 import { createClient } from "../../../../../supabase/client";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  CreditCard,
-  ArrowLeft,
-  DollarSign,
-  Calendar,
-  Shield,
-  CheckCircle,
-  AlertTriangle,
-  Sparkles,
-  Info,
-  Building,
-  Wallet,
-  Target,
-} from "lucide-react";
-import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+
+// Lazy load heavy components
+const Navbar = dynamic(() => import("@/components/navbar"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-16 bg-white border-b border-gray-200 animate-pulse" />
+  ),
+});
+
+const WalletGuard = dynamic(() => import("@/components/wallet-guard"), {
+  ssr: false,
+  loading: () => (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    </div>
+  ),
+});
+
+const EnhancedSidebar = dynamic(() => import("@/components/enhanced-sidebar"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-16 lg:w-64 bg-white border-r border-gray-200 fixed left-0 top-0 h-full animate-pulse" />
+  ),
+});
+
+// Lazy load UI components
+const Card = dynamic(
+  () => import("@/components/ui/card").then((mod) => ({ default: mod.Card })),
+  { ssr: false }
+);
+const CardContent = dynamic(
+  () =>
+    import("@/components/ui/card").then((mod) => ({
+      default: mod.CardContent,
+    })),
+  { ssr: false }
+);
+const CardDescription = dynamic(
+  () =>
+    import("@/components/ui/card").then((mod) => ({
+      default: mod.CardDescription,
+    })),
+  { ssr: false }
+);
+const CardHeader = dynamic(
+  () =>
+    import("@/components/ui/card").then((mod) => ({ default: mod.CardHeader })),
+  { ssr: false }
+);
+const CardTitle = dynamic(
+  () =>
+    import("@/components/ui/card").then((mod) => ({ default: mod.CardTitle })),
+  { ssr: false }
+);
+
+const Button = dynamic(
+  () =>
+    import("@/components/ui/button").then((mod) => ({ default: mod.Button })),
+  { ssr: false }
+);
+const Input = dynamic(() => import("@/components/ui/input"), { ssr: false });
+const Label = dynamic(() => import("@/components/ui/label"), { ssr: false });
+const Select = dynamic(
+  () =>
+    import("@/components/ui/select").then((mod) => ({ default: mod.Select })),
+  { ssr: false }
+);
+const SelectContent = dynamic(
+  () =>
+    import("@/components/ui/select").then((mod) => ({
+      default: mod.SelectContent,
+    })),
+  { ssr: false }
+);
+const SelectItem = dynamic(
+  () =>
+    import("@/components/ui/select").then((mod) => ({
+      default: mod.SelectItem,
+    })),
+  { ssr: false }
+);
+const SelectTrigger = dynamic(
+  () =>
+    import("@/components/ui/select").then((mod) => ({
+      default: mod.SelectTrigger,
+    })),
+  { ssr: false }
+);
+const SelectValue = dynamic(
+  () =>
+    import("@/components/ui/select").then((mod) => ({
+      default: mod.SelectValue,
+    })),
+  { ssr: false }
+);
+const Badge = dynamic(
+  () => import("@/components/ui/badge").then((mod) => ({ default: mod.Badge })),
+  { ssr: false }
+);
+const Alert = dynamic(
+  () => import("@/components/ui/alert").then((mod) => ({ default: mod.Alert })),
+  { ssr: false }
+);
+const AlertDescription = dynamic(
+  () =>
+    import("@/components/ui/alert").then((mod) => ({
+      default: mod.AlertDescription,
+    })),
+  { ssr: false }
+);
+
+// Lazy load icons
+const Icons = {
+  CreditCard: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.CreditCard })),
+    { ssr: false }
+  ),
+  ArrowLeft: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.ArrowLeft })),
+    { ssr: false }
+  ),
+  DollarSign: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.DollarSign })),
+    { ssr: false }
+  ),
+  Calendar: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Calendar })),
+    { ssr: false }
+  ),
+  Shield: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Shield })),
+    { ssr: false }
+  ),
+  CheckCircle: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.CheckCircle })),
+    { ssr: false }
+  ),
+  AlertTriangle: dynamic(
+    () =>
+      import("lucide-react").then((mod) => ({ default: mod.AlertTriangle })),
+    { ssr: false }
+  ),
+  Sparkles: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Sparkles })),
+    { ssr: false }
+  ),
+  Info: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Info })),
+    { ssr: false }
+  ),
+  Building: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Building })),
+    { ssr: false }
+  ),
+  Wallet: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Wallet })),
+    { ssr: false }
+  ),
+  Target: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Target })),
+    { ssr: false }
+  ),
+};
+
+import Link from "next/link";
 
 export default function NewLoanPage() {
   return (
@@ -216,12 +345,12 @@ function NewLoanContent() {
               className="shadow-sm hover:shadow-md transition-all duration-200"
             >
               <Link href="/dashboard/loans" className="flex items-center gap-2">
-                <ArrowLeft className="h-4 w-4" />
+                <Icons.ArrowLeft className="h-4 w-4" />
                 Back to Loans
               </Link>
             </Button>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Calendar className="h-4 w-4" />
+              <Icons.Calendar className="h-4 w-4" />
               <span>Estimated time: 3-5 minutes</span>
             </div>
           </div>
@@ -238,7 +367,7 @@ function NewLoanContent() {
 
         {assets.length === 0 && !loading && (
           <Alert className="mb-8">
-            <AlertTriangle className="h-4 w-4" />
+            <Icons.AlertTriangle className="h-4 w-4" />
             <AlertDescription>
               You don't have any verified assets available for collateral.
               <Link href="/dashboard/assets" className="underline ml-1">
@@ -256,7 +385,7 @@ function NewLoanContent() {
               <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-blue-50/50 to-purple-50/50">
                 <CardTitle className="flex items-center gap-3 text-2xl">
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <CreditCard className="h-6 w-6 text-white" />
+                    <Icons.CreditCard className="h-6 w-6 text-white" />
                   </div>
                   Loan Application
                 </CardTitle>
@@ -285,7 +414,7 @@ function NewLoanContent() {
                         htmlFor="asset_id"
                         className="flex items-center gap-2 text-sm font-semibold text-gray-700"
                       >
-                        <Building className="h-4 w-4" />
+                        <Icons.Building className="h-4 w-4" />
                         Choose Asset for Collateral *
                       </Label>
                       <Select
@@ -337,7 +466,7 @@ function NewLoanContent() {
                           htmlFor="loan_amount"
                           className="flex items-center gap-2 text-sm font-semibold text-gray-700"
                         >
-                          <DollarSign className="h-4 w-4" />
+                          <Icons.DollarSign className="h-4 w-4" />
                           Loan Amount (USD) *
                         </Label>
                         <Input
@@ -356,7 +485,7 @@ function NewLoanContent() {
                           htmlFor="loan_term_months"
                           className="flex items-center gap-2 text-sm font-semibold text-gray-700"
                         >
-                          <Calendar className="h-4 w-4" />
+                          <Icons.Calendar className="h-4 w-4" />
                           Loan Term (Months) *
                         </Label>
                         <Select value={loanTerm} onValueChange={setLoanTerm}>
@@ -426,7 +555,7 @@ function NewLoanContent() {
                         htmlFor="blockchain"
                         className="flex items-center gap-2 text-sm font-semibold text-gray-700"
                       >
-                        <Wallet className="h-4 w-4" />
+                        <Icons.Wallet className="h-4 w-4" />
                         Select Payment Blockchain *
                       </Label>
                       <Select
@@ -483,7 +612,7 @@ function NewLoanContent() {
                         </>
                       ) : (
                         <>
-                          <Sparkles className="h-5 w-5 mr-2" />
+                          <Icons.Sparkles className="h-5 w-5 mr-2" />
                           Submit Loan Application
                         </>
                       )}
@@ -504,7 +633,7 @@ function NewLoanContent() {
             <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm">
               <CardHeader className="border-b border-gray-100">
                 <CardTitle className="flex items-center gap-2 text-lg">
-                  <Info className="h-5 w-5 text-blue-600" />
+                  <Icons.Info className="h-5 w-5 text-blue-600" />
                   Loan Process
                 </CardTitle>
               </CardHeader>
@@ -559,31 +688,31 @@ function NewLoanContent() {
             <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg text-emerald-800">
-                  <Target className="h-5 w-5" />
+                  <Icons.Target className="h-5 w-5" />
                   Loan Benefits
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <CheckCircle className="h-5 w-5 text-emerald-600" />
+                  <Icons.CheckCircle className="h-5 w-5 text-emerald-600" />
                   <span className="text-sm text-emerald-800">
                     Wallet-based authentication
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <CheckCircle className="h-5 w-5 text-emerald-600" />
+                  <Icons.CheckCircle className="h-5 w-5 text-emerald-600" />
                   <span className="text-sm text-emerald-800">
                     Instant liquidity access
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <CheckCircle className="h-5 w-5 text-emerald-600" />
+                  <Icons.CheckCircle className="h-5 w-5 text-emerald-600" />
                   <span className="text-sm text-emerald-800">
                     Competitive interest rates
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <CheckCircle className="h-5 w-5 text-emerald-600" />
+                  <Icons.CheckCircle className="h-5 w-5 text-emerald-600" />
                   <span className="text-sm text-emerald-800">
                     Keep asset ownership
                   </span>
@@ -595,7 +724,7 @@ function NewLoanContent() {
             <Card className="border-0 shadow-lg bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg text-amber-800">
-                  <Shield className="h-5 w-5" />
+                  <Icons.Shield className="h-5 w-5" />
                   Important Notice
                 </CardTitle>
               </CardHeader>

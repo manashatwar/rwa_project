@@ -5,42 +5,43 @@ import { createClient } from "../../supabase/client";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { cn } from "@/lib/utils";
-import { useState, useEffect, createContext, useContext } from "react";
+import { useState, useEffect, createContext, useContext, memo, useMemo, lazy } from "react";
 import { User } from "@supabase/supabase-js";
 import { useRouter, usePathname } from "next/navigation";
-import {
-  Home,
-  Building2,
-  CreditCard,
-  PieChart,
-  Settings,
-  FileText,
-  TrendingUp,
-  Shield,
-  Users,
-  ChevronLeft,
-  ChevronRight,
-  Wallet,
-  Activity,
-  DollarSign,
-  BarChart3,
-  Clock,
-  UserCircle,
-  BookOpen,
-  Github,
-  HelpCircle,
-  Star,
-  Zap,
-  Target,
-  Database,
-  Globe,
-  Layers,
-  Network,
-  Smartphone,
-  RefreshCw,
-  ArrowLeftRight,
-} from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import dynamic from "next/dynamic";
+
+// Dynamically import icons to reduce initial bundle size
+const Icons = {
+  Home: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Home })), { ssr: false }),
+  Building2: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Building2 })), { ssr: false }),
+  CreditCard: dynamic(() => import("lucide-react").then(mod => ({ default: mod.CreditCard })), { ssr: false }),
+  PieChart: dynamic(() => import("lucide-react").then(mod => ({ default: mod.PieChart })), { ssr: false }),
+  Settings: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Settings })), { ssr: false }),
+  TrendingUp: dynamic(() => import("lucide-react").then(mod => ({ default: mod.TrendingUp })), { ssr: false }),
+  Shield: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Shield })), { ssr: false }),
+  Users: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Users })), { ssr: false }),
+  ChevronLeft: dynamic(() => import("lucide-react").then(mod => ({ default: mod.ChevronLeft })), { ssr: false }),
+  ChevronRight: dynamic(() => import("lucide-react").then(mod => ({ default: mod.ChevronRight })), { ssr: false }),
+  Wallet: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Wallet })), { ssr: false }),
+  Activity: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Activity })), { ssr: false }),
+  DollarSign: dynamic(() => import("lucide-react").then(mod => ({ default: mod.DollarSign })), { ssr: false }),
+  BarChart3: dynamic(() => import("lucide-react").then(mod => ({ default: mod.BarChart3 })), { ssr: false }),
+  Clock: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Clock })), { ssr: false }),
+  UserCircle: dynamic(() => import("lucide-react").then(mod => ({ default: mod.UserCircle })), { ssr: false }),
+  BookOpen: dynamic(() => import("lucide-react").then(mod => ({ default: mod.BookOpen })), { ssr: false }),
+  Github: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Github })), { ssr: false }),
+  HelpCircle: dynamic(() => import("lucide-react").then(mod => ({ default: mod.HelpCircle })), { ssr: false }),
+  Star: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Star })), { ssr: false }),
+  Zap: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Zap })), { ssr: false }),
+  Target: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Target })), { ssr: false }),
+  Database: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Database })), { ssr: false }),
+  Smartphone: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Smartphone })), { ssr: false }),
+  ArrowLeftRight: dynamic(() => import("lucide-react").then(mod => ({ default: mod.ArrowLeftRight })), { ssr: false }),
+};
+
+// Dynamically import Card components
+const Card = dynamic(() => import("@/components/ui/card").then(mod => ({ default: mod.Card })), { ssr: false });
+const CardContent = dynamic(() => import("@/components/ui/card").then(mod => ({ default: mod.CardContent })), { ssr: false });
 
 // Context for sidebar state
 const SidebarContext = createContext<{
@@ -57,26 +58,27 @@ interface SidebarItem {
   id: string;
   label: string;
   href: string;
-  icon: any;
+  icon: keyof typeof Icons;
   badge?: string;
   badgeColor?: string;
   category?: string;
 }
 
+// Static sidebar items data
 const sidebarItems: SidebarItem[] = [
   // Main Navigation
   {
     id: "dashboard",
     label: "My Dashboard",
     href: "/dashboard",
-    icon: Home,
+    icon: "Home",
     category: "main",
   },
   {
     id: "assets",
     label: "My Assets",
     href: "/dashboard/assets",
-    icon: Building2,
+    icon: "Building2",
     badge: "New",
     badgeColor: "bg-blue-500",
     category: "main",
@@ -85,7 +87,7 @@ const sidebarItems: SidebarItem[] = [
     id: "loans",
     label: "Borrow StableCoin",
     href: "/dashboard/loans",
-    icon: CreditCard,
+    icon: "CreditCard",
     badge: "4.25%",
     badgeColor: "bg-green-500",
     category: "main",
@@ -94,14 +96,14 @@ const sidebarItems: SidebarItem[] = [
     id: "payments",
     label: "EMI Status",
     href: "/dashboard/payments",
-    icon: DollarSign,
+    icon: "DollarSign",
     category: "main",
   },
   {
     id: "cross-chain",
     label: "Cross-Chain Bridge",
     href: "/dashboard/cross-chain",
-    icon: ArrowLeftRight,
+    icon: "ArrowLeftRight",
     badge: "5 Chains",
     badgeColor: "bg-purple-500",
     category: "main",
@@ -112,14 +114,14 @@ const sidebarItems: SidebarItem[] = [
     id: "portfolio",
     label: "Portfolio Overview",
     href: "/dashboard/portfolio",
-    icon: PieChart,
+    icon: "PieChart",
     category: "portfolio",
   },
   {
     id: "analytics",
     label: "Market Status",
     href: "/dashboard/market",
-    icon: TrendingUp,
+    icon: "TrendingUp",
     badge: "Live",
     badgeColor: "bg-red-500",
     category: "portfolio",
@@ -128,14 +130,14 @@ const sidebarItems: SidebarItem[] = [
     id: "transactions",
     label: "Transaction History",
     href: "/dashboard/transactions",
-    icon: Activity,
+    icon: "Activity",
     category: "portfolio",
   },
   {
     id: "performance",
     label: "Performance Metrics",
     href: "/dashboard/performance",
-    icon: BarChart3,
+    icon: "BarChart3",
     category: "portfolio",
   },
 
@@ -144,14 +146,14 @@ const sidebarItems: SidebarItem[] = [
     id: "profile",
     label: "Profile Settings",
     href: "/dashboard/profile",
-    icon: UserCircle,
+    icon: "UserCircle",
     category: "account",
   },
   {
     id: "wallet",
     label: "Wallet Address",
     href: "/wallet-connect",
-    icon: Wallet,
+    icon: "Wallet",
     badge: "Connect",
     badgeColor: "bg-orange-500",
     category: "account",
@@ -160,7 +162,7 @@ const sidebarItems: SidebarItem[] = [
     id: "credit",
     label: "Credit Score",
     href: "/dashboard/credit",
-    icon: Star,
+    icon: "Star",
     badge: "750",
     badgeColor: "bg-emerald-500",
     category: "account",
@@ -169,7 +171,7 @@ const sidebarItems: SidebarItem[] = [
     id: "kyc",
     label: "KYC Verification",
     href: "/dashboard/kyc",
-    icon: Shield,
+    icon: "Shield",
     category: "account",
   },
 
@@ -178,7 +180,7 @@ const sidebarItems: SidebarItem[] = [
     id: "tokenize",
     label: "Tokenize your RWA",
     href: "/dashboard/assets/new",
-    icon: Zap,
+    icon: "Zap",
     badge: "Hot",
     badgeColor: "bg-yellow-500",
     category: "tools",
@@ -187,21 +189,21 @@ const sidebarItems: SidebarItem[] = [
     id: "calculator",
     label: "Loan Calculator",
     href: "/dashboard/calculator",
-    icon: Target,
+    icon: "Target",
     category: "tools",
   },
   {
     id: "scheduler",
     label: "Payment Scheduler",
     href: "/dashboard/scheduler",
-    icon: Clock,
+    icon: "Clock",
     category: "tools",
   },
   {
     id: "api",
     label: "API Access",
     href: "/dashboard/api",
-    icon: Database,
+    icon: "Database",
     badge: "Dev",
     badgeColor: "bg-indigo-500",
     category: "tools",
@@ -212,28 +214,28 @@ const sidebarItems: SidebarItem[] = [
     id: "documentation",
     label: "Documentation",
     href: "/docs",
-    icon: BookOpen,
+    icon: "BookOpen",
     category: "support",
   },
   {
     id: "community",
     label: "Community",
     href: "/community",
-    icon: Users,
+    icon: "Users",
     category: "support",
   },
   {
     id: "support",
     label: "Help & Support",
     href: "/support",
-    icon: HelpCircle,
+    icon: "HelpCircle",
     category: "support",
   },
   {
     id: "github",
     label: "Github",
-    href: "https://github.com/tangiblefi",
-    icon: Github,
+    href: "https://github.com/AmrendraTheCoder/TengibleFi",
+    icon: "Github",
     category: "support",
   },
 
@@ -242,14 +244,14 @@ const sidebarItems: SidebarItem[] = [
     id: "settings",
     label: "Settings",
     href: "/dashboard/settings",
-    icon: Settings,
+    icon: "Settings",
     category: "admin",
   },
   {
     id: "mobile",
     label: "Mobile App",
     href: "/mobile",
-    icon: Smartphone,
+    icon: "Smartphone",
     badge: "Soon",
     badgeColor: "bg-gray-500",
     category: "admin",
@@ -263,7 +265,7 @@ const categoryLabels = {
   tools: "Tools",
   support: "Support",
   admin: "Settings",
-};
+} as const;
 
 interface SidebarProviderProps {
   children: React.ReactNode;
@@ -287,22 +289,25 @@ export function SidebarProvider({ children }: SidebarProviderProps) {
     setIsCollapsed(!isCollapsed);
   };
 
+  const contextValue = useMemo(() => ({
+    isCollapsed,
+    setIsCollapsed: toggleSidebar,
+  }), [isCollapsed]);
+
   return (
-    <SidebarContext.Provider
-      value={{ isCollapsed, setIsCollapsed: toggleSidebar }}
-    >
+    <SidebarContext.Provider value={contextValue}>
       {children}
     </SidebarContext.Provider>
   );
 }
 
-export default function EnhancedSidebar() {
+// Memoized sidebar component
+const EnhancedSidebar = memo(function EnhancedSidebar() {
   const supabase = createClient();
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
   const { isCollapsed, setIsCollapsed } = useSidebar();
-  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -334,19 +339,6 @@ export default function EnhancedSidebar() {
     return null;
   }
 
-  const isActive = (href: string, exact = false) => {
-    if (exact) {
-      return pathname === href;
-    }
-    return pathname?.startsWith(href);
-  };
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push("/");
-    router.refresh();
-  };
-
   const getUserDisplayName = () => {
     if (user?.user_metadata?.full_name) {
       return user.user_metadata.full_name.split(" ")[0];
@@ -366,6 +358,14 @@ export default function EnhancedSidebar() {
     if (!address) return "";
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
+
+  const groupedItems = useMemo(() => {
+    return Object.entries(categoryLabels).map(([category, label]) => ({
+      category,
+      label,
+      items: sidebarItems.filter(item => item.category === category)
+    }));
+  }, []);
 
   return (
     <aside
@@ -398,7 +398,7 @@ export default function EnhancedSidebar() {
               onClick={() => setIsCollapsed(!isCollapsed)}
               className="ml-4 p-2 hover:bg-gray-100 rounded-lg transition-all duration-300"
             >
-              <ChevronLeft className="h-4 w-4 text-gray-600" />
+              <Icons.ChevronLeft className="h-4 w-4 text-gray-600" />
             </Button>
           </>
         ) : (
@@ -409,7 +409,7 @@ export default function EnhancedSidebar() {
             onClick={() => setIsCollapsed(!isCollapsed)}
             className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-lg"
           >
-            <ChevronRight className="h-5 w-5 text-white" />
+            <Icons.ChevronRight className="h-5 w-5 text-white" />
           </Button>
         )}
       </div>
@@ -453,33 +453,28 @@ export default function EnhancedSidebar() {
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-4 px-2">
         <div className="space-y-6">
-          {Object.entries(categoryLabels).map(([category, label]) => {
-            const categoryItems = sidebarItems.filter(
-              (item) => item.category === category
-            );
-
-            return (
-              <div key={category}>
-                {!isCollapsed && (
-                  <div className="px-3 mb-2">
-                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                      {label}
-                    </h3>
-                  </div>
-                )}
-
-                <div className="space-y-1">
-                  {categoryItems.map((item) => (
-                    <SidebarItemComponent
-                      key={item.id}
-                      item={item}
-                      isCollapsed={isCollapsed}
-                    />
-                  ))}
+          {groupedItems.map(({ category, label, items }) => (
+            <div key={category}>
+              {!isCollapsed && (
+                <div className="px-3 mb-2">
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    {label}
+                  </h3>
                 </div>
+              )}
+
+              <div className="space-y-1">
+                {items.map((item) => (
+                  <SidebarItemComponent
+                    key={item.id}
+                    item={item}
+                    isCollapsed={isCollapsed}
+                    pathname={pathname}
+                  />
+                ))}
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       </nav>
 
@@ -505,27 +500,29 @@ export default function EnhancedSidebar() {
       </div>
     </aside>
   );
-}
+});
 
-function SidebarItemComponent({
+// Memoized sidebar item component
+const SidebarItemComponent = memo(function SidebarItemComponent({
   item,
   isCollapsed,
+  pathname,
 }: {
   item: SidebarItem;
   isCollapsed: boolean;
+  pathname: string;
 }) {
-  const pathname = usePathname();
   const isActive = pathname === item.href;
   const isExternal = item.href.startsWith("http");
 
-  const ItemIcon = item.icon;
+  const IconComponent = Icons[item.icon];
 
   const content = (
     <>
       <div
         className={`flex items-center ${isCollapsed ? "justify-center" : "justify-start"} w-full`}
       >
-        <ItemIcon
+        <IconComponent
           className={`h-5 w-5 ${
             isActive
               ? "text-blue-600"
@@ -587,10 +584,11 @@ function SidebarItemComponent({
       {content}
     </Link>
   );
-}
+});
 
-function CreditScoreWidget() {
-  const [creditScore, setCreditScore] = useState(750);
+// Memoized credit score widget
+const CreditScoreWidget = memo(function CreditScoreWidget() {
+  const [creditScore] = useState(750);
 
   return (
     <div className="mx-4 my-3">
@@ -598,7 +596,7 @@ function CreditScoreWidget() {
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <Star className="h-4 w-4 text-emerald-600" />
+              <Icons.Star className="h-4 w-4 text-emerald-600" />
               <span className="text-sm font-semibold text-emerald-800">
                 Credit Score
               </span>
@@ -631,4 +629,6 @@ function CreditScoreWidget() {
       </Card>
     </div>
   );
-}
+});
+
+export default EnhancedSidebar;
