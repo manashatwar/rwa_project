@@ -22,6 +22,7 @@ import {
   Clock,
   XCircle,
   Activity,
+  Trophy,
 } from "lucide-react";
 import { redirect } from "next/navigation";
 import { createClient } from "../../../supabase/server";
@@ -630,6 +631,99 @@ export default async function Dashboard({
                       <p className="text-lg font-bold text-emerald-900">
                         +12.5%
                       </p>
+                    </div>
+                  </div>
+
+                  {/* Top Performing Assets Section */}
+                  <div className="mt-8 pt-6 border-t border-gray-200">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                        <Trophy className="h-5 w-5 text-yellow-600" />
+                        Top Performing Assets
+                      </h3>
+                      <Badge
+                        variant="outline"
+                        className="text-xs text-gray-600"
+                      >
+                        Last 24h
+                      </Badge>
+                    </div>
+
+                    <div className="space-y-3">
+                      {[
+                        {
+                          name: "Manhattan Office Tower",
+                          type: "Real Estate",
+                          change: "+8.4%",
+                          value: "$2.1M",
+                          trend: "up",
+                          color: "emerald",
+                          icon: "🏢",
+                        },
+                        {
+                          name: "Gold Reserve Token",
+                          type: "Commodity",
+                          change: "+5.7%",
+                          value: "$850K",
+                          trend: "up",
+                          color: "yellow",
+                          icon: "🥇",
+                        },
+                        {
+                          name: "Industrial Equipment",
+                          type: "Equipment",
+                          change: "+3.2%",
+                          value: "$420K",
+                          trend: "up",
+                          color: "blue",
+                          icon: "⚙️",
+                        },
+                      ].map((asset, index) => (
+                        <div
+                          key={asset.name}
+                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm border border-gray-200">
+                              <span className="text-lg">{asset.icon}</span>
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900 text-sm">
+                                {asset.name}
+                              </p>
+                              <p className="text-xs text-gray-600">
+                                {asset.type}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="text-right">
+                            <p className="font-semibold text-gray-900 text-sm">
+                              {asset.value}
+                            </p>
+                            <div
+                              className={`flex items-center gap-1 justify-end ${
+                                asset.color === "emerald"
+                                  ? "text-emerald-600"
+                                  : asset.color === "yellow"
+                                    ? "text-yellow-600"
+                                    : "text-blue-600"
+                              }`}
+                            >
+                              <TrendingUp className="h-3 w-3" />
+                              <span className="text-xs font-medium">
+                                {asset.change}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="mt-4 flex justify-center">
+                      <button className="text-sm text-gray-600 hover:text-gray-900 font-medium hover:underline transition-colors">
+                        View All Assets →
+                      </button>
                     </div>
                   </div>
                 </CardContent>
