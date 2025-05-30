@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import {
   CreditCard,
   Calendar,
@@ -35,8 +36,11 @@ import {
   Banknote,
   Target,
   Activity,
+  ArrowUpRight,
 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
+import { User } from "@supabase/supabase-js";
+import { SubmitButton } from "@/components/submit-button";
 
 interface Payment {
   id: string;
@@ -132,7 +136,7 @@ export default function PaymentsPage() {
   const router = useRouter();
   const [payments, setPayments] = useState<Payment[]>(mockPayments);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
