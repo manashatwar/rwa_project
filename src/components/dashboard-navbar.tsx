@@ -55,23 +55,33 @@ const navigationItems = [
     name: "Assets",
     href: "/dashboard/assets",
     icon: FileCheck,
-    badge: "2",
+    badge: "12",
+    badgeColor: "bg-blue-500",
+    badgeLabel: "Active NFTs",
   },
   {
     name: "Loans",
     href: "/dashboard/loans",
     icon: Landmark,
     badge: "5",
+    badgeColor: "bg-orange-500",
+    badgeLabel: "Active Loans",
   },
   {
     name: "Payments",
     href: "/dashboard/payments",
     icon: Coins,
+    badge: "3",
+    badgeColor: "bg-emerald-500",
+    badgeLabel: "Due Soon",
   },
   {
     name: "Cross-Chain",
     href: "/dashboard/cross-chain",
     icon: Globe,
+    badge: "8",
+    badgeColor: "bg-purple-500",
+    badgeLabel: "Networks",
   },
 ];
 
@@ -136,8 +146,8 @@ export default function DashboardNavbar() {
       {
         id: "1",
         type: "payment_due",
-        title: "Payment Due Soon",
-        message: "Your loan payment of $2,500 is due in 3 days",
+        title: "EMI Payment Due Soon",
+        message: `Your loan payment of ${formatCurrency(2500)} is due in 3 days`,
         timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 minutes ago
         read: false,
         priority: "high",
@@ -145,8 +155,8 @@ export default function DashboardNavbar() {
       {
         id: "2",
         type: "asset_verified",
-        title: "Asset Verified",
-        message: "Your Downtown Office Building has been successfully verified",
+        title: "Asset NFT Verified",
+        message: `Your Downtown Office Building (${formatCurrency(850000)}) has been successfully verified and minted`,
         timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
         read: false,
         priority: "medium",
@@ -154,8 +164,8 @@ export default function DashboardNavbar() {
       {
         id: "3",
         type: "price_alert",
-        title: "Price Alert",
-        message: "ETH price has increased by 5% in your portfolio",
+        title: "Portfolio Alert",
+        message: `ETH price increased +5.2% - Portfolio value up ${formatCurrency(45200)}`,
         timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(), // 4 hours ago
         read: true,
         priority: "low",
@@ -163,8 +173,8 @@ export default function DashboardNavbar() {
       {
         id: "4",
         type: "loan_approved",
-        title: "Loan Approved",
-        message: "Your $400,000 loan application has been approved",
+        title: "USDC Loan Approved",
+        message: `Your ${formatCurrency(400000)} stablecoin loan has been approved at 4.2% APR`,
         timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
         read: false,
         priority: "high",
@@ -172,8 +182,8 @@ export default function DashboardNavbar() {
       {
         id: "5",
         type: "system",
-        title: "System Update",
-        message: "New cross-chain features are now available",
+        title: "Platform Update",
+        message: `New cross-chain features: 2 new networks, ${formatNumber(150)} new assets supported`,
         timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(), // 2 days ago
         read: true,
         priority: "low",
@@ -267,6 +277,33 @@ export default function DashboardNavbar() {
     return name.slice(0, 1).toUpperCase();
   };
 
+  const formatCurrency = (amount: number) => {
+    if (amount >= 1000000) {
+      return `$${(amount / 1000000).toFixed(1)}M`;
+    } else if (amount >= 1000) {
+      return `$${(amount / 1000).toFixed(1)}K`;
+    }
+    return `$${amount.toLocaleString()}`;
+  };
+
+  const formatNumber = (num: number) => {
+    if (num >= 1000000) {
+      return `${(num / 1000000).toFixed(1)}M`;
+    } else if (num >= 1000) {
+      return `${(num / 1000).toFixed(1)}K`;
+    }
+    return num.toLocaleString();
+  };
+
+  // Mock portfolio data - in real app, this would come from your database
+  const portfolioMetrics = {
+    totalValue: 2847500, // $2.84M
+    activeAssets: 12,
+    activeLoans: 5,
+    healthRatio: 3.47,
+    monthlyReturn: 8.2,
+  };
+
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur-sm shadow-sm">
       <div className="container mx-auto px-4">
@@ -279,7 +316,7 @@ export default function DashboardNavbar() {
               </div>
               <div>
                 <span className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-                  RWA Lending
+                  RWA
                 </span>
                 <div className="flex items-center gap-1 -mt-1">
                   <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
@@ -310,9 +347,16 @@ export default function DashboardNavbar() {
                     <Icon className="h-4 w-4" />
                     <span>{item.name}</span>
                     {item.badge && (
-                      <Badge variant="secondary" className="h-4 px-1.5 text-xs">
+                      <div
+                        className={cn(
+                          "h-5 px-2 rounded-full text-xs font-bold text-white flex items-center justify-center shadow-sm",
+                          item.badgeColor || "bg-gray-500",
+                          "transition-all duration-200 hover:scale-110"
+                        )}
+                        title={item.badgeLabel}
+                      >
                         {item.badge}
-                      </Badge>
+                      </div>
                     )}
                   </Link>
                 );
@@ -482,18 +526,35 @@ export default function DashboardNavbar() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="relative hover:bg-gray-50 transition-colors"
+                  className="relative hover:bg-gray-50 transition-all duration-200 group"
                 >
-                  <Bell className="h-4 w-4" />
+                  <Bell className="h-4 w-4 group-hover:scale-110 transition-transform" />
                   {unreadCount > 0 && (
-                    <Badge
-                      variant={
-                        highPriorityUnread > 0 ? "destructive" : "default"
-                      }
-                      className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs"
-                    >
-                      {unreadCount > 9 ? "9+" : unreadCount}
-                    </Badge>
+                    <div className="absolute -top-1 -right-1 flex items-center justify-center">
+                      {/* Main notification badge */}
+                      <div
+                        className={cn(
+                          "relative w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-lg transform transition-all duration-200 hover:scale-110",
+                          highPriorityUnread > 0
+                            ? "bg-gradient-to-r from-red-500 to-red-600 shadow-red-200"
+                            : "bg-gradient-to-r from-blue-500 to-blue-600 shadow-blue-200"
+                        )}
+                        title={`${unreadCount} unread notifications${highPriorityUnread > 0 ? ` (${highPriorityUnread} high priority)` : ""}`}
+                      >
+                        {unreadCount > 99
+                          ? "99+"
+                          : unreadCount > 9
+                            ? "9+"
+                            : unreadCount}
+                      </div>
+
+                      {/* High priority indicator */}
+                      {highPriorityUnread > 0 && (
+                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border-2 border-white shadow-sm">
+                          <div className="w-full h-full bg-yellow-300 rounded-full"></div>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </Button>
               </DropdownMenuTrigger>
@@ -501,18 +562,40 @@ export default function DashboardNavbar() {
                 align="end"
                 className="w-80 shadow-lg border-0 bg-white/95 backdrop-blur-sm max-h-96 overflow-y-auto"
               >
-                <div className="flex items-center justify-between p-3 border-b border-gray-100">
-                  <h3 className="font-semibold text-gray-900">Notifications</h3>
-                  {unreadCount > 0 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-xs text-blue-600 hover:text-blue-700"
-                      onClick={markAllAsRead}
-                    >
-                      Mark all read
-                    </Button>
-                  )}
+                <div className="flex items-center justify-between p-3 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-purple-50">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-gray-900">
+                      Notifications
+                    </h3>
+                    {unreadCount > 0 && (
+                      <div className="flex items-center gap-1">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        <span className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
+                          {unreadCount} new
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {highPriorityUnread > 0 && (
+                      <div className="flex items-center gap-1 bg-red-100 px-2 py-1 rounded-full">
+                        <AlertTriangle className="h-3 w-3 text-red-600" />
+                        <span className="text-xs font-bold text-red-600">
+                          {highPriorityUnread} urgent
+                        </span>
+                      </div>
+                    )}
+                    {unreadCount > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-100 transition-colors"
+                        onClick={markAllAsRead}
+                      >
+                        Mark all read
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
                 {notifications.length > 0 ? (
@@ -609,7 +692,7 @@ export default function DashboardNavbar() {
                     </div>
                     {/* Active Status Indicator */}
                     <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full shadow-sm">
-                      <div className="w-full h-full bg-emerald-400 rounded-full animate-pulse"></div>
+                      <div className="w-full h-full bg-emerald-400 rounded-full"></div>
                     </div>
                   </div>
 
@@ -632,7 +715,7 @@ export default function DashboardNavbar() {
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                className="w-64 shadow-lg border-0 bg-white/95 backdrop-blur-sm"
+                className="w-80 shadow-lg border-0 bg-white/95 backdrop-blur-sm"
               >
                 <DropdownMenuLabel>
                   <div className="flex flex-col">
@@ -644,6 +727,50 @@ export default function DashboardNavbar() {
                     </span>
                   </div>
                 </DropdownMenuLabel>
+
+                {/* Portfolio Summary */}
+                <div className="px-2 py-3 border-b border-gray-100">
+                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-3 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-700">
+                        Portfolio Value
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-lg font-bold text-gray-900">
+                          {formatCurrency(portfolioMetrics.totalValue)}
+                        </span>
+                        <div className="flex items-center gap-1 bg-emerald-100 px-1.5 py-0.5 rounded-full">
+                          <TrendingUp className="h-3 w-3 text-emerald-600" />
+                          <span className="text-xs font-bold text-emerald-600">
+                            +{portfolioMetrics.monthlyReturn}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3 text-center">
+                      <div className="bg-white/70 rounded-md p-2">
+                        <div className="text-lg font-bold text-blue-600">
+                          {portfolioMetrics.activeAssets}
+                        </div>
+                        <div className="text-xs text-gray-600">NFTs</div>
+                      </div>
+                      <div className="bg-white/70 rounded-md p-2">
+                        <div className="text-lg font-bold text-orange-600">
+                          {portfolioMetrics.activeLoans}
+                        </div>
+                        <div className="text-xs text-gray-600">Loans</div>
+                      </div>
+                      <div className="bg-white/70 rounded-md p-2">
+                        <div className="text-lg font-bold text-emerald-600">
+                          {portfolioMetrics.healthRatio}
+                        </div>
+                        <div className="text-xs text-gray-600">Health</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem asChild className="cursor-pointer">
@@ -699,37 +826,6 @@ export default function DashboardNavbar() {
               <Menu className="h-4 w-4" />
             </Button>
           </div>
-        </div>
-      </div>
-
-      {/* Enhanced Mobile Navigation */}
-      <div className="md:hidden border-t border-gray-200 bg-gray-50/80 backdrop-blur-sm px-4 py-2">
-        <div className="flex items-center justify-between overflow-x-auto">
-          {navigationItems.map((item) => {
-            const Icon = item.icon;
-            const active = isActive(item.href, item.exact);
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 min-w-0 flex-shrink-0",
-                  active
-                    ? "text-blue-600 bg-blue-50 shadow-sm"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                <span className="truncate">{item.name}</span>
-                {item.badge && (
-                  <Badge variant="secondary" className="h-3 px-1 text-xs">
-                    {item.badge}
-                  </Badge>
-                )}
-              </Link>
-            );
-          })}
         </div>
       </div>
     </nav>
