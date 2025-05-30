@@ -24,6 +24,9 @@ import {
   Building,
   CheckCircle,
   Wallet,
+  Activity,
+  Package,
+  Home,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -42,19 +45,33 @@ interface Asset {
 }
 
 function getStatusBadge(status: string) {
-  const variants = {
-    verified: "default" as const,
-    pending: "secondary" as const,
-    rejected: "destructive" as const,
-    collateralized: "default" as const,
-    available: "secondary" as const,
+  const colors = {
+    verified: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    pending: "bg-yellow-50 text-yellow-700 border-yellow-200",
+    rejected: "bg-red-50 text-red-700 border-red-200",
+    collateralized: "bg-blue-50 text-blue-700 border-blue-200",
+    available: "bg-gray-50 text-gray-700 border-gray-200",
   };
 
   return (
-    <Badge variant={variants[status as keyof typeof variants] || "secondary"}>
+    <Badge
+      variant="outline"
+      className={`${colors[status as keyof typeof colors] || "bg-gray-50 text-gray-700 border-gray-200"} font-medium`}
+    >
       {status.charAt(0).toUpperCase() + status.slice(1)}
     </Badge>
   );
+}
+
+function formatTimeAgo(dateString: string) {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  if (diffInSeconds < 60) return "Just now";
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+  return `${Math.floor(diffInSeconds / 86400)}d ago`;
 }
 
 export default async function AssetsPage() {
@@ -83,14 +100,17 @@ export default async function AssetsPage() {
     assets?.filter(
       (asset) => asset.collateralization_status === "collateralized"
     ).length || 0;
+  const pendingAssets =
+    assets?.filter((asset) => asset.verification_status === "pending").length ||
+    0;
 
   return (
     <>
       <DashboardNavbar />
-      <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
-        <div className="container mx-auto px-4 py-8 space-y-8">
+      <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 animate-fadeIn">
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
           {/* Header */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-8 animate-slideDown">
             <div>
               <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent">
                 Asset Management
@@ -101,8 +121,9 @@ export default async function AssetsPage() {
             </div>
             <Button
               asChild
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5"
+              variant="outline"
               size="lg"
+              className="border-blue-200 text-blue-700 hover:bg-blue-50 shadow-sm hover:shadow-md transition-all duration-200"
             >
               <Link href="/dashboard/assets/new">
                 <Plus className="h-5 w-5 mr-2" />
@@ -111,253 +132,224 @@ export default async function AssetsPage() {
             </Button>
           </div>
 
-          {/* Enhanced Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-            {/* Total Assets Card */}
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white overflow-hidden relative group hover:shadow-xl transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <CardHeader className="pb-3 relative z-10">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-blue-100">
-                    Total Assets
-                  </CardTitle>
-                  <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                    <Building className="h-5 w-5 text-white" />
-                  </div>
-                </div>
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 animate-staggerIn">
+            <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100/50 backdrop-blur-sm hover:shadow-xl transition-all duration-200 hover:-translate-y-1">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold text-blue-600 flex items-center gap-2 uppercase tracking-wide">
+                  <Building className="h-5 w-5" />
+                  Total Assets
+                </CardTitle>
               </CardHeader>
-              <CardContent className="relative z-10">
-                <p className="text-3xl font-bold mb-1">{assets?.length || 0}</p>
-                <p className="text-blue-100 text-sm">
-                  {assets?.length === 1 ? "Asset" : "Assets"} tokenized
+              <CardContent>
+                <p className="text-3xl font-bold text-gray-900">
+                  {assets?.length || 0}
                 </p>
+                <div className="flex items-center gap-1 text-blue-600 mt-2">
+                  <Activity className="h-4 w-4" />
+                  <span className="text-sm font-medium">NFTs Minted</span>
+                </div>
               </CardContent>
             </Card>
 
-            {/* Total Value Card */}
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-500 to-emerald-600 text-white overflow-hidden relative group hover:shadow-xl transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <CardHeader className="pb-3 relative z-10">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-emerald-100">
-                    Total Value
-                  </CardTitle>
-                  <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                    <DollarSign className="h-5 w-5 text-white" />
-                  </div>
-                </div>
+            <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100/50 backdrop-blur-sm hover:shadow-xl transition-all duration-200 hover:-translate-y-1">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold text-emerald-600 flex items-center gap-2 uppercase tracking-wide">
+                  <DollarSign className="h-5 w-5" />
+                  Total Value
+                </CardTitle>
               </CardHeader>
-              <CardContent className="relative z-10">
-                <p className="text-3xl font-bold mb-1">
+              <CardContent>
+                <p className="text-3xl font-bold text-gray-900">
                   ${totalValue.toLocaleString()}
                 </p>
-                <p className="text-emerald-100 text-sm flex items-center gap-1">
-                  <TrendingUp className="h-3 w-3" />
-                  Portfolio value
+                <div className="flex items-center gap-1 text-emerald-600 mt-2">
+                  <TrendingUp className="h-4 w-4" />
+                  <span className="text-sm font-medium">Portfolio Value</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100/50 backdrop-blur-sm hover:shadow-xl transition-all duration-200 hover:-translate-y-1">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold text-purple-600 flex items-center gap-2 uppercase tracking-wide">
+                  <CheckCircle className="h-5 w-5" />
+                  Verified Assets
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-gray-900">
+                  {verifiedAssets}
                 </p>
+                <div className="flex items-center gap-1 text-purple-600 mt-2">
+                  <Shield className="h-4 w-4" />
+                  <span className="text-sm font-medium">Ready for Lending</span>
+                </div>
               </CardContent>
             </Card>
 
-            {/* Verified Assets Card */}
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white overflow-hidden relative group hover:shadow-xl transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-400/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <CardHeader className="pb-3 relative z-10">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-purple-100">
-                    Verified Assets
-                  </CardTitle>
-                  <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                    <CheckCircle className="h-5 w-5 text-white" />
-                  </div>
-                </div>
+            <Card className="border-0 shadow-lg bg-gradient-to-br from-orange-50 to-orange-100/50 backdrop-blur-sm hover:shadow-xl transition-all duration-200 hover:-translate-y-1">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold text-orange-600 flex items-center gap-2 uppercase tracking-wide">
+                  <Wallet className="h-5 w-5" />
+                  Active Collateral
+                </CardTitle>
               </CardHeader>
-              <CardContent className="relative z-10">
-                <p className="text-3xl font-bold mb-1">{verifiedAssets}</p>
-                <p className="text-purple-100 text-sm">Ready for lending</p>
-              </CardContent>
-            </Card>
-
-            {/* Collateralized Assets Card */}
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-orange-500 to-orange-600 text-white overflow-hidden relative group hover:shadow-xl transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-br from-orange-400/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <CardHeader className="pb-3 relative z-10">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-orange-100">
-                    Active Collateral
-                  </CardTitle>
-                  <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                    <Wallet className="h-5 w-5 text-white" />
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="relative z-10">
-                <p className="text-3xl font-bold mb-1">
+              <CardContent>
+                <p className="text-3xl font-bold text-gray-900">
                   {collateralizedAssets}
                 </p>
-                <p className="text-orange-100 text-sm">Currently lending</p>
+                <div className="flex items-center gap-1 text-orange-600 mt-2">
+                  <Coins className="h-4 w-4" />
+                  <span className="text-sm font-medium">Currently Lending</span>
+                </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Assets Grid */}
-          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-            <CardHeader className="border-b border-gray-100">
+          {/* Assets List */}
+          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm animate-slideUp">
+            <CardHeader className="pb-4 border-b border-gray-100">
               <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-2xl font-bold text-gray-900">
-                    Your Assets
-                  </CardTitle>
-                  <CardDescription className="text-base mt-1">
-                    All your tokenized real-world assets
-                  </CardDescription>
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <FileCheck className="h-6 w-6 text-blue-600" />
+                  Your Tokenized Assets
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-xs">
+                    {assets?.length || 0} total
+                  </Badge>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href="/dashboard/assets/new">
+                      <Plus className="h-3 w-3 mr-1" />
+                      Add Asset
+                    </Link>
+                  </Button>
                 </div>
-                {assets && assets.length > 0 && (
-                  <div className="text-sm text-muted-foreground">
-                    {assets.length} {assets.length === 1 ? "asset" : "assets"}{" "}
-                    found
-                  </div>
-                )}
               </div>
             </CardHeader>
-            <CardContent className="p-8">
+            <CardContent className="space-y-4 p-6">
               {assets && assets.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                  {assets.map((asset: Asset) => {
-                    const valueChange =
-                      asset.current_value - asset.original_value;
-                    const valueChangePercent = (
-                      (valueChange / asset.original_value) *
-                      100
-                    ).toFixed(1);
+                assets.map((asset: Asset) => {
+                  const valueChange =
+                    asset.current_value - asset.original_value;
+                  const valueChangePercent = (
+                    (valueChange / asset.original_value) *
+                    100
+                  ).toFixed(1);
 
-                    return (
-                      <Card
-                        key={asset.id}
-                        className="border border-gray-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 bg-white group"
-                      >
-                        <CardHeader className="pb-4">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="space-y-2 flex-1">
-                              <CardTitle className="text-lg leading-tight group-hover:text-blue-600 transition-colors">
-                                {asset.name}
-                              </CardTitle>
-                              <CardDescription className="flex items-center gap-1.5">
-                                <MapPin className="h-3.5 w-3.5 text-gray-400" />
-                                {asset.location}
-                              </CardDescription>
-                            </div>
+                  return (
+                    <div
+                      key={asset.id}
+                      className="p-4 bg-gradient-to-r from-gray-50 to-blue-50/30 rounded-xl border border-gray-200 space-y-4 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold text-gray-900">
+                              {asset.name}
+                            </p>
                             <Badge
                               variant="outline"
-                              className="text-xs font-medium bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200 text-blue-700"
+                              className="text-xs bg-purple-50 text-purple-700 border-purple-200"
+                            >
+                              NFT
+                            </Badge>
+                            <Badge
+                              variant="outline"
+                              className="text-xs bg-blue-50 text-blue-700 border-blue-200"
                             >
                               {asset.blockchain}
                             </Badge>
                           </div>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                          <div>
-                            <p className="text-sm font-semibold text-blue-600 mb-1">
-                              {asset.asset_type}
-                            </p>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                              {asset.description}
-                            </p>
-                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {asset.asset_type} • {asset.location}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {getStatusBadge(asset.verification_status)}
+                          {getStatusBadge(asset.collateralization_status)}
+                        </div>
+                      </div>
 
-                          <div className="space-y-3 bg-gray-50 rounded-lg p-4">
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm font-medium text-gray-600">
-                                Current Value
-                              </span>
-                              <span className="font-bold text-lg text-gray-900">
-                                ${asset.current_value.toLocaleString()}
-                              </span>
-                            </div>
-                            <div className="flex items-center justify-between text-sm">
-                              <span className="text-muted-foreground">
-                                Original Value
-                              </span>
-                              <span className="text-gray-600">
-                                ${asset.original_value.toLocaleString()}
-                              </span>
-                            </div>
-                            <div className="flex items-center justify-between text-sm border-t border-gray-200 pt-2">
-                              <span className="text-muted-foreground">
-                                Change
-                              </span>
-                              <span
-                                className={
-                                  valueChange >= 0
-                                    ? "text-emerald-600 font-semibold"
-                                    : "text-red-600 font-semibold"
-                                }
-                              >
-                                {valueChange >= 0 ? "+" : ""}$
-                                {valueChange.toLocaleString()} (
-                                {valueChangePercent}%)
-                              </span>
-                            </div>
-                          </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="space-y-1">
+                          <p className="text-xs text-muted-foreground">
+                            Current Value
+                          </p>
+                          <p className="font-bold text-lg text-gray-900">
+                            ${asset.current_value.toLocaleString()}
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs text-muted-foreground">
+                            Original Value
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            ${asset.original_value.toLocaleString()}
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs text-muted-foreground">
+                            Value Change
+                          </p>
+                          <p
+                            className={`text-sm font-medium ${
+                              valueChange >= 0
+                                ? "text-emerald-600"
+                                : "text-red-600"
+                            }`}
+                          >
+                            {valueChange >= 0 ? "+" : ""}$
+                            {valueChange.toLocaleString()} ({valueChangePercent}
+                            %)
+                          </p>
+                        </div>
+                      </div>
 
-                          <div className="flex items-center gap-2 flex-wrap">
-                            {getStatusBadge(asset.verification_status)}
-                            {getStatusBadge(asset.collateralization_status)}
-                          </div>
-
-                          <div className="flex gap-3 pt-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="flex-1 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all duration-200"
-                              asChild
-                            >
-                              <Link href={`/dashboard/assets/${asset.id}`}>
-                                <Eye className="h-4 w-4 mr-1.5" />
-                                View
-                              </Link>
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="flex-1 hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700 transition-all duration-200"
-                              asChild
-                            >
-                              <Link href={`/dashboard/assets/${asset.id}/edit`}>
-                                <Edit className="h-4 w-4 mr-1.5" />
-                                Edit
-                              </Link>
-                            </Button>
-                          </div>
-
-                          <div className="text-xs text-muted-foreground pt-3 border-t border-gray-100 flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            Added{" "}
-                            {new Date(asset.created_at).toLocaleDateString()}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-muted-foreground">
+                          Tokenized {formatTimeAgo(asset.created_at)}
+                        </p>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700"
+                            asChild
+                          >
+                            <Link href={`/dashboard/assets/${asset.id}`}>
+                              <Eye className="h-3 w-3 mr-1" />
+                              View
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700"
+                            asChild
+                          >
+                            <Link href={`/dashboard/assets/${asset.id}/edit`}>
+                              <Edit className="h-3 w-3 mr-1" />
+                              Edit
+                            </Link>
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
               ) : (
-                <div className="text-center py-20">
-                  <div className="mx-auto w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mb-6">
-                    <FileCheck className="h-12 w-12 text-blue-600" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-3 text-gray-900">
-                    No assets found
-                  </h3>
-                  <p className="text-muted-foreground mb-8 text-lg max-w-md mx-auto">
+                <div className="text-center py-12 text-muted-foreground">
+                  <FileCheck className="h-16 w-16 mx-auto mb-4 opacity-40" />
+                  <p className="text-lg font-medium mb-2">No assets found</p>
+                  <p className="text-sm mb-6">
                     Start building your portfolio by tokenizing your first
-                    real-world asset
+                    real-world asset into an NFT
                   </p>
-                  <Button
-                    asChild
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5"
-                    size="lg"
-                  >
+                  <Button asChild className="bg-blue-600 hover:bg-blue-700">
                     <Link href="/dashboard/assets/new">
-                      <Plus className="h-5 w-5 mr-2" />
+                      <Plus className="h-4 w-4 mr-2" />
                       Tokenize Your First Asset
                     </Link>
                   </Button>

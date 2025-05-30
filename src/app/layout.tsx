@@ -7,7 +7,12 @@ import { ThemeProvider } from "@/components/theme-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
+const defaultUrl = process.env.VERCEL_URL
+  ? `https://${process.env.VERCEL_URL}`
+  : "http://localhost:3000";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(defaultUrl),
   title: "RWA Lending Dashboard",
   description:
     "A comprehensive dashboard for managing tokenized real-world assets and lending activities across multiple blockchains",

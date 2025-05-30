@@ -12,6 +12,7 @@ import {
   RefreshCw,
   Calendar,
   DollarSign,
+  CheckCircle,
 } from "lucide-react";
 import { redirect } from "next/navigation";
 import { createClient } from "../../../supabase/server";
@@ -29,7 +30,6 @@ import {
   Globe,
   Landmark,
   Wallet,
-  CheckCircle,
   Clock,
   XCircle,
 } from "lucide-react";
@@ -351,10 +351,10 @@ export default async function Dashboard({
   return (
     <>
       <DashboardNavbar />
-      <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
+      <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 animate-fadeIn">
         <div className="container mx-auto px-4 py-8 space-y-8">
           {/* Header Section */}
-          <header className="space-y-6">
+          <header className="space-y-6 animate-slideDown">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div>
                 <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent">
@@ -389,7 +389,7 @@ export default async function Dashboard({
             </div>
 
             {/* Search and Filter Bar */}
-            <div className="flex flex-col md:flex-row gap-4 items-center">
+            <div className="flex flex-col md:flex-row gap-4 items-center animate-slideUp">
               <form
                 action={searchPortfolioAction}
                 className="relative flex-1 max-w-md"
@@ -421,7 +421,7 @@ export default async function Dashboard({
 
             {/* Search Results Indicator */}
             {searchQuery && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 animate-slideDown">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Search className="h-4 w-4 text-blue-600" />
@@ -441,7 +441,7 @@ export default async function Dashboard({
 
             {/* Success Message */}
             {showRefreshed && (
-              <Card className="border border-emerald-200 shadow-lg bg-gradient-to-br from-emerald-50/50 to-green-50/50">
+              <Card className="border border-emerald-200 shadow-lg bg-gradient-to-br from-emerald-50/50 to-green-50/50 animate-slideDown">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3">
                     <RefreshCw className="h-6 w-6 text-emerald-600" />
@@ -460,7 +460,7 @@ export default async function Dashboard({
             )}
 
             {/* Multi-Chain Info Banner */}
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-6 shadow-sm">
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-6 shadow-sm animate-slideUp">
               <div className="flex gap-4">
                 <InfoIcon className="h-6 w-6 text-blue-600 mt-0.5 flex-shrink-0" />
                 <div className="space-y-2">
@@ -468,8 +468,9 @@ export default async function Dashboard({
                     RWA Tokenization & NFT Lending Platform
                   </p>
                   <p className="text-sm text-blue-700">
-                    Tokenize real-world assets into NFTs, use them as collateral
-                    to borrow stablecoins, and manage automated EMI payments
+                    Upload documentation for real estate, commodities, and
+                    equipment. Our verification team tokenizes them on the
+                    blockchain as NFTs for collateralized lending.
                   </p>
                   <div className="flex items-center gap-4 mt-3">
                     <Badge
@@ -486,14 +487,226 @@ export default async function Dashboard({
                         {upcomingPayments} EMI payments due soon
                       </Badge>
                     )}
+                    <Badge
+                      variant="outline"
+                      className="bg-emerald-50 text-emerald-700 border-emerald-200"
+                    >
+                      Ethereum • Polygon • BSC
+                    </Badge>
                   </div>
                 </div>
               </div>
             </div>
+
+            {/* Asset Upload & Verification Workflow */}
+            <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-blue-50/30 backdrop-blur-sm animate-slideUp">
+              <CardHeader className="border-b border-gray-100">
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <FileCheck className="h-6 w-6 text-blue-600" />
+                  Asset Documentation & Verification
+                </CardTitle>
+                <CardDescription className="text-base">
+                  Upload your real-world asset documentation for blockchain
+                  verification and NFT minting
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Real Estate */}
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-6 border border-blue-200 hover:shadow-lg transition-all duration-200 hover:-translate-y-1 animate-fadeIn">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center shadow-md">
+                        <svg
+                          className="w-6 h-6 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                          />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-blue-900">
+                          Real Estate
+                        </h3>
+                        <p className="text-sm text-blue-700">
+                          Properties & Land
+                        </p>
+                      </div>
+                    </div>
+                    <ul className="space-y-2 text-sm text-blue-800 mb-4">
+                      <li>• Property Deeds</li>
+                      <li>• Title Documents</li>
+                      <li>• Valuation Reports</li>
+                      <li>• Insurance Papers</li>
+                    </ul>
+                    <Button
+                      className="w-full bg-blue-600 hover:bg-blue-700"
+                      asChild
+                    >
+                      <Link href="/dashboard/assets/new?type=real_estate">
+                        Upload Property Docs
+                      </Link>
+                    </Button>
+                  </div>
+
+                  {/* Commodities */}
+                  <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-xl p-6 border border-emerald-200 hover:shadow-lg transition-all duration-200 hover:-translate-y-1 animate-fadeIn">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-12 h-12 bg-emerald-600 rounded-lg flex items-center justify-center shadow-md">
+                        <svg
+                          className="w-6 h-6 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                          />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-emerald-900">
+                          Commodities
+                        </h3>
+                        <p className="text-sm text-emerald-700">
+                          Gold, Oil, Metals
+                        </p>
+                      </div>
+                    </div>
+                    <ul className="space-y-2 text-sm text-emerald-800 mb-4">
+                      <li>• Warehouse Receipts</li>
+                      <li>• Quality Certificates</li>
+                      <li>• Storage Documentation</li>
+                      <li>• Purity Verification</li>
+                    </ul>
+                    <Button
+                      className="w-full bg-emerald-600 hover:bg-emerald-700"
+                      asChild
+                    >
+                      <Link href="/dashboard/assets/new?type=commodities">
+                        Upload Commodity Docs
+                      </Link>
+                    </Button>
+                  </div>
+
+                  {/* Equipment */}
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-6 border border-purple-200 hover:shadow-lg transition-all duration-200 hover:-translate-y-1 animate-fadeIn">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center shadow-md">
+                        <svg
+                          className="w-6 h-6 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-purple-900">
+                          Equipment
+                        </h3>
+                        <p className="text-sm text-purple-700">
+                          Machinery & Vehicles
+                        </p>
+                      </div>
+                    </div>
+                    <ul className="space-y-2 text-sm text-purple-800 mb-4">
+                      <li>• Purchase Invoices</li>
+                      <li>• Maintenance Records</li>
+                      <li>• Condition Reports</li>
+                      <li>• Registration Papers</li>
+                    </ul>
+                    <Button
+                      className="w-full bg-purple-600 hover:bg-purple-700"
+                      asChild
+                    >
+                      <Link href="/dashboard/assets/new?type=equipment">
+                        Upload Equipment Docs
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Verification Process */}
+                <div className="mt-8 bg-gradient-to-r from-gray-50 to-blue-50/30 rounded-xl p-6 border border-gray-200">
+                  <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-blue-600" />
+                    Verification Process Timeline
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="text-center">
+                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <span className="text-blue-600 font-bold">1</span>
+                      </div>
+                      <p className="text-sm font-medium text-gray-900">
+                        Upload Docs
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        Submit documentation
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <span className="text-yellow-600 font-bold">2</span>
+                      </div>
+                      <p className="text-sm font-medium text-gray-900">
+                        Team Review
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        Expert verification
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <span className="text-purple-600 font-bold">3</span>
+                      </div>
+                      <p className="text-sm font-medium text-gray-900">
+                        NFT Minting
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        Blockchain tokenization
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <span className="text-emerald-600 font-bold">4</span>
+                      </div>
+                      <p className="text-sm font-medium text-gray-900">
+                        Ready to Lend
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        Collateral available
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </header>
 
           {/* Enhanced Financial Health Summary */}
-          <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-staggerIn">
             <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100/50 backdrop-blur-sm hover:shadow-xl transition-all duration-200 hover:-translate-y-1">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-semibold text-blue-600 flex items-center gap-2 uppercase tracking-wide">
@@ -544,27 +757,21 @@ export default async function Dashboard({
               </CardContent>
             </Card>
 
-            <Card
-              className={`border-0 shadow-lg backdrop-blur-sm hover:shadow-xl transition-all duration-200 hover:-translate-y-1 ${healthStatus.bgColor}`}
-            >
+            <Card className="border-0 shadow-lg bg-gradient-to-br from-indigo-50 to-indigo-100/50 backdrop-blur-sm hover:shadow-xl transition-all duration-200 hover:-translate-y-1">
               <CardHeader className="pb-3">
-                <CardTitle
-                  className={`text-sm font-semibold flex items-center gap-2 uppercase tracking-wide ${healthStatus.color}`}
-                >
+                <CardTitle className="text-sm font-semibold text-indigo-600 flex items-center gap-2 uppercase tracking-wide">
                   <BarChart3 className="h-5 w-5" />
                   Health Ratio
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <p className={`text-3xl font-bold ${healthStatus.color}`}>
+                  <p className="text-3xl font-bold text-gray-900">
                     {healthRatio.toFixed(2)}
                   </p>
                   <div className="flex items-center gap-2">
-                    <HealthIcon className={`h-4 w-4 ${healthStatus.color}`} />
-                    <span
-                      className={`${healthStatus.color} font-medium text-sm`}
-                    >
+                    <HealthIcon className="h-4 w-4 text-indigo-600" />
+                    <span className="text-indigo-600 font-medium text-sm">
                       {healthStatus.status} standing
                     </span>
                   </div>
@@ -748,12 +955,16 @@ export default async function Dashboard({
                               <p className="font-semibold text-gray-900">
                                 ${loan.loan_amount.toLocaleString()} USDC Loan
                               </p>
-                              <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                              <Badge
+                                variant="outline"
+                                className="text-xs bg-blue-50 text-blue-700 border-blue-200"
+                              >
                                 Stablecoin
                               </Badge>
                             </div>
                             <p className="text-sm text-muted-foreground">
-                              {loan.interest_rate}% APR • {loan.blockchain} • NFT Collateralized
+                              {loan.interest_rate}% APR • {loan.blockchain} •
+                              NFT Collateralized
                             </p>
                           </div>
                           <div className="flex items-center gap-2">
@@ -772,7 +983,8 @@ export default async function Dashboard({
                               {loan.outstanding_balance.toLocaleString()} USDC
                             </span>
                             <span className="font-medium">
-                              Next EMI: ${loan.monthly_payment.toLocaleString()} USDC
+                              Next EMI: ${loan.monthly_payment.toLocaleString()}{" "}
+                              USDC
                             </span>
                           </div>
                           <Progress value={paymentProgress} className="h-2" />
@@ -789,7 +1001,8 @@ export default async function Dashboard({
                           </div>
                           <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
                             <p className="text-xs text-orange-700">
-                              🔒 Collateral: NFT #{loan.id.slice(-6)} locked until loan completion
+                              🔒 Collateral: NFT #{loan.id.slice(-6)} locked
+                              until loan completion
                             </p>
                           </div>
                         </div>
@@ -932,7 +1145,8 @@ export default async function Dashboard({
             <CardHeader className="border-b border-gray-100">
               <CardTitle className="text-xl">RWA Lending Workflow</CardTitle>
               <CardDescription className="text-base">
-                Complete workflow from asset tokenization to automated loan repayment
+                Complete workflow from asset tokenization to automated loan
+                repayment
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6">

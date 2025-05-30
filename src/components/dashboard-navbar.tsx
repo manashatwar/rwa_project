@@ -280,6 +280,10 @@ export default function DashboardNavbar() {
                 <span className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
                   RWA Lending
                 </span>
+                <div className="flex items-center gap-1 -mt-1">
+                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-gray-500">Multi-Chain</span>
+                </div>
               </div>
             </Link>
           </div>
