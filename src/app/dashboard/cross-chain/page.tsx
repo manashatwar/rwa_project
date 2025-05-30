@@ -25,9 +25,17 @@ import {
   Clock,
   AlertTriangle,
   Link as LinkIcon,
+  RefreshCw,
+  BarChart3,
+  Building,
+  ExternalLink,
+  Send,
+  ShieldCheck,
+  ArrowUpDown,
 } from "lucide-react";
 import Link from "next/link";
 import { SubmitButton } from "@/components/submit-button";
+import { redirect } from "next/navigation";
 
 interface CrossChainPosition {
   id: string;
@@ -316,7 +324,8 @@ export default async function CrossChainPage({
           {/* Positions by Blockchain */}
           {Object.entries(positionsByChain).map(
             ([blockchain, chainPositions]) => {
-              const chainTotal = chainPositions.reduce(
+              const positions = chainPositions as CrossChainPosition[];
+              const chainTotal = positions.reduce(
                 (sum, pos) => sum + pos.usd_value,
                 0
               );
@@ -342,7 +351,7 @@ export default async function CrossChainPage({
                             ${chainTotal.toLocaleString()}
                           </CardTitle>
                           <CardDescription className="text-base">
-                            {chainPositions.length} positions
+                            {positions.length} positions
                           </CardDescription>
                         </div>
                       </div>
@@ -365,7 +374,7 @@ export default async function CrossChainPage({
                   </CardHeader>
                   <CardContent className="p-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {chainPositions.map((position) => (
+                      {positions.map((position) => (
                         <Card
                           key={position.id}
                           className="border-0 shadow-md bg-white/80 backdrop-blur-sm hover:shadow-lg transition-all duration-200 hover:-translate-y-1"

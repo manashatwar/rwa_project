@@ -34,6 +34,7 @@ import {
   ArrowRight,
   Banknote,
   Target,
+  Activity,
 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 
