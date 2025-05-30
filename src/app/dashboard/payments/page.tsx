@@ -29,7 +29,12 @@ import {
   XCircle,
   ArrowRight,
   Wallet,
+  Activity,
+  TrendingUp,
+  Building,
+  DollarSign,
 } from "lucide-react";
+import { SubmitButton } from "@/components/submit-button";
 
 interface Payment {
   id: string;
@@ -63,31 +68,26 @@ interface Loan {
 }
 
 function getStatusBadge(status: string) {
-  const statusConfig = {
-    completed: {
-      variant: "default" as const,
-      icon: CheckCircle,
-      color: "text-green-600",
-    },
-    pending: {
-      variant: "secondary" as const,
-      icon: Clock,
-      color: "text-yellow-600",
-    },
-    failed: {
-      variant: "destructive" as const,
-      icon: XCircle,
-      color: "text-red-600",
-    },
+  const colors = {
+    completed: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    pending: "bg-yellow-50 text-yellow-700 border-yellow-200",
+    failed: "bg-red-50 text-red-700 border-red-200",
   };
 
-  const config =
-    statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
-  const Icon = config.icon;
+  const icons = {
+    completed: CheckCircle,
+    pending: Clock,
+    failed: XCircle,
+  };
+
+  const Icon = icons[status as keyof typeof icons] || Clock;
 
   return (
-    <Badge variant={config.variant} className="flex items-center gap-1">
-      <Icon className={`h-3 w-3 ${config.color}`} />
+    <Badge
+      variant="outline"
+      className={`${colors[status as keyof typeof colors] || "bg-gray-50 text-gray-700 border-gray-200"} font-medium flex items-center gap-1`}
+    >
+      <Icon className="h-3 w-3" />
       {status.charAt(0).toUpperCase() + status.slice(1)}
     </Badge>
   );
@@ -101,7 +101,9 @@ const cryptoCurrencies = [
   { symbol: "MATIC", name: "Polygon", rate: 1.25 },
 ];
 
-export default async function PaymentsPage() {
+async function processPaymentAction(formData: FormData) {
+  "use server";
+
   const supabase = await createClient();
 
   const {
@@ -111,6 +113,79 @@ export default async function PaymentsPage() {
   if (!user) {
     return redirect("/sign-in");
   }
+
+  const loanId = formData.get("loan_id") as string;
+  const amount = parseFloat(formData.get("amount") as string);
+  const cryptoCurrency = formData.get("crypto_currency") as string;
+  const blockchain = formData.get("blockchain") as string;
+
+  // Find the selected crypto rate
+  const selectedCrypto = cryptoCurrencies.find(
+    (c) => c.symbol === cryptoCurrency
+  );
+  const exchangeRate = selectedCrypto?.rate || 1.0;
+
+  // Generate a mock transaction hash
+  const transactionHash = "0x" + Math.random().toString(16).substring(2, 66);
+
+  // Insert payment record
+  const { error: paymentError } = await supabase.from("payments").insert({
+    user_id: user.id,
+    loan_id: loanId,
+    amount,
+    currency: "USD",
+    crypto_currency: cryptoCurrency,
+    exchange_rate: exchangeRate,
+    transaction_hash: transactionHash,
+    blockchain,
+    payment_status: "completed",
+    payment_date: new Date().toISOString(),
+  });
+
+  if (paymentError) {
+    console.error("Error creating payment:", paymentError);
+    return;
+  }
+
+  // Update loan outstanding balance
+  const { data: loan } = await supabase
+    .from("loans")
+    .select("outstanding_balance")
+    .eq("id", loanId)
+    .single();
+
+  if (loan) {
+    const newBalance = Math.max(0, loan.outstanding_balance - amount);
+    await supabase
+      .from("loans")
+      .update({
+        outstanding_balance: newBalance,
+        loan_status: newBalance === 0 ? "completed" : "active",
+      })
+      .eq("id", loanId);
+  }
+
+  return redirect("/dashboard/payments?success=true");
+}
+
+export default async function PaymentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return redirect("/sign-in");
+  }
+
+  const params = await searchParams;
+  const selectedLoanId = params.loan as string;
+  const showSuccess = params.success === "true";
 
   // Fetch recent payments
   const { data: payments } = await supabase
@@ -126,7 +201,7 @@ export default async function PaymentsPage() {
           name
         )
       )
-    `,
+    `
     )
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
@@ -141,7 +216,7 @@ export default async function PaymentsPage() {
       assets!loans_asset_id_fkey (
         name
       )
-    `,
+    `
     )
     .eq("user_id", user.id)
     .eq("loan_status", "active")
@@ -156,109 +231,166 @@ export default async function PaymentsPage() {
     payments?.filter((payment) => payment.payment_status === "pending")
       .length || 0;
 
+  const thisMonthPaid =
+    payments
+      ?.filter(
+        (p) =>
+          new Date(p.payment_date).getMonth() === new Date().getMonth() &&
+          new Date(p.payment_date).getFullYear() === new Date().getFullYear()
+      )
+      .reduce((sum, p) => sum + p.amount, 0) || 0;
+
   return (
     <>
       <DashboardNavbar />
-      <main className="min-h-screen bg-gray-50/50">
-        <div className="container mx-auto px-4 py-8 space-y-8">
+      <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
           {/* Header */}
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
+          <div className="mb-8">
+            <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent">
               Payment Center
             </h1>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-muted-foreground mt-2 text-lg">
               Process loan payments in various cryptocurrencies
             </p>
           </div>
 
+          {/* Success Message */}
+          {showSuccess && (
+            <Card className="border border-emerald-200 shadow-lg bg-gradient-to-br from-emerald-50/50 to-green-50/50 mb-8">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="h-6 w-6 text-emerald-600" />
+                  <div>
+                    <h3 className="font-semibold text-emerald-900">
+                      Payment Successful!
+                    </h3>
+                    <p className="text-emerald-700">
+                      Your payment has been processed and recorded.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <Card className="border-0 shadow-sm">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100/50 backdrop-blur-sm hover:shadow-xl transition-all duration-200 hover:-translate-y-1">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Coins className="h-4 w-4" />
+                <CardTitle className="text-sm font-semibold text-blue-600 flex items-center gap-2 uppercase tracking-wide">
+                  <Coins className="h-5 w-5" />
                   Total Paid
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold">
+                <p className="text-3xl font-bold text-gray-900">
                   ${totalPaid.toLocaleString()}
                 </p>
+                <div className="flex items-center gap-1 text-blue-600 mt-2">
+                  <Activity className="h-4 w-4" />
+                  <span className="text-sm font-medium">Lifetime Total</span>
+                </div>
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-sm">
+            <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100/50 backdrop-blur-sm hover:shadow-xl transition-all duration-200 hover:-translate-y-1">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4" />
+                <CardTitle className="text-sm font-semibold text-emerald-600 flex items-center gap-2 uppercase tracking-wide">
+                  <CheckCircle className="h-5 w-5" />
                   Completed
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold">{completedPayments}</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {completedPayments}
+                </p>
+                <div className="flex items-center gap-1 text-emerald-600 mt-2">
+                  <TrendingUp className="h-4 w-4" />
+                  <span className="text-sm font-medium">
+                    Successful Payments
+                  </span>
+                </div>
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-sm">
+            <Card className="border-0 shadow-lg bg-gradient-to-br from-yellow-50 to-yellow-100/50 backdrop-blur-sm hover:shadow-xl transition-all duration-200 hover:-translate-y-1">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
+                <CardTitle className="text-sm font-semibold text-yellow-600 flex items-center gap-2 uppercase tracking-wide">
+                  <Clock className="h-5 w-5" />
                   Pending
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold">{pendingPayments}</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {pendingPayments}
+                </p>
+                <div className="flex items-center gap-1 text-yellow-600 mt-2">
+                  <Building className="h-4 w-4" />
+                  <span className="text-sm font-medium">Processing</span>
+                </div>
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-sm">
+            <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100/50 backdrop-blur-sm hover:shadow-xl transition-all duration-200 hover:-translate-y-1">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <CreditCard className="h-4 w-4" />
+                <CardTitle className="text-sm font-semibold text-purple-600 flex items-center gap-2 uppercase tracking-wide">
+                  <CreditCard className="h-5 w-5" />
                   This Month
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold">
-                  $
-                  {payments
-                    ?.filter(
-                      (p) =>
-                        new Date(p.payment_date).getMonth() ===
-                        new Date().getMonth(),
-                    )
-                    .reduce((sum, p) => sum + p.amount, 0)
-                    .toLocaleString() || 0}
+                <p className="text-3xl font-bold text-gray-900">
+                  ${thisMonthPaid.toLocaleString()}
                 </p>
+                <div className="flex items-center gap-1 text-purple-600 mt-2">
+                  <DollarSign className="h-4 w-4" />
+                  <span className="text-sm font-medium">Current Month</span>
+                </div>
               </CardContent>
             </Card>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             {/* Make Payment Form */}
-            <Card className="border-0 shadow-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Wallet className="h-5 w-5" />
+            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+              <CardHeader className="border-b border-gray-100">
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <Wallet className="h-6 w-6 text-blue-600" />
                   Make Payment
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-base">
                   Process a loan payment using cryptocurrency
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="loan-select">Select Loan</Label>
-                    <Select>
-                      <SelectTrigger>
+              <CardContent className="p-8">
+                <form action={processPaymentAction} className="space-y-6">
+                  <div className="space-y-3">
+                    <Label
+                      htmlFor="loan_id"
+                      className="text-sm font-semibold text-gray-700"
+                    >
+                      Select Loan *
+                    </Label>
+                    <Select
+                      name="loan_id"
+                      defaultValue={selectedLoanId}
+                      required
+                    >
+                      <SelectTrigger className="h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20">
                         <SelectValue placeholder="Choose a loan to pay" />
                       </SelectTrigger>
                       <SelectContent>
                         {loans?.map((loan: Loan) => (
                           <SelectItem key={loan.id} value={loan.id}>
-                            {loan.assets?.name} - $
-                            {loan.monthly_payment.toLocaleString()} due
+                            <div className="flex items-center justify-between w-full">
+                              <span className="font-medium">
+                                {loan.assets?.name}
+                              </span>
+                              <span className="text-sm text-muted-foreground ml-4">
+                                ${loan.monthly_payment.toLocaleString()} due
+                              </span>
+                            </div>
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -266,19 +398,30 @@ export default async function PaymentsPage() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="amount">Payment Amount</Label>
+                    <div className="space-y-3">
+                      <Label
+                        htmlFor="amount"
+                        className="text-sm font-semibold text-gray-700"
+                      >
+                        Payment Amount *
+                      </Label>
                       <Input
                         id="amount"
+                        name="amount"
                         type="number"
-                        placeholder="0.00"
-                        className="text-right"
+                        step="0.01"
+                        min="0"
+                        placeholder="2500.00"
+                        required
+                        className="h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="currency">Currency</Label>
-                      <Select defaultValue="USD">
-                        <SelectTrigger>
+                    <div className="space-y-3">
+                      <Label className="text-sm font-semibold text-gray-700">
+                        Currency
+                      </Label>
+                      <Select defaultValue="USD" disabled>
+                        <SelectTrigger className="h-12 border-gray-200 bg-gray-50">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -288,20 +431,25 @@ export default async function PaymentsPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="crypto">Pay with Cryptocurrency</Label>
-                    <Select>
-                      <SelectTrigger>
+                  <div className="space-y-3">
+                    <Label
+                      htmlFor="crypto_currency"
+                      className="text-sm font-semibold text-gray-700"
+                    >
+                      Pay with Cryptocurrency *
+                    </Label>
+                    <Select name="crypto_currency" required>
+                      <SelectTrigger className="h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20">
                         <SelectValue placeholder="Select cryptocurrency" />
                       </SelectTrigger>
                       <SelectContent>
                         {cryptoCurrencies.map((crypto) => (
                           <SelectItem key={crypto.symbol} value={crypto.symbol}>
                             <div className="flex items-center justify-between w-full">
-                              <span>
+                              <span className="font-medium">
                                 {crypto.symbol} - {crypto.name}
                               </span>
-                              <span className="text-muted-foreground ml-2">
+                              <span className="text-sm text-muted-foreground ml-4">
                                 Rate: {crypto.rate}
                               </span>
                             </div>
@@ -311,51 +459,86 @@ export default async function PaymentsPage() {
                     </Select>
                   </div>
 
-                  <div className="p-4 bg-gray-50 rounded-lg space-y-2">
+                  <div className="space-y-3">
+                    <Label
+                      htmlFor="blockchain"
+                      className="text-sm font-semibold text-gray-700"
+                    >
+                      Blockchain Network *
+                    </Label>
+                    <Select name="blockchain" required>
+                      <SelectTrigger className="h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20">
+                        <SelectValue placeholder="Select network" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ethereum">Ethereum</SelectItem>
+                        <SelectItem value="polygon">Polygon</SelectItem>
+                        <SelectItem value="arbitrum">Arbitrum</SelectItem>
+                        <SelectItem value="optimism">Optimism</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="border border-gray-200 bg-gray-50/30 rounded-lg p-6 space-y-3">
+                    <h3 className="font-semibold text-gray-900 mb-4">
+                      Payment Summary
+                    </h3>
                     <div className="flex justify-between text-sm">
-                      <span>Payment Amount:</span>
+                      <span className="text-muted-foreground">
+                        Payment Amount:
+                      </span>
                       <span className="font-medium">$2,500.00</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span>Exchange Rate:</span>
+                      <span className="text-muted-foreground">
+                        Exchange Rate:
+                      </span>
                       <span className="font-medium">1 USDC = $1.00</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span>Network Fee:</span>
+                      <span className="text-muted-foreground">
+                        Network Fee:
+                      </span>
                       <span className="font-medium">~$2.50</span>
                     </div>
                     <Separator />
-                    <div className="flex justify-between font-medium">
+                    <div className="flex justify-between font-semibold text-base">
                       <span>Total Required:</span>
-                      <span>2,502.50 USDC</span>
+                      <span className="text-blue-600">2,502.50 USDC</span>
                     </div>
                   </div>
 
-                  <Button className="w-full" size="lg">
+                  <SubmitButton
+                    className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                    size="lg"
+                    pendingText="Processing Payment..."
+                  >
                     <ArrowRight className="h-4 w-4 mr-2" />
                     Process Payment
-                  </Button>
-                </div>
+                  </SubmitButton>
+                </form>
               </CardContent>
             </Card>
 
             {/* Upcoming Payments */}
-            <Card className="border-0 shadow-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
+            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+              <CardHeader className="border-b border-gray-100">
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <Calendar className="h-6 w-6 text-emerald-600" />
                   Upcoming Payments
                 </CardTitle>
-                <CardDescription>Your scheduled loan payments</CardDescription>
+                <CardDescription className="text-base">
+                  Your scheduled loan payments
+                </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-8">
                 {loans && loans.length > 0 ? (
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {loans.slice(0, 5).map((loan: Loan) => {
                       const daysUntil = Math.ceil(
                         (new Date(loan.next_payment_date).getTime() -
                           new Date().getTime()) /
-                          (1000 * 60 * 60 * 24),
+                          (1000 * 60 * 60 * 24)
                       );
                       const isOverdue = daysUntil < 0;
                       const isDueSoon = daysUntil <= 7 && daysUntil >= 0;
@@ -363,23 +546,36 @@ export default async function PaymentsPage() {
                       return (
                         <div
                           key={loan.id}
-                          className={`p-4 rounded-lg border ${isOverdue ? "border-red-200 bg-red-50" : isDueSoon ? "border-yellow-200 bg-yellow-50" : "border-gray-200 bg-gray-50"}`}
+                          className={`p-6 rounded-xl border transition-all duration-200 ${
+                            isOverdue
+                              ? "border-red-200 bg-red-50/30 shadow-md"
+                              : isDueSoon
+                                ? "border-yellow-200 bg-yellow-50/30 shadow-md"
+                                : "border-gray-200 bg-gray-50/30"
+                          }`}
                         >
-                          <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center justify-between mb-4">
                             <div>
-                              <p className="font-medium">{loan.assets?.name}</p>
-                              <p className="text-sm text-muted-foreground">
+                              <p className="font-semibold text-lg text-gray-900">
+                                {loan.assets?.name}
+                              </p>
+                              <p className="text-base text-muted-foreground">
+                                Due:{" "}
                                 {new Date(
-                                  loan.next_payment_date,
-                                ).toLocaleDateString()}
+                                  loan.next_payment_date
+                                ).toLocaleDateString("en-US", {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                })}
                               </p>
                             </div>
                             <div className="text-right">
-                              <p className="font-bold">
+                              <p className="font-bold text-2xl text-gray-900">
                                 ${loan.monthly_payment.toLocaleString()}
                               </p>
                               <p
-                                className={`text-xs ${
+                                className={`text-sm font-medium ${
                                   isOverdue
                                     ? "text-red-600"
                                     : isDueSoon
@@ -396,26 +592,26 @@ export default async function PaymentsPage() {
                             </div>
                           </div>
                           <Button
-                            size="sm"
+                            size="lg"
                             className="w-full"
-                            variant={
-                              isOverdue
-                                ? "destructive"
-                                : isDueSoon
-                                  ? "default"
-                                  : "outline"
-                            }
+                            variant="outline"
+                            asChild
                           >
-                            {isOverdue ? "Pay Now (Overdue)" : "Pay Now"}
+                            <a href={`/dashboard/payments?loan=${loan.id}`}>
+                              {isOverdue ? "Pay Now (Overdue)" : "Pay Now"}
+                            </a>
                           </Button>
                         </div>
                       );
                     })}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No upcoming payments</p>
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Calendar className="h-16 w-16 mx-auto mb-4 opacity-40" />
+                    <h3 className="text-xl font-semibold mb-2 text-gray-900">
+                      No upcoming payments
+                    </h3>
+                    <p className="text-lg">All your loans are up to date!</p>
                   </div>
                 )}
               </CardContent>
@@ -423,43 +619,53 @@ export default async function PaymentsPage() {
           </div>
 
           {/* Payment History */}
-          <Card className="border-0 shadow-sm">
-            <CardHeader>
-              <CardTitle>Payment History</CardTitle>
-              <CardDescription>
+          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+            <CardHeader className="border-b border-gray-100">
+              <CardTitle className="text-xl">Payment History</CardTitle>
+              <CardDescription className="text-base">
                 Your recent payment transactions
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-8">
               {payments && payments.length > 0 ? (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {payments.map((payment: Payment) => (
                     <div
                       key={payment.id}
-                      className="flex items-center justify-between p-4 border rounded-lg"
+                      className="flex items-center justify-between p-6 border border-gray-200 rounded-xl bg-gray-50/30 hover:shadow-md transition-all duration-200"
                     >
-                      <div className="space-y-1">
-                        <p className="font-medium">
+                      <div className="space-y-2">
+                        <p className="font-semibold text-lg text-gray-900">
                           {payment.loans?.assets?.name || "Loan Payment"}
                         </p>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(payment.payment_date).toLocaleDateString()}{" "}
+                        <p className="text-base text-muted-foreground">
+                          {new Date(payment.payment_date).toLocaleDateString(
+                            "en-US",
+                            {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            }
+                          )}{" "}
                           • {payment.crypto_currency || payment.currency}
                         </p>
                         {payment.transaction_hash && (
-                          <p className="text-xs text-muted-foreground font-mono">
+                          <p className="text-sm text-muted-foreground font-mono bg-gray-100 px-2 py-1 rounded w-fit">
                             {payment.transaction_hash.slice(0, 10)}...
                             {payment.transaction_hash.slice(-8)}
                           </p>
                         )}
                       </div>
-                      <div className="text-right space-y-1">
-                        <p className="font-bold">
+                      <div className="text-right space-y-2">
+                        <p className="font-bold text-2xl text-gray-900">
                           ${payment.amount.toLocaleString()}
                         </p>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
                           {getStatusBadge(payment.payment_status)}
-                          <Badge variant="outline" className="text-xs">
+                          <Badge
+                            variant="outline"
+                            className="text-xs bg-gray-50/80 text-gray-700 border-gray-200"
+                          >
                             {payment.blockchain}
                           </Badge>
                         </div>
@@ -468,12 +674,12 @@ export default async function PaymentsPage() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12">
-                  <Coins className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <h3 className="text-lg font-medium mb-2">
+                <div className="text-center py-16">
+                  <Coins className="h-20 w-20 mx-auto mb-6 text-muted-foreground opacity-40" />
+                  <h3 className="text-2xl font-bold mb-3 text-gray-900">
                     No payment history
                   </h3>
-                  <p className="text-muted-foreground">
+                  <p className="text-muted-foreground text-lg">
                     Your payment transactions will appear here
                   </p>
                 </div>
