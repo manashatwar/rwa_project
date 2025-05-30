@@ -57,7 +57,11 @@ export default function UserProfile() {
 
   if (!user) {
     return (
-      <Button variant="outline" size="sm" onClick={() => router.push("/auth")}>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => router.push("/sign-in")}
+      >
         Sign In
       </Button>
     );

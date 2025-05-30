@@ -358,7 +358,7 @@ export default async function Dashboard({
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div>
                 <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent">
-                  Portfolio Dashboard
+                  TangibleFi Dashboard
                 </h1>
                 <p className="text-muted-foreground mt-2 text-lg">
                   Manage your tokenized real-world assets and lending activities
@@ -465,7 +465,7 @@ export default async function Dashboard({
                 <InfoIcon className="h-6 w-6 text-blue-600 mt-0.5 flex-shrink-0" />
                 <div className="space-y-2">
                   <p className="text-sm font-semibold text-blue-900">
-                    RWA Tokenization & NFT Lending Platform
+                    TangibleFi: RWA Tokenization & NFT Lending
                   </p>
                   <p className="text-sm text-blue-700">
                     Upload documentation for real estate, commodities, and
@@ -1742,7 +1742,7 @@ export default async function Dashboard({
           {/* Enhanced Quick Actions */}
           <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
             <CardHeader className="border-b border-gray-100">
-              <CardTitle className="text-xl">RWA Lending Workflow</CardTitle>
+              <CardTitle className="text-xl">TangibleFi Workflow</CardTitle>
               <CardDescription className="text-base">
                 Complete workflow from asset tokenization to automated loan
                 repayment

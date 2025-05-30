@@ -14,9 +14,9 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "RWA Lending Dashboard",
+  title: "TangibleFi",
   description:
-    "A comprehensive dashboard for managing tokenized real-world assets and lending activities across multiple blockchains",
+    "TangibleFi: A comprehensive dashboard for managing tokenized real-world assets and lending activities across multiple blockchains",
 };
 
 export default function RootLayout({

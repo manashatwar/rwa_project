@@ -55,12 +55,14 @@ export default async function Navbar() {
             {/* Left: Logo */}
             <div className="flex items-center">
               <Link href="/" className="flex items-center gap-2 group">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center shadow-md">
-                  <Wallet className="h-4 w-4 text-white" />
+                <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+                  <span className="text-xl font-bold text-white italic">
+                    Tf
+                  </span>
                 </div>
                 <div>
-                  <span className="text-lg font-bold text-gray-900">
-                    RWA Lending Platform
+                  <span className="text-xl font-bold text-gray-900 group-hover:text-blue-700 transition-colors">
+                    TangibleFi
                   </span>
                   <div className="flex items-center gap-1 -mt-1">
                     <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>

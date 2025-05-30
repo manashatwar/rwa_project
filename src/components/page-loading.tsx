@@ -62,7 +62,7 @@ export default function PageLoading({ isLoading = true }: PageLoadingProps) {
         {/* Loading Text */}
         <div className="text-center space-y-3">
           <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent animate-slideUp">
-            RWA Lending Platform
+            TangibleFi
           </h3>
           <p className="text-gray-600 animate-slideUp delay-200">
             Loading your portfolio...

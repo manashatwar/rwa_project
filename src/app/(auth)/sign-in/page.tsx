@@ -58,7 +58,7 @@ export default async function SignInPage({ searchParams }: LoginProps) {
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900">
-                    RWA Lending
+                    TangibleFi
                   </h2>
                   <p className="text-gray-600">Multi-Chain Platform</p>
                 </div>
@@ -213,7 +213,7 @@ export default async function SignInPage({ searchParams }: LoginProps) {
                     </div>
                     <div className="relative flex justify-center text-xs uppercase">
                       <span className="bg-white px-2 text-gray-500">
-                        New to RWA Lending?
+                        New to TangibleFi?
                       </span>
                     </div>
                   </div>
