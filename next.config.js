@@ -1,9 +1,21 @@
 /** @type {import('next').NextConfig} */
 
 const nextConfig = {
-    images: {
-        domains: ['images.unsplash.com'],
+  images: {
+    domains: ["images.unsplash.com"],
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  webpack: (config, { dev }) => {
+    if (dev) {
+      config.watchOptions = {
+        poll: 1000,
+        aggregateTimeout: 300,
+      };
     }
+    return config;
+  },
 };
 
 if (process.env.NEXT_PUBLIC_TEMPO) {

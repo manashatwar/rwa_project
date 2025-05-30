@@ -8,7 +8,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "RWA Lending Dashboard - Multi-Chain Asset Management",
+  title: "RWA Lending Dashboard",
   description:
     "A comprehensive dashboard for managing tokenized real-world assets and lending activities across multiple blockchains",
 };
