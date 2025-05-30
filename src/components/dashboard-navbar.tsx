@@ -36,6 +36,7 @@ import {
   TrendingUp,
   Activity,
   DollarSign,
+  ChevronDown,
 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { Badge } from "./ui/badge";
@@ -263,7 +264,7 @@ export default function DashboardNavbar() {
 
   const getUserInitials = () => {
     const name = getUserDisplayName();
-    return name.slice(0, 2).toUpperCase();
+    return name.slice(0, 1).toUpperCase();
   };
 
   return (
@@ -597,16 +598,36 @@ export default function DashboardNavbar() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="flex items-center gap-2 hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-3 hover:bg-gray-50 transition-all duration-200 p-2 rounded-lg group"
                 >
-                  {/* <div className="w-6 h-6 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-sm">
-                    <span className="text-white text-xs font-bold">
-                      {getUserInitials()}
+                  {/* User Avatar with Active Status */}
+                  <div className="relative">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-200">
+                      <span className="text-white text-sm font-bold">
+                        {getUserInitials()}
+                      </span>
+                    </div>
+                    {/* Active Status Indicator */}
+                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full shadow-sm">
+                      <div className="w-full h-full bg-emerald-400 rounded-full animate-pulse"></div>
+                    </div>
+                  </div>
+
+                  {/* User Info */}
+                  <div className="hidden md:flex flex-col items-start">
+                    <span className="text-sm font-semibold text-gray-900 leading-tight">
+                      {getUserDisplayName()}
                     </span>
-                  </div> */}
-                  <span className="hidden md:block text-sm font-medium">
-                    {getUserDisplayName()}
-                  </span>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+                      <span className="text-xs text-emerald-600 font-medium">
+                        Active now
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Dropdown Arrow */}
+                  <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent

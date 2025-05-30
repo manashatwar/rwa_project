@@ -230,14 +230,6 @@ export default async function Navbar() {
                     </Badge>
                   </Button>
 
-                  {/* Dashboard Link */}
-                  <Link
-                    href="/dashboard"
-                    className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-sm hover:shadow-md"
-                  >
-                    <BarChart3 className="h-4 w-4" />
-                    Dashboard
-                  </Link>
 
                   <UserProfile />
                 </>

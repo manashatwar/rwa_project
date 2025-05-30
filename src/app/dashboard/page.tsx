@@ -13,6 +13,15 @@ import {
   Calendar,
   DollarSign,
   CheckCircle,
+  BarChart3,
+  Coins,
+  FileCheck,
+  Globe,
+  Landmark,
+  Wallet,
+  Clock,
+  XCircle,
+  Activity,
 } from "lucide-react";
 import { redirect } from "next/navigation";
 import { createClient } from "../../../supabase/server";
@@ -23,16 +32,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  BarChart3,
-  Coins,
-  FileCheck,
-  Globe,
-  Landmark,
-  Wallet,
-  Clock,
-  XCircle,
-} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
@@ -1191,6 +1190,509 @@ export default async function Dashboard({
                     <span className="text-sm font-medium">Multi-Chain</span>
                   </Link>
                 </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Blockchain Analytics & Real-Time Data */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 animate-slideUp">
+            {/* Live Portfolio Performance Chart */}
+            <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
+              <CardHeader className="border-b border-gray-100">
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <BarChart3 className="h-6 w-6 text-emerald-600" />
+                  Portfolio Performance
+                  <Badge
+                    variant="outline"
+                    className="bg-emerald-50 text-emerald-700 border-emerald-200 ml-2"
+                  >
+                    LIVE
+                  </Badge>
+                </CardTitle>
+                <CardDescription>
+                  Real-time asset value tracking across all networks
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-6">
+                {/* Animated Chart Container */}
+                <div className="relative h-64 bg-gradient-to-br from-emerald-50 to-blue-50 rounded-xl border border-emerald-200 overflow-hidden">
+                  {/* Chart Grid */}
+                  <div className="absolute inset-0 opacity-20">
+                    <div className="grid grid-cols-12 grid-rows-8 h-full">
+                      {Array.from({ length: 96 }).map((_, i) => (
+                        <div
+                          key={i}
+                          className="border border-gray-300/30"
+                        ></div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Animated Chart Line */}
+                  <svg className="absolute inset-0 w-full h-full">
+                    <defs>
+                      <linearGradient
+                        id="chartGradient"
+                        x1="0%"
+                        y1="0%"
+                        x2="0%"
+                        y2="100%"
+                      >
+                        <stop
+                          offset="0%"
+                          stopColor="#10b981"
+                          stopOpacity="0.8"
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor="#10b981"
+                          stopOpacity="0.1"
+                        />
+                      </linearGradient>
+                    </defs>
+
+                    {/* Animated Path */}
+                    <path
+                      d="M 0 180 Q 60 120 120 100 T 240 80 T 360 90 T 480 70"
+                      stroke="#10b981"
+                      strokeWidth="3"
+                      fill="none"
+                      strokeLinecap="round"
+                      className="animate-pulse"
+                    />
+
+                    {/* Area under curve */}
+                    <path
+                      d="M 0 180 Q 60 120 120 100 T 240 80 T 360 90 T 480 70 L 480 256 L 0 256 Z"
+                      fill="url(#chartGradient)"
+                      className="opacity-60"
+                    />
+
+                    {/* Animated Data Points */}
+                    {[120, 240, 360, 480].map((x, i) => (
+                      <circle
+                        key={i}
+                        cx={x}
+                        cy={[100, 80, 90, 70][i]}
+                        r="4"
+                        fill="#10b981"
+                        className="animate-ping"
+                        style={{ animationDelay: `${i * 0.5}s` }}
+                      />
+                    ))}
+                  </svg>
+
+                  {/* Chart Labels */}
+                  <div className="absolute bottom-4 left-4 right-4 flex justify-between text-xs text-gray-600">
+                    <span>7d</span>
+                    <span>30d</span>
+                    <span>90d</span>
+                    <span>1y</span>
+                  </div>
+
+                  {/* Current Value Display */}
+                  <div className="absolute top-4 left-4">
+                    <div className="bg-white/90 backdrop-blur-sm rounded-lg p-3 border border-emerald-200 shadow-md">
+                      <p className="text-2xl font-bold text-emerald-600">
+                        ${netWorth.toLocaleString()}
+                      </p>
+                      <p className="text-sm text-emerald-700 flex items-center gap-1">
+                        <TrendingUp className="h-3 w-3" />
+                        +5.2% this week
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Stats */}
+                <div className="grid grid-cols-3 gap-4 mt-6">
+                  <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <p className="text-sm text-blue-600 font-medium">
+                      24h Change
+                    </p>
+                    <p className="text-lg font-bold text-blue-900 flex items-center justify-center gap-1">
+                      <TrendingUp className="h-4 w-4" />
+                      +2.1%
+                    </p>
+                  </div>
+                  <div className="text-center p-3 bg-purple-50 rounded-lg border border-purple-200">
+                    <p className="text-sm text-purple-600 font-medium">
+                      Volume
+                    </p>
+                    <p className="text-lg font-bold text-purple-900">$1.2M</p>
+                  </div>
+                  <div className="text-center p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+                    <p className="text-sm text-emerald-600 font-medium">ROI</p>
+                    <p className="text-lg font-bold text-emerald-900">+12.5%</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Real-Time Blockchain Network Status */}
+            <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
+              <CardHeader className="border-b border-gray-100">
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <Globe className="h-6 w-6 text-blue-600" />
+                  Network Status
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse ml-2"></div>
+                </CardTitle>
+                <CardDescription>
+                  Multi-chain network health and gas prices
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-6 space-y-4">
+                {/* Network Status Cards */}
+                {[
+                  {
+                    name: "Ethereum",
+                    status: "Active",
+                    gasPrice: "45 gwei",
+                    color: "blue",
+                    load: 78,
+                    bgGradient: "bg-gradient-to-r from-blue-50 to-blue-100/50",
+                    borderColor: "border-blue-200",
+                    iconBg: "bg-blue-600",
+                    iconInner: "bg-blue-100",
+                    textPrimary: "text-blue-900",
+                    textSecondary: "text-blue-700",
+                    loadBg: "bg-blue-100",
+                    loadBar: "bg-gradient-to-r from-blue-500 to-blue-600",
+                  },
+                  {
+                    name: "Polygon",
+                    status: "Active",
+                    gasPrice: "2 gwei",
+                    color: "purple",
+                    load: 45,
+                    bgGradient:
+                      "bg-gradient-to-r from-purple-50 to-purple-100/50",
+                    borderColor: "border-purple-200",
+                    iconBg: "bg-purple-600",
+                    iconInner: "bg-purple-100",
+                    textPrimary: "text-purple-900",
+                    textSecondary: "text-purple-700",
+                    loadBg: "bg-purple-100",
+                    loadBar: "bg-gradient-to-r from-purple-500 to-purple-600",
+                  },
+                  {
+                    name: "BSC",
+                    status: "Active",
+                    gasPrice: "5 gwei",
+                    color: "yellow",
+                    load: 62,
+                    bgGradient:
+                      "bg-gradient-to-r from-yellow-50 to-yellow-100/50",
+                    borderColor: "border-yellow-200",
+                    iconBg: "bg-yellow-600",
+                    iconInner: "bg-yellow-100",
+                    textPrimary: "text-yellow-900",
+                    textSecondary: "text-yellow-700",
+                    loadBg: "bg-yellow-100",
+                    loadBar: "bg-gradient-to-r from-yellow-500 to-yellow-600",
+                  },
+                  {
+                    name: "Arbitrum",
+                    status: "Active",
+                    gasPrice: "0.5 gwei",
+                    color: "cyan",
+                    load: 32,
+                    bgGradient: "bg-gradient-to-r from-cyan-50 to-cyan-100/50",
+                    borderColor: "border-cyan-200",
+                    iconBg: "bg-cyan-600",
+                    iconInner: "bg-cyan-100",
+                    textPrimary: "text-cyan-900",
+                    textSecondary: "text-cyan-700",
+                    loadBg: "bg-cyan-100",
+                    loadBar: "bg-gradient-to-r from-cyan-500 to-cyan-600",
+                  },
+                ].map((network, i) => (
+                  <div
+                    key={network.name}
+                    className={`p-4 rounded-xl border ${network.bgGradient} ${network.borderColor} hover:shadow-md transition-all duration-300 animate-slideUp`}
+                    style={{ animationDelay: `${i * 0.1}s` }}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-8 h-8 ${network.iconBg} rounded-lg flex items-center justify-center shadow-sm`}
+                        >
+                          <div
+                            className={`w-4 h-4 ${network.iconInner} rounded-full`}
+                          ></div>
+                        </div>
+                        <div>
+                          <h4
+                            className={`font-semibold ${network.textPrimary}`}
+                          >
+                            {network.name}
+                          </h4>
+                          <p className={`text-xs ${network.textSecondary}`}>
+                            {network.status}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p
+                          className={`text-sm font-medium ${network.textPrimary}`}
+                        >
+                          {network.gasPrice}
+                        </p>
+                        <p className={`text-xs ${network.textSecondary}`}>
+                          Gas Price
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Network Load Bar */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs">
+                        <span className={`${network.textSecondary}`}>
+                          Network Load
+                        </span>
+                        <span className={`${network.textPrimary} font-medium`}>
+                          {network.load}%
+                        </span>
+                      </div>
+                      <div
+                        className={`w-full ${network.loadBg} rounded-full h-2`}
+                      >
+                        <div
+                          className={`${network.loadBar} h-2 rounded-full transition-all duration-1000 ease-out animate-pulse`}
+                          style={{ width: `${network.load}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* DeFi Protocol Integration Dashboard */}
+          <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm animate-slideUp">
+            <CardHeader className="border-b border-gray-100">
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Coins className="h-6 w-6 text-purple-600" />
+                DeFi Protocol Integration
+                <Badge
+                  variant="outline"
+                  className="bg-purple-50 text-purple-700 border-purple-200"
+                >
+                  NEW
+                </Badge>
+              </CardTitle>
+              <CardDescription>
+                Connected protocols and yield opportunities
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* Uniswap */}
+                <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-xl p-4 border border-pink-200 hover:shadow-lg transition-all duration-300 group">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                      <svg
+                        className="w-5 h-5 text-white"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                      >
+                        <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm5.5 6.1L12 16.9 6.5 6.1h11z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-pink-900">
+                        Uniswap V3
+                      </h4>
+                      <p className="text-xs text-pink-700">DEX Trading</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-pink-700">TVL</span>
+                      <span className="font-medium text-pink-900">$4.2B</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-pink-700">APY</span>
+                      <span className="font-medium text-emerald-600">
+                        +8.5%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Aave */}
+                <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-4 border border-blue-200 hover:shadow-lg transition-all duration-300 group">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                      <svg
+                        className="w-5 h-5 text-white"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                      >
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-blue-900">Aave V3</h4>
+                      <p className="text-xs text-blue-700">Lending Pool</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-blue-700">Supply APY</span>
+                      <span className="font-medium text-emerald-600">
+                        +5.2%
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-blue-700">Borrow APY</span>
+                      <span className="font-medium text-blue-900">3.8%</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Compound */}
+                <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-xl p-4 border border-emerald-200 hover:shadow-lg transition-all duration-300 group">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                      <svg
+                        className="w-5 h-5 text-white"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                      >
+                        <circle cx="12" cy="12" r="10" />
+                        <circle cx="12" cy="12" r="6" />
+                        <circle cx="12" cy="12" r="2" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-emerald-900">
+                        Compound
+                      </h4>
+                      <p className="text-xs text-emerald-700">Money Market</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-emerald-700">COMP Earned</span>
+                      <span className="font-medium text-emerald-900">24.5</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-emerald-700">APY</span>
+                      <span className="font-medium text-emerald-600">
+                        +6.8%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Curve */}
+                <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-xl p-4 border border-orange-200 hover:shadow-lg transition-all duration-300 group">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                      <svg
+                        className="w-5 h-5 text-white"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                      >
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-orange-900">Curve</h4>
+                      <p className="text-xs text-orange-700">Stable Swaps</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-orange-700">Pool Share</span>
+                      <span className="font-medium text-orange-900">2.1%</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-orange-700">Rewards</span>
+                      <span className="font-medium text-emerald-600">
+                        +12.3%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Real-Time Transaction Feed */}
+              <div className="mt-6 bg-gradient-to-r from-gray-50 to-blue-50/30 rounded-xl p-4 border border-gray-200">
+                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <Activity className="h-4 w-4 text-blue-600" />
+                  Live Transaction Feed
+                </h4>
+                <div className="space-y-2 max-h-32 overflow-y-auto">
+                  {[
+                    {
+                      type: "mint",
+                      amount: "$850K",
+                      asset: "Downtown Office NFT",
+                      time: "2s ago",
+                    },
+                    {
+                      type: "borrow",
+                      amount: "$425K USDC",
+                      asset: "Against Commercial Property",
+                      time: "5s ago",
+                    },
+                    {
+                      type: "payment",
+                      amount: "$2.5K",
+                      asset: "EMI Payment #3",
+                      time: "12s ago",
+                    },
+                    {
+                      type: "bridge",
+                      amount: "$1.2M",
+                      asset: "ETH → Polygon",
+                      time: "18s ago",
+                    },
+                  ].map((tx, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between p-2 bg-white/60 rounded-lg border animate-slideUp"
+                      style={{ animationDelay: `${i * 0.2}s` }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                            tx.type === "mint"
+                              ? "bg-blue-100 text-blue-600"
+                              : tx.type === "borrow"
+                                ? "bg-orange-100 text-orange-600"
+                                : tx.type === "payment"
+                                  ? "bg-emerald-100 text-emerald-600"
+                                  : "bg-purple-100 text-purple-600"
+                          }`}
+                        >
+                          {tx.type === "mint" && (
+                            <FileCheck className="h-3 w-3" />
+                          )}
+                          {tx.type === "borrow" && (
+                            <Landmark className="h-3 w-3" />
+                          )}
+                          {tx.type === "payment" && (
+                            <Coins className="h-3 w-3" />
+                          )}
+                          {tx.type === "bridge" && (
+                            <Globe className="h-3 w-3" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">
+                            {tx.amount}
+                          </p>
+                          <p className="text-xs text-gray-600">{tx.asset}</p>
+                        </div>
+                      </div>
+                      <span className="text-xs text-gray-500">{tx.time}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </CardContent>
           </Card>
