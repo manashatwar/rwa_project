@@ -12,100 +12,116 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
-  ArrowLeft,
   Wallet,
-  Globe,
+  ArrowLeft,
   Shield,
   CheckCircle,
   AlertTriangle,
-  Plus,
-  Settings,
-  Link as LinkIcon,
+  Globe,
+  Sparkles,
+  Info,
   Zap,
-  Activity,
+  Link as LinkIcon,
   ExternalLink,
+  RefreshCw,
+  Clock,
+  Target,
 } from "lucide-react";
 import Link from "next/link";
-import { toast } from "@/components/ui/use-toast";
 import MetaMaskConnect from "@/components/metamask-connect";
 
-const supportedWallets = [
-  {
-    name: "WalletConnect",
-    description: "Scan with WalletConnect to connect",
-    icon: "🔗",
-    chains: ["Ethereum", "Polygon", "BSC", "Arbitrum", "Optimism"],
-    status: "mobile",
-  },
-  {
-    name: "Coinbase Wallet",
-    description: "Connect with Coinbase Wallet",
-    icon: "🔵",
-    chains: ["Ethereum", "Polygon", "BSC"],
-    status: "secure",
-  },
-  {
-    name: "Trust Wallet",
-    description: "Connect using Trust Wallet mobile app",
-    icon: "🛡️",
-    chains: ["Ethereum", "Polygon", "BSC"],
-    status: "mobile",
-  },
-];
+interface WalletConnection {
+  address: string;
+  chainId: number;
+  chainName: string;
+  balance: string;
+  isConnected: boolean;
+}
 
-const supportedNetworks = [
-  {
-    name: "Ethereum",
-    description: "The leading smart contract platform",
-    icon: "⟠",
-    color: "blue",
-    gasToken: "ETH",
-    status: "live",
-  },
-  {
-    name: "Polygon",
-    description: "Fast and low-cost Ethereum scaling",
-    icon: "🔷",
-    color: "purple",
-    gasToken: "MATIC",
-    status: "live",
-  },
-  {
-    name: "Arbitrum",
-    description: "Ethereum Layer 2 scaling solution",
-    icon: "🔹",
-    color: "cyan",
-    gasToken: "ETH",
-    status: "live",
-  },
-  {
-    name: "Optimism",
-    description: "Optimistic rollup for Ethereum",
-    icon: "🔴",
-    color: "red",
-    gasToken: "ETH",
-    status: "live",
-  },
-  {
-    name: "BNB Smart Chain",
-    description: "Binance's high-performance blockchain",
-    icon: "🟡",
-    color: "yellow",
-    gasToken: "BNB",
-    status: "live",
-  },
-];
+interface SupportedNetwork {
+  chainId: number;
+  name: string;
+  symbol: string;
+  rpcUrl: string;
+  blockExplorer: string;
+  logo: string;
+  status: "live" | "beta" | "coming-soon";
+  gasPrice: string;
+  bridgeAvailable: boolean;
+}
 
-export default function ConnectWalletPage() {
+export default function CrossChainConnectPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<any>(null);
+  const [walletConnections, setWalletConnections] = useState<
+    WalletConnection[]
+  >([]);
+  const [selectedNetwork, setSelectedNetwork] = useState<number>(1);
+
+  const supportedNetworks: SupportedNetwork[] = [
+    {
+      chainId: 1,
+      name: "Ethereum",
+      symbol: "ETH",
+      rpcUrl: "https://ethereum.rpc.url",
+      blockExplorer: "https://etherscan.io",
+      logo: "🔷",
+      status: "live",
+      gasPrice: "~$15",
+      bridgeAvailable: true,
+    },
+    {
+      chainId: 137,
+      name: "Polygon",
+      symbol: "MATIC",
+      rpcUrl: "https://polygon-rpc.com",
+      blockExplorer: "https://polygonscan.com",
+      logo: "🟣",
+      status: "live",
+      gasPrice: "~$0.01",
+      bridgeAvailable: true,
+    },
+    {
+      chainId: 56,
+      name: "BNB Chain",
+      symbol: "BNB",
+      rpcUrl: "https://bsc-dataseed.binance.org",
+      blockExplorer: "https://bscscan.com",
+      logo: "🟡",
+      status: "live",
+      gasPrice: "~$0.15",
+      bridgeAvailable: true,
+    },
+    {
+      chainId: 42161,
+      name: "Arbitrum",
+      symbol: "ARB",
+      rpcUrl: "https://arbitrum.rpc.url",
+      blockExplorer: "https://arbiscan.io",
+      logo: "🔵",
+      status: "live",
+      gasPrice: "~$1",
+      bridgeAvailable: true,
+    },
+    {
+      chainId: 10,
+      name: "Optimism",
+      symbol: "OP",
+      rpcUrl: "https://optimism.rpc.url",
+      blockExplorer: "https://optimistic.etherscan.io",
+      logo: "🔴",
+      status: "beta",
+      gasPrice: "~$0.50",
+      bridgeAvailable: false,
+    },
+  ];
 
   useEffect(() => {
-    const loadUser = async () => {
+    const loadData = async () => {
       const supabase = createClient();
-
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -116,33 +132,102 @@ export default function ConnectWalletPage() {
       }
 
       setUser(user);
+      await checkWalletConnections();
       setLoading(false);
     };
 
-    loadUser();
+    loadData();
   }, [router]);
 
-  const handleWalletConnect = async (walletType: string) => {
-    if (!user) return;
+  const checkWalletConnections = async () => {
+    if (typeof window !== "undefined" && window.ethereum) {
+      try {
+        const accounts = await window.ethereum.request({
+          method: "eth_accounts",
+        });
+        const chainId = await window.ethereum.request({
+          method: "eth_chainId",
+        });
 
-    console.log("Connecting wallet:", walletType);
+        if (accounts.length > 0) {
+          // Mock additional network connections for demo
+          const connections: WalletConnection[] = [
+            {
+              address: accounts[0],
+              chainId: parseInt(chainId, 16),
+              chainName: getChainName(parseInt(chainId, 16)),
+              balance: "2.5",
+              isConnected: true,
+            },
+          ];
+          setWalletConnections(connections);
+        }
+      } catch (error) {
+        console.error("Error checking wallet connections:", error);
+      }
+    }
+  };
 
-    // Mock wallet connection success
-    toast({
-      title: "Wallet Connected",
-      description: `Successfully connected ${walletType}`,
-    });
+  const getChainName = (chainId: number): string => {
+    const network = supportedNetworks.find((n) => n.chainId === chainId);
+    return network ? network.name : "Unknown Network";
+  };
 
-    router.push("/dashboard/cross-chain?connected=true");
+  const switchNetwork = async (chainId: number) => {
+    if (!window.ethereum) return;
+
+    try {
+      await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: `0x${chainId.toString(16)}` }],
+      });
+      setSelectedNetwork(chainId);
+      await checkWalletConnections();
+    } catch (error: any) {
+      if (error.code === 4902) {
+        // Network not added to wallet
+        const network = supportedNetworks.find((n) => n.chainId === chainId);
+        if (network) {
+          await addNetwork(network);
+        }
+      }
+    }
+  };
+
+  const addNetwork = async (network: SupportedNetwork) => {
+    if (!window.ethereum) return;
+
+    try {
+      await window.ethereum.request({
+        method: "wallet_addEthereumChain",
+        params: [
+          {
+            chainId: `0x${network.chainId.toString(16)}`,
+            chainName: network.name,
+            rpcUrls: [network.rpcUrl],
+            blockExplorerUrls: [network.blockExplorer],
+            nativeCurrency: {
+              name: network.symbol,
+              symbol: network.symbol,
+              decimals: 18,
+            },
+          },
+        ],
+      });
+      setSelectedNetwork(network.chainId);
+      await checkWalletConnections();
+    } catch (error) {
+      console.error("Error adding network:", error);
+    }
   };
 
   if (loading) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
-        <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
           <div className="text-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading...</p>
+            <p className="mt-4 text-gray-600">Loading wallet connections...</p>
           </div>
         </div>
       </main>
@@ -151,250 +236,401 @@ export default function ConnectWalletPage() {
 
   return (
     <>
-      <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
-        <div className="container mx-auto px-4 py-8 max-w-6xl">
-          {/* Header */}
-          <div className="flex items-center gap-4 mb-8">
-            <Button variant="outline" size="sm" asChild className="shadow-sm">
-              <Link href="/dashboard/cross-chain">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Cross-Chain
-              </Link>
-            </Button>
-            <div>
-              <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent">
-                Connect Wallet
+      <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 animate-fadeIn">
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
+          {/* Enhanced Header with Back Button */}
+          <div className="mb-8 animate-slideDown">
+            <div className="flex items-center justify-between mb-4">
+              <Button
+                variant="outline"
+                size="sm"
+                asChild
+                className="shadow-sm hover:shadow-md transition-all duration-200"
+              >
+                <Link
+                  href="/dashboard/cross-chain"
+                  className="flex items-center gap-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to Cross-Chain
+                </Link>
+              </Button>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Clock className="h-4 w-4" />
+                <span>Real-time network status</span>
+              </div>
+            </div>
+            <div className="text-center space-y-3">
+              <h1 className="text-5xl font-bold tracking-tight bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent">
+                Cross-Chain Wallet Hub
               </h1>
-              <p className="text-muted-foreground mt-2 text-lg">
-                Connect your wallet to access the decentralized ecosystem
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                Connect and manage your wallet across multiple blockchain
+                networks for seamless asset transfers and trading
               </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Content */}
-            <div className="lg:col-span-2 space-y-8">
-              {/* Wallet Options */}
-              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-                <CardHeader className="border-b border-gray-100">
-                  <CardTitle className="flex items-center gap-2 text-xl">
-                    <Wallet className="h-6 w-6 text-blue-600" />
-                    Choose Wallet
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-8 animate-slideUp">
+            {/* Main Content - Takes 3 columns */}
+            <div className="xl:col-span-3 space-y-8">
+              {/* Wallet Connection Status */}
+              <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
+                <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-blue-50/50 to-purple-50/50">
+                  <CardTitle className="flex items-center gap-3 text-2xl">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                      <Wallet className="h-6 w-6 text-white" />
+                    </div>
+                    Wallet Connection
                   </CardTitle>
-                  <CardDescription className="text-base">
-                    Select your preferred wallet to connect to the blockchain
+                  <CardDescription className="text-lg">
+                    Connect your MetaMask wallet to access cross-chain
+                    functionality
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-8">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* MetaMask Component */}
-                    <MetaMaskConnect />
-
-                    {supportedWallets.map((wallet) => (
-                      <form
-                        key={wallet.name}
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          handleWalletConnect(wallet.name.toLowerCase());
-                        }}
-                      >
-                        <button
-                          type="submit"
-                          className="w-full border border-gray-200 bg-white hover:bg-gray-50 rounded-xl p-6 text-left transition-all duration-200 hover:shadow-lg hover:-translate-y-1 group"
-                        >
-                          <div className="flex items-start gap-4">
-                            <div className="text-4xl">{wallet.icon}</div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <h3 className="font-bold text-lg text-gray-900">
-                                  {wallet.name}
-                                </h3>
-                                {wallet.status === "mobile" && (
-                                  <span className="px-2 py-1 bg-emerald-50 text-emerald-700 text-xs font-medium rounded-full border border-emerald-200">
-                                    Mobile
-                                  </span>
-                                )}
-                                {wallet.status === "secure" && (
-                                  <span className="px-2 py-1 bg-purple-50 text-purple-700 text-xs font-medium rounded-full border border-purple-200">
-                                    Secure
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-sm text-muted-foreground mb-3">
-                                {wallet.description}
-                              </p>
-                              <div className="flex flex-wrap gap-1">
-                                {wallet.chains.slice(0, 3).map((chain) => (
-                                  <span
-                                    key={chain}
-                                    className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded border border-gray-200"
-                                  >
-                                    {chain}
-                                  </span>
-                                ))}
-                                {wallet.chains.length > 3 && (
-                                  <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded border border-gray-200">
-                                    +{wallet.chains.length - 3} more
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                              <ExternalLink className="h-5 w-5 text-gray-400" />
-                            </div>
+                  {walletConnections.length > 0 ? (
+                    <div className="space-y-6">
+                      <Alert>
+                        <CheckCircle className="h-4 w-4" />
+                        <AlertDescription>
+                          <div className="flex items-center justify-between">
+                            <span>
+                              Wallet connected:{" "}
+                              {walletConnections[0].address.slice(0, 6)}...
+                              {walletConnections[0].address.slice(-4)}
+                            </span>
+                            <Badge
+                              variant="outline"
+                              className="bg-green-50 text-green-700 border-green-200"
+                            >
+                              {walletConnections[0].chainName}
+                            </Badge>
                           </div>
-                        </button>
-                      </form>
-                    ))}
-                  </div>
+                        </AlertDescription>
+                      </Alert>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="p-4 border border-gray-200 rounded-lg bg-gray-50/50">
+                          <h4 className="font-semibold text-gray-900 mb-2">
+                            Current Network
+                          </h4>
+                          <p className="text-sm text-gray-600">
+                            {walletConnections[0].chainName}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            Chain ID: {walletConnections[0].chainId}
+                          </p>
+                        </div>
+                        <div className="p-4 border border-gray-200 rounded-lg bg-gray-50/50">
+                          <h4 className="font-semibold text-gray-900 mb-2">
+                            Wallet Balance
+                          </h4>
+                          <p className="text-sm text-gray-600">
+                            {walletConnections[0].balance} ETH
+                          </p>
+                          <p className="text-sm text-gray-500">~$4,250 USD</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Wallet className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+                      <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                        Connect Your Wallet
+                      </h3>
+                      <p className="text-gray-600 mb-6">
+                        Connect your MetaMask wallet to access cross-chain
+                        features
+                      </p>
+                      <MetaMaskConnect
+                        variant="button"
+                        onSuccess={() => checkWalletConnections()}
+                      />
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
               {/* Supported Networks */}
-              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+              <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
                 <CardHeader className="border-b border-gray-100">
-                  <CardTitle className="flex items-center gap-2 text-xl">
-                    <Globe className="h-6 w-6 text-emerald-600" />
+                  <CardTitle className="flex items-center gap-3 text-2xl">
+                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-xl flex items-center justify-center shadow-lg">
+                      <Globe className="h-6 w-6 text-white" />
+                    </div>
                     Supported Networks
                   </CardTitle>
-                  <CardDescription className="text-base">
-                    Blockchain networks available for cross-chain management
+                  <CardDescription className="text-lg">
+                    Switch between different blockchain networks instantly
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {supportedNetworks.map((network) => (
-                      <div
-                        key={network.name}
-                        className="border border-gray-200 bg-gray-50/30 rounded-xl p-6 hover:shadow-md transition-all duration-200 hover:-translate-y-1"
+                      <Card
+                        key={network.chainId}
+                        className={`border-2 transition-all duration-300 hover:shadow-lg cursor-pointer ${
+                          selectedNetwork === network.chainId
+                            ? "border-blue-500 bg-blue-50/50"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                        onClick={() =>
+                          network.status === "live" &&
+                          switchNetwork(network.chainId)
+                        }
                       >
-                        <div className="flex items-start gap-4">
-                          <div className="text-3xl">{network.icon}</div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <h3 className="font-bold text-base text-gray-900">
-                                {network.name}
-                              </h3>
-                              <div className="w-2 h-2 bg-emerald-500 rounded-full shadow-sm"></div>
-                            </div>
-                            <p className="text-sm text-muted-foreground mb-3">
-                              {network.description}
-                            </p>
-                            <div className="flex items-center gap-2 text-xs">
-                              <span className="text-muted-foreground">
-                                Gas:
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="text-3xl">{network.logo}</div>
+                            <Badge
+                              variant="outline"
+                              className={
+                                network.status === "live"
+                                  ? "bg-green-50 text-green-700 border-green-200"
+                                  : network.status === "beta"
+                                    ? "bg-yellow-50 text-yellow-700 border-yellow-200"
+                                    : "bg-gray-50 text-gray-700 border-gray-200"
+                              }
+                            >
+                              {network.status}
+                            </Badge>
+                          </div>
+
+                          <h3 className="font-semibold text-gray-900 mb-1">
+                            {network.name}
+                          </h3>
+                          <p className="text-sm text-gray-600 mb-3">
+                            {network.symbol}
+                          </p>
+
+                          <div className="space-y-2 text-xs text-gray-500">
+                            <div className="flex justify-between">
+                              <span>Gas Fee:</span>
+                              <span className="font-medium">
+                                {network.gasPrice}
                               </span>
-                              <span className="font-medium text-blue-600">
-                                {network.gasToken}
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Bridge:</span>
+                              <span
+                                className={
+                                  network.bridgeAvailable
+                                    ? "text-green-600"
+                                    : "text-gray-400"
+                                }
+                              >
+                                {network.bridgeAvailable
+                                  ? "Available"
+                                  : "Coming Soon"}
                               </span>
                             </div>
                           </div>
-                        </div>
-                      </div>
+
+                          {network.status === "live" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="w-full mt-4"
+                              onClick={() => switchNetwork(network.chainId)}
+                            >
+                              {selectedNetwork === network.chainId
+                                ? "Connected"
+                                : "Switch Network"}
+                            </Button>
+                          )}
+
+                          {network.status === "coming-soon" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="w-full mt-4 opacity-50 cursor-not-allowed"
+                              disabled
+                            >
+                              Coming Soon
+                            </Button>
+                          )}
+                        </CardContent>
+                      </Card>
                     ))}
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Network Actions */}
+              {walletConnections.length > 0 && (
+                <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
+                  <CardHeader className="border-b border-gray-100">
+                    <CardTitle className="flex items-center gap-3 text-2xl">
+                      <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl flex items-center justify-center shadow-lg">
+                        <Zap className="h-6 w-6 text-white" />
+                      </div>
+                      Quick Actions
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-8">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <Button
+                        size="lg"
+                        className="h-24 flex-col gap-2 bg-gradient-to-br from-blue-600 to-blue-700"
+                        asChild
+                      >
+                        <Link href="/dashboard/cross-chain/bridge">
+                          <LinkIcon className="h-6 w-6" />
+                          <span>Bridge Assets</span>
+                        </Link>
+                      </Button>
+
+                      <Button
+                        size="lg"
+                        className="h-24 flex-col gap-2 bg-gradient-to-br from-emerald-600 to-emerald-700"
+                        asChild
+                      >
+                        <Link href="/dashboard/cross-chain/swap">
+                          <RefreshCw className="h-6 w-6" />
+                          <span>Swap Tokens</span>
+                        </Link>
+                      </Button>
+
+                      <Button
+                        size="lg"
+                        className="h-24 flex-col gap-2 bg-gradient-to-br from-purple-600 to-purple-700"
+                        onClick={() => checkWalletConnections()}
+                      >
+                        <RefreshCw className="h-6 w-6" />
+                        <span>Refresh Balance</span>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
 
-            {/* Sidebar */}
-            <div className="space-y-6">
-              {/* Security Features */}
-              <Card className="border border-emerald-200 shadow-lg bg-gradient-to-br from-emerald-50/50 to-blue-50/50">
-                <CardHeader className="border-b border-emerald-200">
+            {/* Sidebar - Takes 1 column */}
+            <div className="xl:col-span-1 space-y-6">
+              {/* Connection Status */}
+              <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm">
+                <CardHeader className="border-b border-gray-100">
                   <CardTitle className="flex items-center gap-2 text-lg">
-                    <Shield className="h-5 w-5 text-emerald-600" />
-                    Security Features
+                    <Info className="h-5 w-5 text-blue-600" />
+                    Connection Guide
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6">
-                  <ul className="space-y-4 text-sm text-gray-600">
-                    <li className="flex items-start gap-3">
-                      <CheckCircle className="h-4 w-4 text-emerald-600 mt-0.5 flex-shrink-0" />
-                      <span>Non-custodial - you control your keys</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <CheckCircle className="h-4 w-4 text-emerald-600 mt-0.5 flex-shrink-0" />
-                      <span>End-to-end encryption for all data</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <CheckCircle className="h-4 w-4 text-emerald-600 mt-0.5 flex-shrink-0" />
-                      <span>Secure multi-signature support</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <CheckCircle className="h-4 w-4 text-emerald-600 mt-0.5 flex-shrink-0" />
-                      <span>Hardware wallet compatibility</span>
-                    </li>
-                  </ul>
+                <CardContent className="space-y-6 p-6">
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-4">
+                      <div className="w-8 h-8 border-2 border-blue-500 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-sm font-bold text-blue-600">
+                          1
+                        </span>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-sm text-gray-900">
+                          Connect Wallet
+                        </h4>
+                        <p className="text-sm text-gray-600">
+                          Link your MetaMask to access networks
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-4">
+                      <div className="w-8 h-8 border-2 border-gray-300 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-sm font-bold text-gray-500">
+                          2
+                        </span>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-sm text-gray-500">
+                          Switch Networks
+                        </h4>
+                        <p className="text-sm text-gray-400">
+                          Choose your preferred blockchain
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-4">
+                      <div className="w-8 h-8 border-2 border-gray-300 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-sm font-bold text-gray-500">
+                          3
+                        </span>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-sm text-gray-500">
+                          Start Trading
+                        </h4>
+                        <p className="text-sm text-gray-400">
+                          Bridge, swap, and manage assets
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
 
               {/* Benefits */}
-              <Card className="border border-blue-200 shadow-lg bg-gradient-to-br from-blue-50/50 to-purple-50/50">
-                <CardHeader className="border-b border-blue-200">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Zap className="h-5 w-5 text-blue-600" />
-                    Benefits
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg text-emerald-800">
+                    <Target className="h-5 w-5" />
+                    Cross-Chain Benefits
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6">
-                  <ul className="space-y-4 text-sm text-gray-600">
-                    <li className="flex items-start gap-3">
-                      <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0" />
-                      <span>View all assets across multiple chains</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0" />
-                      <span>Send and receive assets seamlessly</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0" />
-                      <span>Swap assets at optimal rates</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0" />
-                      <span>Track portfolio performance</span>
-                    </li>
-                  </ul>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="h-5 w-5 text-emerald-600" />
+                    <span className="text-sm text-emerald-800">
+                      Low transaction fees
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="h-5 w-5 text-emerald-600" />
+                    <span className="text-sm text-emerald-800">
+                      Instant network switching
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="h-5 w-5 text-emerald-600" />
+                    <span className="text-sm text-emerald-800">
+                      Unified asset management
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="h-5 w-5 text-emerald-600" />
+                    <span className="text-sm text-emerald-800">
+                      Maximum liquidity access
+                    </span>
+                  </div>
                 </CardContent>
               </Card>
 
-              {/* Important Notes */}
-              <Card className="border border-yellow-200 shadow-lg bg-gradient-to-br from-yellow-50/50 to-orange-50/50">
-                <CardHeader className="border-b border-yellow-200">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <AlertTriangle className="h-5 w-5 text-yellow-600" />
-                    Important Notes
+              {/* Security Notice */}
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg text-amber-800">
+                    <Shield className="h-5 w-5" />
+                    Security Notice
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6">
-                  <ul className="space-y-3 text-sm text-gray-600">
-                    <li className="flex items-start gap-3">
-                      <div className="w-1.5 h-1.5 bg-yellow-600 rounded-full mt-2 flex-shrink-0" />
-                      <span>Ensure your wallet is unlocked</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="w-1.5 h-1.5 bg-yellow-600 rounded-full mt-2 flex-shrink-0" />
-                      <span>Check network connection before proceeding</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="w-1.5 h-1.5 bg-yellow-600 rounded-full mt-2 flex-shrink-0" />
-                      <span>Keep your seed phrase secure and private</span>
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
-
-              {/* Support */}
-              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-                <CardContent className="p-6">
-                  <h3 className="font-bold mb-3 text-gray-900">Need Help?</h3>
-                  <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-                    Having trouble connecting your wallet? Our support team is
-                    here to help.
+                <CardContent className="space-y-3">
+                  <p className="text-sm text-amber-800">
+                    Always verify network details before switching chains.
                   </p>
-                  <Button variant="outline" size="lg" className="w-full">
-                    Contact Support
+                  <p className="text-sm text-amber-700">
+                    Double-check transaction details and gas fees.
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full border-amber-300 text-amber-800 hover:bg-amber-100"
+                    asChild
+                  >
+                    <Link href="#" className="flex items-center gap-2">
+                      <ExternalLink className="h-4 w-4" />
+                      Security Guide
+                    </Link>
                   </Button>
                 </CardContent>
               </Card>

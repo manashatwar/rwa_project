@@ -681,7 +681,7 @@ export default async function Home() {
       </section>
 
       {/* Analytics Section */}
-      <section className="py-24 bg-gray-50">
+      <section className="py-48 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-16 items-center">

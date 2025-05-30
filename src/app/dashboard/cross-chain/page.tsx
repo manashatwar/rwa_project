@@ -1,4 +1,8 @@
-import { createClient } from "../../../../supabase/server";
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "../../../../supabase/client";
 import {
   Card,
   CardContent,
@@ -35,7 +39,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { SubmitButton } from "@/components/submit-button";
-import { redirect } from "next/navigation";
+import { toast } from "@/components/ui/use-toast";
 
 interface CrossChainPosition {
   id: string;
@@ -47,6 +51,12 @@ interface CrossChainPosition {
   position_type: string;
   created_at: string;
   updated_at: string;
+}
+
+interface WalletInfo {
+  address: string;
+  chainId: number;
+  isConnected: boolean;
 }
 
 function getBlockchainColor(blockchain: string) {
@@ -76,70 +86,133 @@ function getPositionTypeColor(type: string) {
   );
 }
 
-async function refreshBalancesAction() {
-  "use server";
+export default function CrossChainPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
+  const [positions, setPositions] = useState<CrossChainPosition[]>([]);
+  const [walletInfo, setWalletInfo] = useState<WalletInfo | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const supabase = await createClient();
+  useEffect(() => {
+    const loadData = async () => {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+      if (!user) {
+        router.push("/sign-in");
+        return;
+      }
 
-  if (!user) {
-    return redirect("/sign-in");
-  }
+      setUser(user);
+      await loadPositions();
+      await checkWalletConnection();
+      setLoading(false);
+    };
 
-  // Mock refresh - in reality, this would call blockchain RPCs to update balances
-  const { data: positions } = await supabase
-    .from("cross_chain_positions")
-    .select("*")
-    .eq("user_id", user.id);
+    loadData();
+  }, [router]);
 
-  if (positions) {
-    // Simulate balance updates with small random changes
-    for (const position of positions) {
-      const changePercent = (Math.random() - 0.5) * 0.1; // ±5% change
-      const newBalance = position.balance * (1 + changePercent);
-      const newUsdValue = position.usd_value * (1 + changePercent);
+  const loadPositions = async () => {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("cross_chain_positions")
+      .select("*")
+      .eq("user_id", user?.id || "")
+      .order("usd_value", { ascending: false });
 
-      await supabase
-        .from("cross_chain_positions")
-        .update({
-          balance: newBalance,
-          usd_value: newUsdValue,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", position.id);
+    if (data) {
+      setPositions(data);
     }
+  };
+
+  const checkWalletConnection = async () => {
+    if (typeof window !== "undefined" && window.ethereum) {
+      try {
+        const accounts = await window.ethereum.request({
+          method: "eth_accounts",
+        });
+        const chainId = await window.ethereum.request({
+          method: "eth_chainId",
+        });
+
+        if (accounts.length > 0) {
+          setWalletInfo({
+            address: accounts[0],
+            chainId: parseInt(chainId, 16),
+            isConnected: true,
+          });
+        }
+      } catch (error) {
+        console.error("Error checking wallet connection:", error);
+      }
+    }
+  };
+
+  const refreshBalances = async () => {
+    if (!user) return;
+
+    setRefreshing(true);
+    const supabase = createClient();
+
+    try {
+      // Mock refresh - in reality, this would call blockchain RPCs to update balances
+      const { data: currentPositions } = await supabase
+        .from("cross_chain_positions")
+        .select("*")
+        .eq("user_id", user.id);
+
+      if (currentPositions) {
+        // Simulate balance updates with small random changes
+        for (const position of currentPositions) {
+          const changePercent = (Math.random() - 0.5) * 0.1; // ±5% change
+          const newBalance = position.balance * (1 + changePercent);
+          const newUsdValue = position.usd_value * (1 + changePercent);
+
+          await supabase
+            .from("cross_chain_positions")
+            .update({
+              balance: newBalance,
+              usd_value: newUsdValue,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", position.id);
+        }
+      }
+
+      await loadPositions();
+      toast({
+        title: "Balances Updated",
+        description:
+          "Your cross-chain balances have been refreshed successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to refresh balances. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
+          <div className="text-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">
+              Loading your cross-chain positions...
+            </p>
+          </div>
+        </div>
+      </main>
+    );
   }
-
-  return redirect("/dashboard/cross-chain?refreshed=true");
-}
-
-export default async function CrossChainPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return redirect("/sign-in");
-  }
-
-  const params = await searchParams;
-  const showRefreshed = params.refreshed === "true";
-  const showConnected = params.connected === "true";
-
-  const { data: positions } = await supabase
-    .from("cross_chain_positions")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("usd_value", { ascending: false });
 
   // Group positions by blockchain
   const positionsByChain =
@@ -175,44 +248,60 @@ export default async function CrossChainPage({
               </p>
             </div>
             <div className="flex gap-3">
-              <form action={refreshBalancesAction}>
-                <SubmitButton
-                  variant="outline"
-                  size="lg"
-                  className="border-blue-200 text-blue-700 hover:bg-blue-50 shadow-sm hover:shadow-md transition-all duration-200"
-                  pendingText="Refreshing..."
-                >
-                  <RefreshCw className="h-5 w-5 mr-2" />
-                  Refresh Balances
-                </SubmitButton>
-              </form>
               <Button
-                asChild
-                size="lg"
+                onClick={refreshBalances}
                 variant="outline"
-                className="border-purple-200 text-purple-700 hover:bg-purple-50 shadow-sm hover:shadow-md transition-all duration-200"
+                size="lg"
+                disabled={refreshing}
+                className="border-blue-200 text-blue-700 hover:bg-blue-50 shadow-sm hover:shadow-md transition-all duration-200"
               >
-                <Link href="/dashboard/cross-chain/connect">
-                  <Plus className="h-5 w-5 mr-2" />
-                  Connect Wallet
-                </Link>
+                <RefreshCw
+                  className={`h-5 w-5 mr-2 ${refreshing ? "animate-spin" : ""}`}
+                />
+                {refreshing ? "Refreshing..." : "Refresh Balances"}
               </Button>
+
+              {walletInfo?.isConnected ? (
+                <Button
+                  asChild
+                  size="lg"
+                  className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white shadow-sm hover:shadow-md transition-all duration-200"
+                >
+                  <Link href="/dashboard/cross-chain/connect">
+                    <CheckCircle className="h-5 w-5 mr-2" />
+                    Wallet Connected ({walletInfo.address.slice(0, 6)}...
+                    {walletInfo.address.slice(-4)})
+                  </Link>
+                </Button>
+              ) : (
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="border-purple-200 text-purple-700 hover:bg-purple-50 shadow-sm hover:shadow-md transition-all duration-200"
+                >
+                  <Link href="/dashboard/cross-chain/connect">
+                    <Plus className="h-5 w-5 mr-2" />
+                    Connect Wallet
+                  </Link>
+                </Button>
+              )}
             </div>
           </div>
 
           {/* Success Messages */}
-          {showRefreshed && (
-            <Card className="border border-emerald-200 shadow-lg bg-gradient-to-br from-emerald-50/50 to-green-50/50 mb-8">
+          {refreshing && (
+            <Card className="border border-blue-200 shadow-lg bg-gradient-to-br from-blue-50/50 to-blue-100/50 mb-8">
               <CardContent className="p-6">
-                <div className="flex items-center gap-3">
-                  <RefreshCw className="h-6 w-6 text-emerald-600" />
+                <div className="flex items-center gap-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
                   <div>
-                    <h3 className="font-semibold text-emerald-900">
-                      Balances Refreshed!
+                    <h3 className="font-semibold text-blue-900">
+                      Refreshing Balances...
                     </h3>
-                    <p className="text-emerald-700">
-                      Your portfolio balances have been updated from the
-                      blockchain.
+                    <p className="text-blue-700">
+                      Updating your portfolio balances from the blockchain
+                      networks.
                     </p>
                   </div>
                 </div>
@@ -220,18 +309,19 @@ export default async function CrossChainPage({
             </Card>
           )}
 
-          {showConnected && (
+          {walletInfo?.isConnected && (
             <Card className="border border-emerald-200 shadow-lg bg-gradient-to-br from-emerald-50/50 to-green-50/50 mb-8">
               <CardContent className="p-6">
-                <div className="flex items-center gap-3">
-                  <Wallet className="h-6 w-6 text-emerald-600" />
+                <div className="flex items-center gap-4">
+                  <CheckCircle className="h-6 w-6 text-emerald-600" />
                   <div>
                     <h3 className="font-semibold text-emerald-900">
                       Wallet Connected!
                     </h3>
                     <p className="text-emerald-700">
-                      Your MetaMask wallet has been successfully connected to
-                      the platform.
+                      Your wallet ({walletInfo.address.slice(0, 6)}...
+                      {walletInfo.address.slice(-4)}) is connected and ready for
+                      cross-chain operations.
                     </p>
                   </div>
                 </div>

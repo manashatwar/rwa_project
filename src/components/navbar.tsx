@@ -1,5 +1,8 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { createClient } from "../../supabase/server";
+import { createClient } from "../../supabase/client";
 import { Button } from "./ui/button";
 import {
   BarChart3,
@@ -27,12 +30,22 @@ import {
 } from "./ui/dropdown-menu";
 import { Badge } from "./ui/badge";
 
-export default async function Navbar() {
-  const supabase = createClient();
+export default function Navbar() {
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const {
-    data: { user },
-  } = await (await supabase).auth.getUser();
+  useEffect(() => {
+    const getUser = async () => {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+      setLoading(false);
+    };
+
+    getUser();
+  }, []);
 
   return (
     <>
@@ -605,6 +618,17 @@ export default async function Navbar() {
 
               {/* User Profile */}
               <UserProfile />
+
+              {/* Right: Auth Buttons */}
+              <div className="flex items-center space-x-4">
+                <Link
+                  href="/wallet-connect"
+                  className="hidden lg:flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 bg-gradient-to-r from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 rounded-lg border border-orange-200 hover:border-orange-300 transition-all duration-200"
+                >
+                  <Wallet className="w-4 h-4" />
+                  Connect Wallet
+                </Link>
+              </div>
 
               {/* Mobile menu button */}
               <Button

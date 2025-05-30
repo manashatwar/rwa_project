@@ -2,75 +2,105 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, AlertTriangle, Wallet, ExternalLink } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Wallet,
+  CheckCircle,
+  AlertTriangle,
+  ExternalLink,
+  RefreshCw,
+} from "lucide-react";
 import { createClient } from "../../supabase/client";
+import { useRouter } from "next/navigation";
 
-interface MetaMaskConnectProps {
-  onConnected?: () => void;
+declare global {
+  interface Window {
+    ethereum?: any;
+  }
 }
 
-export default function MetaMaskConnect({ onConnected }: MetaMaskConnectProps) {
+interface MetaMaskConnectProps {
+  onSuccess?: () => void;
+  onError?: (error: string) => void;
+  variant?: "full" | "button";
+}
+
+export default function MetaMaskConnect({
+  onSuccess,
+  onError,
+  variant = "full",
+}: MetaMaskConnectProps) {
   const [isConnecting, setIsConnecting] = useState(false);
-  const [account, setAccount] = useState<string | null>(null);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isMetaMaskInstalled, setIsMetaMaskInstalled] = useState(false);
+  const [isCheckingInstallation, setIsCheckingInstallation] = useState(true);
+  const router = useRouter();
+  const supabase = createClient();
 
   useEffect(() => {
-    // Check if MetaMask is installed
-    if (typeof window !== "undefined" && window.ethereum) {
-      setIsMetaMaskInstalled(true);
-
-      // Check if already connected
-      checkConnection();
-
-      // Listen for account changes
-      window.ethereum.on("accountsChanged", handleAccountsChanged);
-      window.ethereum.on("chainChanged", handleChainChanged);
-    }
-
-    return () => {
-      if (window.ethereum) {
-        window.ethereum.removeListener(
-          "accountsChanged",
-          handleAccountsChanged
-        );
-        window.ethereum.removeListener("chainChanged", handleChainChanged);
-      }
-    };
+    checkMetaMaskInstallation();
+    checkExistingConnection();
   }, []);
 
-  const checkConnection = async () => {
+  const checkMetaMaskInstallation = async () => {
+    setIsCheckingInstallation(true);
+
+    // Add a small delay to ensure proper detection
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    try {
+      const installed =
+        typeof window !== "undefined" &&
+        window.ethereum &&
+        window.ethereum.isMetaMask;
+      setIsMetaMaskInstalled(installed);
+
+      if (!installed) {
+        setError(
+          "MetaMask is not installed. Please install MetaMask to continue."
+        );
+      }
+    } catch (err) {
+      console.error("Error checking MetaMask installation:", err);
+      setError(
+        "Unable to detect MetaMask. Please ensure it's properly installed."
+      );
+    } finally {
+      setIsCheckingInstallation(false);
+    }
+  };
+
+  const checkExistingConnection = async () => {
+    if (!window.ethereum) return;
+
     try {
       const accounts = await window.ethereum.request({
         method: "eth_accounts",
       });
       if (accounts.length > 0) {
-        setAccount(accounts[0]);
+        setWalletAddress(accounts[0]);
+        setError(null);
       }
     } catch (error) {
-      console.error("Error checking connection:", error);
+      console.error("Error checking existing connection:", error);
+      // Don't set error here as this is just checking existing connections
     }
   };
 
-  const handleAccountsChanged = (accounts: string[]) => {
-    if (accounts.length === 0) {
-      setAccount(null);
-    } else {
-      setAccount(accounts[0]);
-    }
-  };
-
-  const handleChainChanged = () => {
-    // Reload the page when chain changes
-    window.location.reload();
-  };
-
-  const connectMetaMask = async () => {
+  const connectWallet = async () => {
     if (!isMetaMaskInstalled) {
-      setError(
-        "MetaMask is not installed. Please install MetaMask to continue."
-      );
+      const errorMsg =
+        "MetaMask is not installed. Please install MetaMask to continue.";
+      setError(errorMsg);
+      if (onError) onError(errorMsg);
       return;
     }
 
@@ -78,211 +108,459 @@ export default function MetaMaskConnect({ onConnected }: MetaMaskConnectProps) {
     setError(null);
 
     try {
-      // Request account access
-      const accounts = await window.ethereum.request({
-        method: "eth_requestAccounts",
-      });
+      // Step 1: Request wallet connection
+      if (!window.ethereum) {
+        throw new Error("MetaMask is not available");
+      }
 
-      if (accounts.length > 0) {
-        const account = accounts[0];
-        setAccount(account);
-
-        // Get network info
-        const chainId = await window.ethereum.request({
-          method: "eth_chainId",
+      let accounts;
+      try {
+        accounts = await window.ethereum.request({
+          method: "eth_requestAccounts",
         });
-        const networkName = getNetworkName(chainId);
+      } catch (requestError: any) {
+        if (requestError.code === 4001) {
+          throw new Error("Connection rejected by user");
+        } else if (requestError.code === -32002) {
+          throw new Error(
+            "Connection request already pending. Please check MetaMask."
+          );
+        } else {
+          throw new Error(
+            `Connection failed: ${requestError.message || "Unknown error"}`
+          );
+        }
+      }
 
-        // Simulate adding positions to database
-        const supabase = createClient();
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+      if (!accounts || accounts.length === 0) {
+        throw new Error(
+          "No accounts found. Please ensure MetaMask is unlocked."
+        );
+      }
 
-        if (user) {
-          // Add sample cross-chain positions
-          const samplePositions = [
-            {
-              user_id: user.id,
-              blockchain: "ethereum",
-              asset_address: "0xA0b86a33E6B5e8C5FaE44e1A9B7c7C9F8A1e4B5B",
-              asset_symbol: "USDC",
-              balance: 15000.0,
-              usd_value: 15000.0,
-              position_type: "stablecoin",
-            },
-            {
-              user_id: user.id,
-              blockchain: "ethereum",
-              asset_address: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-              asset_symbol: "WETH",
-              balance: 5.2,
-              usd_value: 11628.0,
-              position_type: "asset",
-            },
-            {
-              user_id: user.id,
-              blockchain: "polygon",
-              asset_address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
-              asset_symbol: "USDC",
-              balance: 8500.0,
-              usd_value: 8500.0,
-              position_type: "stablecoin",
-            },
-          ];
+      const walletAddress = accounts[0].toLowerCase();
+      setWalletAddress(walletAddress);
 
-          for (const position of samplePositions) {
-            await supabase.from("cross_chain_positions").upsert(position);
+      // Step 2: Get network information
+      let chainId;
+      try {
+        chainId = await window.ethereum.request({ method: "eth_chainId" });
+      } catch (networkError) {
+        console.warn("Could not get network information:", networkError);
+      }
+
+      // Step 3: Create signature message for authentication
+      const timestamp = Date.now();
+      const nonce = Math.random().toString(36).substring(2, 15);
+      const message = `Welcome to TangibleFi!
+
+Please sign this message to authenticate your wallet.
+
+Wallet Address: ${walletAddress}
+Timestamp: ${timestamp}
+Nonce: ${nonce}
+Network: ${chainId || "Unknown"}
+
+This signature proves you own this wallet and will be used for secure authentication.
+This request will not trigger any blockchain transaction or cost any gas fees.`;
+
+      // Step 4: Request signature
+      let signature;
+      try {
+        signature = await window.ethereum.request({
+          method: "personal_sign",
+          params: [message, walletAddress],
+        });
+      } catch (signError: any) {
+        if (signError.code === 4001) {
+          throw new Error("Signature rejected by user");
+        } else {
+          throw new Error(
+            `Signature failed: ${signError.message || "Unknown error"}`
+          );
+        }
+      }
+
+      // Step 5: Handle wallet-based authentication with strict wallet address validation
+      try {
+        // Check if this wallet address is already registered
+        const { data: existingUserByWallet, error: walletCheckError } =
+          await supabase
+            .from("users")
+            .select("*")
+            .eq("wallet_address", walletAddress)
+            .maybeSingle();
+
+        if (walletCheckError) {
+          console.error("Wallet check error:", walletCheckError);
+          throw new Error("Database connection failed. Please try again.");
+        }
+
+        if (existingUserByWallet) {
+          // Existing user with this wallet - update their session
+          console.log("Existing wallet user found, updating session");
+
+          const { error: updateError } = await supabase
+            .from("users")
+            .update({
+              wallet_signature: signature,
+              last_login: new Date().toISOString(),
+              login_count: (existingUserByWallet.login_count || 0) + 1,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", existingUserByWallet.id);
+
+          if (updateError) {
+            console.error("User update error:", updateError);
+            throw new Error("Failed to update user session. Please try again.");
+          }
+
+          // Sign in the existing user
+          const walletEmail = `${walletAddress}@wallet.tangiblefi.com`;
+          const { error: signInError } = await supabase.auth.signInWithPassword(
+            {
+              email: walletEmail,
+              password: `wallet_${walletAddress}`,
+            }
+          );
+
+          if (signInError) {
+            console.error("Sign in error:", signInError);
+            // Don't throw here, user data was updated successfully
+          }
+
+          setError(null);
+          if (onSuccess) {
+            onSuccess();
+          } else {
+            setTimeout(() => router.push("/dashboard"), 500);
+          }
+          return;
+        }
+
+        // New wallet address - create new user account
+        console.log("New wallet address, creating account");
+
+        // Check if user is already signed in with a different wallet
+        const { data: currentSession } = await supabase.auth.getSession();
+        if (currentSession?.session?.user) {
+          // User is already signed in - check if they have a different wallet
+          const { data: currentUserData, error: currentUserError } =
+            await supabase
+              .from("users")
+              .select("wallet_address")
+              .eq("id", currentSession.session.user.id)
+              .maybeSingle();
+
+          if (
+            currentUserData?.wallet_address &&
+            currentUserData.wallet_address !== walletAddress
+          ) {
+            throw new Error(
+              `This account is already linked to wallet ${currentUserData.wallet_address.slice(0, 6)}...${currentUserData.wallet_address.slice(-4)}. Please use the same wallet or create a new account.`
+            );
           }
         }
 
-        // Call onConnected callback
-        if (onConnected) {
-          onConnected();
+        // Create new user with wallet
+        const walletEmail = `${walletAddress}@wallet.tangiblefi.com`;
+        const walletPassword = `wallet_${walletAddress}`;
+        const displayName = `User ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`;
+
+        const { data: authData, error: signUpError } =
+          await supabase.auth.signUp({
+            email: walletEmail,
+            password: walletPassword,
+            options: {
+              data: {
+                wallet_address: walletAddress,
+                wallet_signature: signature,
+                full_name: displayName,
+                auth_method: "metamask",
+              },
+            },
+          });
+
+        if (signUpError) {
+          if (signUpError.message.includes("already registered")) {
+            // Email already exists but no wallet linked - this shouldn't happen with our system
+            throw new Error(
+              "Account conflict detected. Please contact support."
+            );
+          }
+          throw new Error(`Account creation failed: ${signUpError.message}`);
         }
 
-        // Redirect to cross-chain page with success message
-        window.location.href = "/dashboard/cross-chain?connected=true";
+        if (authData.user) {
+          // Create user profile in our users table
+          const { error: insertError } = await supabase.from("users").upsert({
+            id: authData.user.id,
+            email: walletEmail,
+            wallet_address: walletAddress,
+            wallet_signature: signature,
+            auth_method: "metamask",
+            full_name: displayName,
+            account_status: "active",
+            login_count: 1,
+            last_login: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+
+          if (insertError) {
+            console.error("User profile creation error:", insertError);
+            // Don't throw here as the auth user was created successfully
+          }
+
+          console.log("New wallet user created successfully");
+          setError(null);
+          if (onSuccess) {
+            onSuccess();
+          } else {
+            setTimeout(() => router.push("/dashboard"), 500);
+          }
+        } else {
+          throw new Error("Failed to create user account. Please try again.");
+        }
+      } catch (dbError: any) {
+        console.error("Database operation failed:", dbError);
+
+        // Enhanced error handling with specific messages
+        if (dbError.message.includes("wallet")) {
+          throw new Error(dbError.message);
+        } else if (dbError.message.includes("already linked")) {
+          throw new Error(dbError.message);
+        } else {
+          // Fallback: Store wallet info locally for offline mode
+          console.warn("Database unavailable, using offline mode");
+          const walletData = {
+            address: walletAddress,
+            signature,
+            timestamp: Date.now(),
+            chainId,
+            mode: "offline",
+          };
+
+          try {
+            localStorage.setItem(
+              "wallet_connection",
+              JSON.stringify(walletData)
+            );
+            console.log("Wallet data stored locally for offline access");
+            setError(null);
+            if (onSuccess) {
+              onSuccess();
+            } else {
+              setTimeout(() => router.push("/dashboard"), 500);
+            }
+          } catch (storageError) {
+            console.error("Failed to store wallet data locally:", storageError);
+            throw new Error(
+              "Authentication failed. Please check your internet connection and try again."
+            );
+          }
+        }
       }
     } catch (error: any) {
       console.error("Error connecting to MetaMask:", error);
-      if (error.code === 4001) {
-        setError(
-          "Connection rejected. Please approve the connection in MetaMask."
-        );
-      } else {
-        setError("Failed to connect to MetaMask. Please try again.");
+
+      let errorMessage = "Connection failed. Please try again.";
+
+      if (error.message.includes("rejected")) {
+        errorMessage =
+          "Connection was rejected. Please approve the request in MetaMask.";
+      } else if (error.message.includes("pending")) {
+        errorMessage =
+          "A connection request is already pending. Please check MetaMask.";
+      } else if (error.message.includes("accounts")) {
+        errorMessage = "No accounts found. Please ensure MetaMask is unlocked.";
+      } else if (
+        error.message.includes("already linked") ||
+        error.message.includes("wallet")
+      ) {
+        errorMessage = error.message;
+      } else if (
+        error.message.includes("Database") ||
+        error.message.includes("fetch")
+      ) {
+        errorMessage =
+          "Server connection failed. Please check that Supabase is running and try again.";
+      } else if (error.message) {
+        errorMessage = error.message;
       }
+
+      setError(errorMessage);
+      if (onError) onError(errorMessage);
     } finally {
       setIsConnecting(false);
     }
   };
 
-  const getNetworkName = (chainId: string) => {
-    const networks: { [key: string]: string } = {
-      "0x1": "Ethereum",
-      "0x89": "Polygon",
-      "0xa4b1": "Arbitrum",
-      "0xa": "Optimism",
-      "0x38": "BNB Smart Chain",
-    };
-    return networks[chainId] || "Unknown Network";
+  const installMetaMask = () => {
+    window.open("https://metamask.io/download/", "_blank");
   };
 
-  const formatAddress = (address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  const retryConnection = () => {
+    setError(null);
+    connectWallet();
   };
 
-  if (!isMetaMaskInstalled) {
+  if (variant === "button") {
     return (
-      <Card className="border border-yellow-200 shadow-lg bg-gradient-to-br from-yellow-50/50 to-orange-50/50 backdrop-blur-sm">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <AlertTriangle className="h-6 w-6 text-yellow-600" />
-            <h3 className="font-semibold text-yellow-900">MetaMask Required</h3>
-          </div>
-          <p className="text-yellow-700 mb-6">
-            MetaMask is required to connect your wallet. Please install MetaMask
-            to continue.
-          </p>
-          <Button
-            asChild
-            className="w-full bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white"
-          >
-            <a
-              href="https://metamask.io/download/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <ExternalLink className="h-4 w-4 mr-2" />
+      <div className="space-y-4">
+        <Button
+          onClick={connectWallet}
+          disabled={
+            isConnecting || !isMetaMaskInstalled || isCheckingInstallation
+          }
+          size="lg"
+          className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold text-lg py-6 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+        >
+          {isCheckingInstallation ? (
+            <>
+              <RefreshCw className="animate-spin rounded-full h-5 w-5 mr-3" />
+              Checking MetaMask...
+            </>
+          ) : isConnecting ? (
+            <>
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+              Connecting...
+            </>
+          ) : !isMetaMaskInstalled ? (
+            <>
+              <ExternalLink className="mr-3 h-5 w-5" />
               Install MetaMask
-            </a>
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
+            </>
+          ) : walletAddress ? (
+            <>
+              <CheckCircle className="mr-3 h-5 w-5" />
+              Connected: {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+            </>
+          ) : (
+            <>
+              <Wallet className="mr-3 h-5 w-5" />
+              Connect MetaMask
+            </>
+          )}
+        </Button>
 
-  if (account) {
-    return (
-      <Card className="border border-emerald-200 shadow-lg bg-gradient-to-br from-emerald-50/50 to-blue-50/50 backdrop-blur-sm">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <CheckCircle className="h-6 w-6 text-emerald-600" />
-            <h3 className="font-semibold text-emerald-900">Wallet Connected</h3>
+        {error && (
+          <div className="space-y-3">
+            <Alert className="bg-red-500/20 border-red-400/30 backdrop-blur-sm">
+              <AlertTriangle className="h-4 w-4 text-red-400" />
+              <AlertDescription className="text-red-100">
+                {error}
+              </AlertDescription>
+            </Alert>
+            {!error.includes("Install") && (
+              <Button
+                onClick={retryConnection}
+                variant="outline"
+                size="sm"
+                className="w-full border-white/20 text-white hover:bg-white/10"
+              >
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Try Again
+              </Button>
+            )}
           </div>
-          <div className="space-y-2">
-            <p className="text-emerald-700">
-              <span className="font-medium">Address:</span>{" "}
-              {formatAddress(account)}
-            </p>
-            <p className="text-emerald-700">
-              <span className="font-medium">Status:</span> Connected
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+        )}
+      </div>
     );
   }
 
   return (
-    <Card className="border border-blue-200 shadow-lg bg-gradient-to-br from-blue-50/50 to-purple-50/50 backdrop-blur-sm hover:shadow-xl transition-all duration-200">
-      <CardContent className="p-6">
-        <button
-          onClick={connectMetaMask}
-          disabled={isConnecting}
-          className="w-full text-left group"
-        >
-          <div className="flex items-start gap-4">
-            <div className="text-4xl">🦊</div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <h3 className="font-bold text-lg text-gray-900">MetaMask</h3>
-                <span className="px-2 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full border border-blue-200">
-                  Popular
-                </span>
-              </div>
-              <p className="text-sm text-muted-foreground mb-3">
-                {isConnecting
-                  ? "Connecting to MetaMask..."
-                  : "Connect using MetaMask browser extension"}
-              </p>
-              <div className="flex flex-wrap gap-1">
-                {["Ethereum", "Polygon", "BSC", "Arbitrum"].map((chain) => (
-                  <span
-                    key={chain}
-                    className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded border border-gray-200"
-                  >
-                    {chain}
-                  </span>
-                ))}
-              </div>
-              {isConnecting && (
-                <div className="mt-3 flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                  <span className="text-sm text-blue-600">Connecting...</span>
-                </div>
-              )}
-            </div>
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-              <Wallet className="h-5 w-5 text-gray-400" />
-            </div>
-          </div>
-        </button>
+    <Card className="w-full max-w-md">
+      <CardHeader className="text-center">
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100">
+          <Wallet className="h-6 w-6 text-orange-600" />
+        </div>
+        <CardTitle className="text-xl font-bold">
+          Connect MetaMask Wallet
+        </CardTitle>
+        <CardDescription>
+          Secure login using your MetaMask wallet
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {isCheckingInstallation ? (
+          <Alert>
+            <RefreshCw className="h-4 w-4 animate-spin" />
+            <AlertDescription>
+              Checking MetaMask installation...
+            </AlertDescription>
+          </Alert>
+        ) : !isMetaMaskInstalled ? (
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              MetaMask is not installed. Please install MetaMask to continue.
+            </AlertDescription>
+          </Alert>
+        ) : walletAddress ? (
+          <Alert>
+            <CheckCircle className="h-4 w-4" />
+            <AlertDescription>
+              Connected: {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+            </AlertDescription>
+          </Alert>
+        ) : null}
 
         {error && (
-          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700 text-sm">{error}</p>
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {!isMetaMaskInstalled ? (
+          <Button
+            onClick={installMetaMask}
+            size="lg"
+            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold"
+          >
+            <ExternalLink className="mr-2 h-4 w-4" />
+            Install MetaMask
+          </Button>
+        ) : (
+          <div className="space-y-2">
+            <Button
+              onClick={connectWallet}
+              disabled={isConnecting}
+              size="lg"
+              className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold"
+            >
+              {isConnecting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Connecting...
+                </>
+              ) : (
+                <>
+                  <Wallet className="mr-2 h-4 w-4" />
+                  {walletAddress ? "Reconnect" : "Connect Wallet"}
+                </>
+              )}
+            </Button>
+
+            {error && !error.includes("Install") && (
+              <Button
+                onClick={retryConnection}
+                variant="outline"
+                size="sm"
+                className="w-full"
+              >
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Try Again
+              </Button>
+            )}
           </div>
         )}
+
+        <div className="text-center text-sm text-muted-foreground">
+          <p>By connecting, you agree to our Terms of Service</p>
+        </div>
       </CardContent>
     </Card>
   );
-}
-
-// Extend the Window interface to include ethereum
-declare global {
-  interface Window {
-    ethereum?: any;
-  }
 }

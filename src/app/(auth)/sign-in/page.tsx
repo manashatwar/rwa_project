@@ -24,6 +24,7 @@ import {
   EyeOff,
   Sparkles,
 } from "lucide-react";
+import MetaMaskConnect from "@/components/metamask-connect";
 
 interface LoginProps {
   searchParams: Promise<Message>;
@@ -205,6 +206,21 @@ export default async function SignInPage({ searchParams }: LoginProps) {
 
                   <FormMessage message={message} />
                 </form>
+
+                <div className="space-y-4">
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <Separator className="w-full" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-white px-2 text-gray-500">
+                        Or continue with
+                      </span>
+                    </div>
+                  </div>
+
+                  <MetaMaskConnect variant="button" />
+                </div>
 
                 <div className="space-y-4">
                   <div className="relative">
