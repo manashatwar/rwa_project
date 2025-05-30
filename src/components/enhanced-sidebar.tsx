@@ -5,43 +5,137 @@ import { createClient } from "../../supabase/client";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { cn } from "@/lib/utils";
-import { useState, useEffect, createContext, useContext, memo, useMemo, lazy } from "react";
+import {
+  useState,
+  useEffect,
+  createContext,
+  useContext,
+  memo,
+  useMemo,
+  lazy,
+  useCallback,
+} from "react";
 import { User } from "@supabase/supabase-js";
 import { useRouter, usePathname } from "next/navigation";
 import dynamic from "next/dynamic";
 
 // Dynamically import icons to reduce initial bundle size
 const Icons = {
-  Home: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Home })), { ssr: false }),
-  Building2: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Building2 })), { ssr: false }),
-  CreditCard: dynamic(() => import("lucide-react").then(mod => ({ default: mod.CreditCard })), { ssr: false }),
-  PieChart: dynamic(() => import("lucide-react").then(mod => ({ default: mod.PieChart })), { ssr: false }),
-  Settings: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Settings })), { ssr: false }),
-  TrendingUp: dynamic(() => import("lucide-react").then(mod => ({ default: mod.TrendingUp })), { ssr: false }),
-  Shield: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Shield })), { ssr: false }),
-  Users: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Users })), { ssr: false }),
-  ChevronLeft: dynamic(() => import("lucide-react").then(mod => ({ default: mod.ChevronLeft })), { ssr: false }),
-  ChevronRight: dynamic(() => import("lucide-react").then(mod => ({ default: mod.ChevronRight })), { ssr: false }),
-  Wallet: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Wallet })), { ssr: false }),
-  Activity: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Activity })), { ssr: false }),
-  DollarSign: dynamic(() => import("lucide-react").then(mod => ({ default: mod.DollarSign })), { ssr: false }),
-  BarChart3: dynamic(() => import("lucide-react").then(mod => ({ default: mod.BarChart3 })), { ssr: false }),
-  Clock: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Clock })), { ssr: false }),
-  UserCircle: dynamic(() => import("lucide-react").then(mod => ({ default: mod.UserCircle })), { ssr: false }),
-  BookOpen: dynamic(() => import("lucide-react").then(mod => ({ default: mod.BookOpen })), { ssr: false }),
-  Github: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Github })), { ssr: false }),
-  HelpCircle: dynamic(() => import("lucide-react").then(mod => ({ default: mod.HelpCircle })), { ssr: false }),
-  Star: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Star })), { ssr: false }),
-  Zap: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Zap })), { ssr: false }),
-  Target: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Target })), { ssr: false }),
-  Database: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Database })), { ssr: false }),
-  Smartphone: dynamic(() => import("lucide-react").then(mod => ({ default: mod.Smartphone })), { ssr: false }),
-  ArrowLeftRight: dynamic(() => import("lucide-react").then(mod => ({ default: mod.ArrowLeftRight })), { ssr: false }),
+  Home: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Home })),
+    { ssr: false }
+  ),
+  Building2: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Building2 })),
+    { ssr: false }
+  ),
+  CreditCard: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.CreditCard })),
+    { ssr: false }
+  ),
+  PieChart: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.PieChart })),
+    { ssr: false }
+  ),
+  Settings: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Settings })),
+    { ssr: false }
+  ),
+  TrendingUp: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.TrendingUp })),
+    { ssr: false }
+  ),
+  Shield: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Shield })),
+    { ssr: false }
+  ),
+  Users: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Users })),
+    { ssr: false }
+  ),
+  ChevronLeft: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.ChevronLeft })),
+    { ssr: false }
+  ),
+  ChevronRight: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.ChevronRight })),
+    { ssr: false }
+  ),
+  Wallet: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Wallet })),
+    { ssr: false }
+  ),
+  Activity: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Activity })),
+    { ssr: false }
+  ),
+  DollarSign: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.DollarSign })),
+    { ssr: false }
+  ),
+  BarChart3: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.BarChart3 })),
+    { ssr: false }
+  ),
+  Clock: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Clock })),
+    { ssr: false }
+  ),
+  UserCircle: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.UserCircle })),
+    { ssr: false }
+  ),
+  BookOpen: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.BookOpen })),
+    { ssr: false }
+  ),
+  Github: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Github })),
+    { ssr: false }
+  ),
+  HelpCircle: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.HelpCircle })),
+    { ssr: false }
+  ),
+  Star: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Star })),
+    { ssr: false }
+  ),
+  Zap: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Zap })),
+    { ssr: false }
+  ),
+  Target: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Target })),
+    { ssr: false }
+  ),
+  Database: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Database })),
+    { ssr: false }
+  ),
+  Smartphone: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Smartphone })),
+    { ssr: false }
+  ),
+  ArrowLeftRight: dynamic(
+    () =>
+      import("lucide-react").then((mod) => ({ default: mod.ArrowLeftRight })),
+    { ssr: false }
+  ),
 };
 
 // Dynamically import Card components
-const Card = dynamic(() => import("@/components/ui/card").then(mod => ({ default: mod.Card })), { ssr: false });
-const CardContent = dynamic(() => import("@/components/ui/card").then(mod => ({ default: mod.CardContent })), { ssr: false });
+const Card = dynamic(
+  () => import("@/components/ui/card").then((mod) => ({ default: mod.Card })),
+  { ssr: false }
+);
+const CardContent = dynamic(
+  () =>
+    import("@/components/ui/card").then((mod) => ({
+      default: mod.CardContent,
+    })),
+  { ssr: false }
+);
 
 // Context for sidebar state
 const SidebarContext = createContext<{
@@ -273,8 +367,10 @@ interface SidebarProviderProps {
 
 export function SidebarProvider({ children }: SidebarProviderProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const saved = localStorage.getItem("sidebar-collapsed");
     if (saved) {
       setIsCollapsed(JSON.parse(saved));
@@ -282,17 +378,22 @@ export function SidebarProvider({ children }: SidebarProviderProps) {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("sidebar-collapsed", JSON.stringify(isCollapsed));
-  }, [isCollapsed]);
+    if (mounted) {
+      localStorage.setItem("sidebar-collapsed", JSON.stringify(isCollapsed));
+    }
+  }, [isCollapsed, mounted]);
 
-  const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
-  };
+  const toggleSidebar = useCallback(() => {
+    setIsCollapsed((prev) => !prev);
+  }, []);
 
-  const contextValue = useMemo(() => ({
-    isCollapsed,
-    setIsCollapsed: toggleSidebar,
-  }), [isCollapsed]);
+  const contextValue = useMemo(
+    () => ({
+      isCollapsed,
+      setIsCollapsed: toggleSidebar,
+    }),
+    [isCollapsed, toggleSidebar]
+  );
 
   return (
     <SidebarContext.Provider value={contextValue}>
@@ -332,11 +433,20 @@ const EnhancedSidebar = memo(function EnhancedSidebar() {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [supabase.auth]);
 
   // Prevent hydration issues
   if (!mounted) {
-    return null;
+    return (
+      <aside className="bg-white border-r border-gray-200 w-16 lg:w-64 flex flex-col fixed left-0 top-0 h-full z-40 shadow-lg">
+        <div className="p-4 border-b border-gray-200 flex items-center justify-center lg:justify-between">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-lg">
+            <span className="text-xl font-extrabold text-white">Tf</span>
+          </div>
+        </div>
+        <div className="flex-1"></div>
+      </aside>
+    );
   }
 
   const getUserDisplayName = () => {
@@ -363,7 +473,7 @@ const EnhancedSidebar = memo(function EnhancedSidebar() {
     return Object.entries(categoryLabels).map(([category, label]) => ({
       category,
       label,
-      items: sidebarItems.filter(item => item.category === category)
+      items: sidebarItems.filter((item) => item.category === category),
     }));
   }, []);
 
@@ -390,7 +500,7 @@ const EnhancedSidebar = memo(function EnhancedSidebar() {
                 <p className="text-xs text-gray-500">Real World Assets</p>
               </div>
             </Link>
-            
+
             {/* Toggle Button - Only when expanded */}
             <Button
               variant="ghost"

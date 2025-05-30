@@ -1,38 +1,172 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Slider } from "@/components/ui/slider";
-import {
-  Calculator,
-  DollarSign,
-  Percent,
-  Calendar,
-  TrendingUp,
-  Info,
-  Download,
-  BarChart3,
-  PieChart,
-  Target,
-} from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import dynamic from "next/dynamic";
+
+// Dynamically import UI components for better performance
+const Card = dynamic(
+  () => import("@/components/ui/card").then((mod) => ({ default: mod.Card })),
+  { ssr: false }
+);
+const CardContent = dynamic(
+  () =>
+    import("@/components/ui/card").then((mod) => ({
+      default: mod.CardContent,
+    })),
+  { ssr: false }
+);
+const CardHeader = dynamic(
+  () =>
+    import("@/components/ui/card").then((mod) => ({ default: mod.CardHeader })),
+  { ssr: false }
+);
+const CardTitle = dynamic(
+  () =>
+    import("@/components/ui/card").then((mod) => ({ default: mod.CardTitle })),
+  { ssr: false }
+);
+const Button = dynamic(
+  () =>
+    import("@/components/ui/button").then((mod) => ({ default: mod.Button })),
+  { ssr: false }
+);
+const Input = dynamic(() => import("@/components/ui/input"), { ssr: false });
+const Label = dynamic(() => import("@/components/ui/label"), { ssr: false });
+const Badge = dynamic(
+  () => import("@/components/ui/badge").then((mod) => ({ default: mod.Badge })),
+  { ssr: false }
+);
+const Slider = dynamic(
+  () =>
+    import("@/components/ui/slider").then((mod) => ({ default: mod.Slider })),
+  { ssr: false }
+);
+const Select = dynamic(
+  () =>
+    import("@/components/ui/select").then((mod) => ({ default: mod.Select })),
+  { ssr: false }
+);
+const SelectContent = dynamic(
+  () =>
+    import("@/components/ui/select").then((mod) => ({
+      default: mod.SelectContent,
+    })),
+  { ssr: false }
+);
+const SelectItem = dynamic(
+  () =>
+    import("@/components/ui/select").then((mod) => ({
+      default: mod.SelectItem,
+    })),
+  { ssr: false }
+);
+const SelectTrigger = dynamic(
+  () =>
+    import("@/components/ui/select").then((mod) => ({
+      default: mod.SelectTrigger,
+    })),
+  { ssr: false }
+);
+const SelectValue = dynamic(
+  () =>
+    import("@/components/ui/select").then((mod) => ({
+      default: mod.SelectValue,
+    })),
+  { ssr: false }
+);
+const Tabs = dynamic(
+  () => import("@/components/ui/tabs").then((mod) => ({ default: mod.Tabs })),
+  { ssr: false }
+);
+const TabsContent = dynamic(
+  () =>
+    import("@/components/ui/tabs").then((mod) => ({
+      default: mod.TabsContent,
+    })),
+  { ssr: false }
+);
+const TabsList = dynamic(
+  () =>
+    import("@/components/ui/tabs").then((mod) => ({ default: mod.TabsList })),
+  { ssr: false }
+);
+const TabsTrigger = dynamic(
+  () =>
+    import("@/components/ui/tabs").then((mod) => ({
+      default: mod.TabsTrigger,
+    })),
+  { ssr: false }
+);
+
+// Dynamically import icons
+const Icons = {
+  Calculator: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Calculator })),
+    { ssr: false }
+  ),
+  DollarSign: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.DollarSign })),
+    { ssr: false }
+  ),
+  Percent: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Percent })),
+    { ssr: false }
+  ),
+  Calendar: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Calendar })),
+    { ssr: false }
+  ),
+  TrendingUp: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.TrendingUp })),
+    { ssr: false }
+  ),
+  Info: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Info })),
+    { ssr: false }
+  ),
+  Download: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Download })),
+    { ssr: false }
+  ),
+  BarChart3: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.BarChart3 })),
+    { ssr: false }
+  ),
+  PieChart: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.PieChart })),
+    { ssr: false }
+  ),
+  Target: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Target })),
+    { ssr: false }
+  ),
+  Zap: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Zap })),
+    { ssr: false }
+  ),
+  Shield: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Shield })),
+    { ssr: false }
+  ),
+  RefreshCw: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.RefreshCw })),
+    { ssr: false }
+  ),
+  Eye: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Eye })),
+    { ssr: false }
+  ),
+  Clock: dynamic(
+    () => import("lucide-react").then((mod) => ({ default: mod.Clock })),
+    { ssr: false }
+  ),
+};
 
 export default function LoanCalculatorPage() {
   const [calculationType, setCalculationType] = useState("payment");
   const [loanInputs, setLoanInputs] = useState({
     loanAmount: 100000,
-    interestRate: 8.5,
+    interestRate: 5.5,
     loanTerm: 12,
     assetValue: 150000,
     ltvRatio: 75,
@@ -55,6 +189,27 @@ export default function LoanCalculatorPage() {
       balance: number;
     }>
   >([]);
+
+  const [selectedPreset, setSelectedPreset] = useState("");
+
+  const presets = [
+    { label: "Real Estate", loanAmount: 500000, rate: 4.5, term: 360, ltv: 80 },
+    {
+      label: "Luxury Vehicle",
+      loanAmount: 75000,
+      rate: 6.5,
+      term: 60,
+      ltv: 75,
+    },
+    {
+      label: "Art Collection",
+      loanAmount: 250000,
+      rate: 5.25,
+      term: 120,
+      ltv: 70,
+    },
+    { label: "Equipment", loanAmount: 150000, rate: 7.0, term: 84, ltv: 75 },
+  ];
 
   useEffect(() => {
     calculateLoan();
@@ -79,7 +234,7 @@ export default function LoanCalculatorPage() {
     const totalPayment = monthlyPayment * numPayments;
     const totalInterest = totalPayment - loanAmount;
     const maxLoanAmount = (assetValue * ltvRatio) / 100;
-    const requiredIncome = monthlyPayment * 12 * 3; // 3x annual income rule
+    const requiredIncome = monthlyPayment * 12 * 3;
 
     setResults({
       monthlyPayment,
@@ -126,6 +281,29 @@ export default function LoanCalculatorPage() {
     setAmortizationSchedule(schedule);
   };
 
+  const applyPreset = (preset: any) => {
+    setLoanInputs({
+      ...loanInputs,
+      loanAmount: preset.loanAmount,
+      interestRate: preset.rate,
+      loanTerm: preset.term,
+      ltvRatio: preset.ltv,
+      assetValue: Math.round(preset.loanAmount / (preset.ltv / 100)),
+    });
+    setSelectedPreset(preset.label);
+  };
+
+  const resetCalculator = () => {
+    setLoanInputs({
+      loanAmount: 100000,
+      interestRate: 5.5,
+      loanTerm: 12,
+      assetValue: 150000,
+      ltvRatio: 75,
+    });
+    setSelectedPreset("");
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -139,522 +317,632 @@ export default function LoanCalculatorPage() {
     return `${percent.toFixed(2)}%`;
   };
 
+  const getRateColor = (rate: number) => {
+    if (rate <= 4) return "text-green-600 bg-green-50";
+    if (rate <= 6) return "text-blue-600 bg-blue-50";
+    if (rate <= 8) return "text-orange-600 bg-orange-50";
+    return "text-red-600 bg-red-50";
+  };
+
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Loan Calculator</h1>
-          <p className="text-gray-600 mt-2">
-            Calculate loan payments, affordability, and compare different
-            scenarios
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30 p-6">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Enhanced Header */}
+        <div className="text-center space-y-4">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <Icons.Calculator className="w-8 h-8 text-white" />
+            </div>
+          </div>
+          <h1 className="text-5xl font-bold tracking-tight bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent">
+            Advanced Loan Calculator
+          </h1>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            Calculate loan payments, analyze scenarios, and make informed
+            decisions about asset-backed financing
           </p>
+          <div className="flex items-center justify-center gap-4 mt-6">
+            <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">
+              <Icons.Zap className="w-3 h-3 mr-1" />
+              Real-time Calculations
+            </Badge>
+            <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+              <Icons.Shield className="w-3 h-3 mr-1" />
+              Secure & Private
+            </Badge>
+          </div>
         </div>
-        <Badge className="bg-blue-100 text-blue-800">Interactive Tool</Badge>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Input Panel */}
-        <div className="lg:col-span-1 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calculator className="w-5 h-5" />
-                Loan Parameters
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Calculation Type */}
-              <div className="space-y-3">
-                <Label>Calculation Type</Label>
-                <Select
-                  value={calculationType}
-                  onValueChange={setCalculationType}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="payment">Monthly Payment</SelectItem>
-                    <SelectItem value="affordability">
-                      Loan Affordability
-                    </SelectItem>
-                    <SelectItem value="comparison">
-                      Scenario Comparison
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Asset Value */}
-              <div className="space-y-3">
-                <Label className="flex items-center gap-2">
-                  <DollarSign className="w-4 h-4" />
-                  Asset Value
-                </Label>
-                <Input
-                  type="number"
-                  value={loanInputs.assetValue}
-                  onChange={(e) =>
-                    setLoanInputs((prev) => ({
-                      ...prev,
-                      assetValue: Number(e.target.value),
-                    }))
-                  }
-                />
-                <p className="text-xs text-gray-500">
-                  Estimated market value of your asset
-                </p>
-              </div>
-
-              {/* LTV Ratio */}
-              <div className="space-y-3">
-                <Label className="flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <Percent className="w-4 h-4" />
-                    Loan-to-Value Ratio
-                  </span>
-                  <span className="text-sm font-normal">
-                    {loanInputs.ltvRatio}%
-                  </span>
-                </Label>
-                <Slider
-                  value={[loanInputs.ltvRatio]}
-                  onValueChange={(value) =>
-                    setLoanInputs((prev) => ({
-                      ...prev,
-                      ltvRatio: value[0],
-                    }))
-                  }
-                  max={80}
-                  min={20}
-                  step={5}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>Conservative (20%)</span>
-                  <span>Maximum (80%)</span>
-                </div>
-              </div>
-
-              {/* Loan Amount */}
-              <div className="space-y-3">
-                <Label className="flex items-center gap-2">
-                  <DollarSign className="w-4 h-4" />
-                  Loan Amount
-                </Label>
-                <Input
-                  type="number"
-                  value={loanInputs.loanAmount}
-                  onChange={(e) =>
-                    setLoanInputs((prev) => ({
-                      ...prev,
-                      loanAmount: Number(e.target.value),
-                    }))
-                  }
-                />
-                <p className="text-xs text-gray-500">
-                  Maximum: {formatCurrency(results.maxLoanAmount)}
-                </p>
-              </div>
-
-              {/* Interest Rate */}
-              <div className="space-y-3">
-                <Label className="flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <Percent className="w-4 h-4" />
-                    Annual Interest Rate
-                  </span>
-                  <span className="text-sm font-normal">
-                    {loanInputs.interestRate}%
-                  </span>
-                </Label>
-                <Slider
-                  value={[loanInputs.interestRate]}
-                  onValueChange={(value) =>
-                    setLoanInputs((prev) => ({
-                      ...prev,
-                      interestRate: value[0],
-                    }))
-                  }
-                  max={15}
-                  min={2}
-                  step={0.25}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>Low (2%)</span>
-                  <span>High (15%)</span>
-                </div>
-              </div>
-
-              {/* Loan Term */}
-              <div className="space-y-3">
-                <Label className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
-                  Loan Term (Months)
-                </Label>
-                <Select
-                  value={loanInputs.loanTerm.toString()}
-                  onValueChange={(value) =>
-                    setLoanInputs((prev) => ({
-                      ...prev,
-                      loanTerm: Number(value),
-                    }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="6">6 months</SelectItem>
-                    <SelectItem value="12">12 months</SelectItem>
-                    <SelectItem value="18">18 months</SelectItem>
-                    <SelectItem value="24">24 months</SelectItem>
-                    <SelectItem value="36">36 months</SelectItem>
-                    <SelectItem value="60">60 months</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Quick Presets */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="w-5 h-5" />
-                Quick Presets
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {[
-                { name: "Conservative", ltv: 50, rate: 6.5, term: 12 },
-                { name: "Balanced", ltv: 65, rate: 8.0, term: 18 },
-                { name: "Aggressive", ltv: 75, rate: 10.0, term: 24 },
-              ].map((preset) => (
+        {/* Quick Presets */}
+        <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
+          <CardHeader className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 border-b border-gray-100">
+            <CardTitle className="flex items-center gap-2">
+              <Icons.Target className="w-5 h-5 text-blue-600" />
+              Quick Scenarios
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {presets.map((preset, index) => (
                 <Button
-                  key={preset.name}
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={() =>
-                    setLoanInputs((prev) => ({
-                      ...prev,
-                      ltvRatio: preset.ltv,
-                      interestRate: preset.rate,
-                      loanTerm: preset.term,
-                    }))
+                  key={index}
+                  variant={
+                    selectedPreset === preset.label ? "default" : "outline"
                   }
+                  onClick={() => applyPreset(preset)}
+                  className={`h-auto p-4 text-left transition-all duration-200 ${
+                    selectedPreset === preset.label
+                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                      : "hover:shadow-md hover:border-blue-300"
+                  }`}
                 >
-                  <div className="text-left">
-                    <div className="font-medium">{preset.name}</div>
-                    <div className="text-xs text-gray-500">
-                      {preset.ltv}% LTV • {preset.rate}% APR • {preset.term}mo
+                  <div className="space-y-2">
+                    <div className="font-semibold">{preset.label}</div>
+                    <div className="text-sm opacity-75">
+                      {formatCurrency(preset.loanAmount)} • {preset.rate}% •{" "}
+                      {preset.term}mo
                     </div>
                   </div>
                 </Button>
               ))}
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Results Panel */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Key Results */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">
-                      Monthly Payment
-                    </p>
-                    <p className="text-xl font-bold text-gray-900">
-                      {formatCurrency(results.monthlyPayment)}
-                    </p>
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
+          {/* Enhanced Input Panel */}
+          <div className="xl:col-span-1 space-y-6">
+            <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
+              <CardHeader className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 border-b border-gray-100">
+                <CardTitle className="flex items-center gap-2">
+                  <Icons.Calculator className="w-5 h-5 text-blue-600" />
+                  Loan Parameters
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 space-y-6">
+                {/* Asset Value */}
+                <div className="space-y-3">
+                  <Label className="flex items-center gap-2 font-semibold">
+                    <Icons.DollarSign className="w-4 h-4 text-green-600" />
+                    Asset Value
+                  </Label>
+                  <div className="relative">
+                    <Icons.DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input
+                      type="number"
+                      value={loanInputs.assetValue}
+                      onChange={(e) =>
+                        setLoanInputs((prev) => ({
+                          ...prev,
+                          assetValue: Number(e.target.value),
+                        }))
+                      }
+                      className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+                    />
                   </div>
-                  <DollarSign className="w-8 h-8 text-blue-600" />
+                  <p className="text-xs text-gray-500">
+                    Current market value of your asset
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
 
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">
-                      Total Interest
-                    </p>
-                    <p className="text-xl font-bold text-gray-900">
-                      {formatCurrency(results.totalInterest)}
-                    </p>
+                {/* LTV Ratio */}
+                <div className="space-y-4">
+                  <Label className="flex items-center justify-between font-semibold">
+                    <span className="flex items-center gap-2">
+                      <Icons.Percent className="w-4 h-4 text-blue-600" />
+                      Loan-to-Value Ratio
+                    </span>
+                    <Badge
+                      className={`text-xs px-2 py-1 ${
+                        loanInputs.ltvRatio <= 60
+                          ? "bg-green-100 text-green-800"
+                          : loanInputs.ltvRatio <= 75
+                            ? "bg-blue-100 text-blue-800"
+                            : "bg-orange-100 text-orange-800"
+                      }`}
+                    >
+                      {loanInputs.ltvRatio}%
+                    </Badge>
+                  </Label>
+                  <Slider
+                    value={[loanInputs.ltvRatio]}
+                    onValueChange={(value) =>
+                      setLoanInputs((prev) => ({
+                        ...prev,
+                        ltvRatio: value[0],
+                      }))
+                    }
+                    max={85}
+                    min={20}
+                    step={1}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>Conservative</span>
+                    <span>Standard</span>
+                    <span>Aggressive</span>
                   </div>
-                  <Percent className="w-8 h-8 text-orange-600" />
+                  <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                    Max Loan:{" "}
+                    <span className="font-semibold text-blue-600">
+                      {formatCurrency(
+                        (loanInputs.assetValue * loanInputs.ltvRatio) / 100
+                      )}
+                    </span>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
 
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">
-                      Total Payment
-                    </p>
-                    <p className="text-xl font-bold text-gray-900">
-                      {formatCurrency(results.totalPayment)}
-                    </p>
+                {/* Loan Amount */}
+                <div className="space-y-3">
+                  <Label className="flex items-center gap-2 font-semibold">
+                    <Icons.DollarSign className="w-4 h-4 text-purple-600" />
+                    Loan Amount
+                  </Label>
+                  <div className="relative">
+                    <Icons.DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input
+                      type="number"
+                      value={loanInputs.loanAmount}
+                      onChange={(e) =>
+                        setLoanInputs((prev) => ({
+                          ...prev,
+                          loanAmount: Number(e.target.value),
+                        }))
+                      }
+                      className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+                    />
                   </div>
-                  <Calculator className="w-8 h-8 text-green-600" />
                 </div>
-              </CardContent>
-            </Card>
 
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">
-                      Max Loan
-                    </p>
-                    <p className="text-xl font-bold text-gray-900">
-                      {formatCurrency(results.maxLoanAmount)}
-                    </p>
+                {/* Interest Rate */}
+                <div className="space-y-3">
+                  <Label className="flex items-center gap-2 font-semibold">
+                    <Icons.Percent className="w-4 h-4 text-orange-600" />
+                    Interest Rate
+                  </Label>
+                  <div className="relative">
+                    <Icons.Percent className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input
+                      type="number"
+                      step="0.1"
+                      value={loanInputs.interestRate}
+                      onChange={(e) =>
+                        setLoanInputs((prev) => ({
+                          ...prev,
+                          interestRate: Number(e.target.value),
+                        }))
+                      }
+                      className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+                    />
                   </div>
-                  <TrendingUp className="w-8 h-8 text-purple-600" />
+                  <div
+                    className={`text-xs px-3 py-2 rounded-lg ${getRateColor(loanInputs.interestRate)}`}
+                  >
+                    {loanInputs.interestRate <= 4
+                      ? "Excellent Rate"
+                      : loanInputs.interestRate <= 6
+                        ? "Good Rate"
+                        : loanInputs.interestRate <= 8
+                          ? "Standard Rate"
+                          : "High Rate"}
+                  </div>
                 </div>
+
+                {/* Loan Term */}
+                <div className="space-y-3">
+                  <Label className="flex items-center gap-2 font-semibold">
+                    <Icons.Calendar className="w-4 h-4 text-indigo-600" />
+                    Loan Term (Months)
+                  </Label>
+                  <Select
+                    value={loanInputs.loanTerm.toString()}
+                    onValueChange={(value) =>
+                      setLoanInputs((prev) => ({
+                        ...prev,
+                        loanTerm: Number(value),
+                      }))
+                    }
+                  >
+                    <SelectTrigger className="h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="6">6 months</SelectItem>
+                      <SelectItem value="12">12 months</SelectItem>
+                      <SelectItem value="24">24 months</SelectItem>
+                      <SelectItem value="36">36 months</SelectItem>
+                      <SelectItem value="60">60 months</SelectItem>
+                      <SelectItem value="84">84 months</SelectItem>
+                      <SelectItem value="120">120 months</SelectItem>
+                      <SelectItem value="240">240 months</SelectItem>
+                      <SelectItem value="360">360 months</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Reset Button */}
+                <Button
+                  variant="outline"
+                  onClick={resetCalculator}
+                  className="w-full h-12 border-gray-200 hover:bg-gray-50"
+                >
+                  <Icons.RefreshCw className="w-4 h-4 mr-2" />
+                  Reset Calculator
+                </Button>
               </CardContent>
             </Card>
           </div>
 
-          {/* Detailed Results */}
-          <Tabs defaultValue="summary" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="summary">Summary</TabsTrigger>
-              <TabsTrigger value="schedule">Amortization</TabsTrigger>
-              <TabsTrigger value="analysis">Analysis</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="summary" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="w-5 h-5" />
-                    Loan Summary
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Loan Amount:</span>
-                        <span className="font-semibold">
-                          {formatCurrency(loanInputs.loanAmount)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Interest Rate:</span>
-                        <span className="font-semibold">
-                          {formatPercent(loanInputs.interestRate)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Loan Term:</span>
-                        <span className="font-semibold">
-                          {loanInputs.loanTerm} months
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">LTV Ratio:</span>
-                        <span className="font-semibold">
-                          {formatPercent(loanInputs.ltvRatio)}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Monthly Payment:</span>
-                        <span className="font-semibold text-blue-600">
-                          {formatCurrency(results.monthlyPayment)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Total Interest:</span>
-                        <span className="font-semibold text-orange-600">
-                          {formatCurrency(results.totalInterest)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Total Cost:</span>
-                        <span className="font-semibold text-gray-900">
-                          {formatCurrency(results.totalPayment)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">
-                          Interest Percentage:
-                        </span>
-                        <span className="font-semibold">
-                          {formatPercent(
-                            (results.totalInterest / loanInputs.loanAmount) *
-                              100
-                          )}
-                        </span>
-                      </div>
-                    </div>
+          {/* Enhanced Results Panel */}
+          <div className="xl:col-span-3 space-y-6">
+            {/* Key Results Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <Icons.DollarSign className="w-8 h-8 text-blue-600" />
+                    <Badge className="bg-blue-200 text-blue-800">Monthly</Badge>
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="schedule" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      <Calendar className="w-5 h-5" />
-                      Amortization Schedule
-                    </CardTitle>
-                    <Button variant="outline" size="sm">
-                      <Download className="w-4 h-4 mr-2" />
-                      Export
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left p-2">Month</th>
-                          <th className="text-right p-2">Payment</th>
-                          <th className="text-right p-2">Principal</th>
-                          <th className="text-right p-2">Interest</th>
-                          <th className="text-right p-2">Balance</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {amortizationSchedule.map((row) => (
-                          <tr
-                            key={row.month}
-                            className="border-b hover:bg-gray-50"
-                          >
-                            <td className="p-2 font-medium">{row.month}</td>
-                            <td className="text-right p-2">
-                              {formatCurrency(row.payment)}
-                            </td>
-                            <td className="text-right p-2 text-blue-600">
-                              {formatCurrency(row.principal)}
-                            </td>
-                            <td className="text-right p-2 text-orange-600">
-                              {formatCurrency(row.interest)}
-                            </td>
-                            <td className="text-right p-2 font-medium">
-                              {formatCurrency(row.balance)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  {amortizationSchedule.length >= 24 && (
-                    <p className="text-sm text-gray-500 mt-2 text-center">
-                      Showing first 24 months • Full schedule available in
-                      export
+                  <div className="space-y-1">
+                    <p className="text-sm text-blue-700 font-medium">
+                      Monthly Payment
                     </p>
-                  )}
+                    <p className="text-2xl font-bold text-blue-900">
+                      {formatCurrency(results.monthlyPayment)}
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
-            </TabsContent>
 
-            <TabsContent value="analysis" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <Icons.TrendingUp className="w-8 h-8 text-emerald-600" />
+                    <Badge className="bg-emerald-200 text-emerald-800">
+                      Total
+                    </Badge>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-emerald-700 font-medium">
+                      Total Interest
+                    </p>
+                    <p className="text-2xl font-bold text-emerald-900">
+                      {formatCurrency(results.totalInterest)}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <Icons.BarChart3 className="w-8 h-8 text-purple-600" />
+                    <Badge className="bg-purple-200 text-purple-800">
+                      Total
+                    </Badge>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-purple-700 font-medium">
+                      Total Payment
+                    </p>
+                    <p className="text-2xl font-bold text-purple-900">
+                      {formatCurrency(results.totalPayment)}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <Icons.Target className="w-8 h-8 text-orange-600" />
+                    <Badge className="bg-orange-200 text-orange-800">Max</Badge>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-orange-700 font-medium">
+                      Max Loan Amount
+                    </p>
+                    <p className="text-2xl font-bold text-orange-900">
+                      {formatCurrency(results.maxLoanAmount)}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Detailed Analysis */}
+            <Tabs defaultValue="schedule" className="space-y-6">
+              <TabsList className="grid w-full grid-cols-3 bg-gray-100">
+                <TabsTrigger
+                  value="schedule"
+                  className="flex items-center gap-2"
+                >
+                  <Icons.Calendar className="w-4 h-4" />
+                  Payment Schedule
+                </TabsTrigger>
+                <TabsTrigger
+                  value="breakdown"
+                  className="flex items-center gap-2"
+                >
+                  <Icons.PieChart className="w-4 h-4" />
+                  Cost Breakdown
+                </TabsTrigger>
+                <TabsTrigger
+                  value="insights"
+                  className="flex items-center gap-2"
+                >
+                  <Icons.Eye className="w-4 h-4" />
+                  Insights
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="schedule">
+                <Card className="border-0 shadow-lg">
+                  <CardHeader className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 border-b border-gray-100">
                     <CardTitle className="flex items-center gap-2">
-                      <PieChart className="w-5 h-5" />
-                      Cost Breakdown
+                      <Icons.Calendar className="w-5 h-5 text-blue-600" />
+                      Amortization Schedule (First 24 Months)
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                          <span className="text-sm">Principal</span>
-                        </div>
-                        <span className="font-medium">
-                          {formatCurrency(loanInputs.loanAmount)}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                          <span className="text-sm">Interest</span>
-                        </div>
-                        <span className="font-medium">
-                          {formatCurrency(results.totalInterest)}
-                        </span>
-                      </div>
-                      <div className="border-t pt-2">
-                        <div className="flex items-center justify-between font-semibold">
-                          <span>Total Cost</span>
-                          <span>{formatCurrency(results.totalPayment)}</span>
-                        </div>
-                      </div>
+                  <CardContent className="p-0">
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-gray-50 border-b">
+                          <tr>
+                            <th className="text-left p-4 font-semibold text-gray-700">
+                              Month
+                            </th>
+                            <th className="text-right p-4 font-semibold text-gray-700">
+                              Payment
+                            </th>
+                            <th className="text-right p-4 font-semibold text-gray-700">
+                              Principal
+                            </th>
+                            <th className="text-right p-4 font-semibold text-gray-700">
+                              Interest
+                            </th>
+                            <th className="text-right p-4 font-semibold text-gray-700">
+                              Balance
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {amortizationSchedule.map((row, index) => (
+                            <tr
+                              key={index}
+                              className="border-b hover:bg-gray-50 transition-colors"
+                            >
+                              <td className="p-4 font-medium">{row.month}</td>
+                              <td className="p-4 text-right">
+                                {formatCurrency(row.payment)}
+                              </td>
+                              <td className="p-4 text-right text-blue-600">
+                                {formatCurrency(row.principal)}
+                              </td>
+                              <td className="p-4 text-right text-orange-600">
+                                {formatCurrency(row.interest)}
+                              </td>
+                              <td className="p-4 text-right font-semibold">
+                                {formatCurrency(row.balance)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   </CardContent>
                 </Card>
+              </TabsContent>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Info className="w-5 h-5" />
-                      Affordability Check
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <h4 className="font-medium text-blue-900 mb-2">
-                          Income Requirement
-                        </h4>
-                        <p className="text-blue-700 text-sm mb-2">
-                          Recommended minimum annual income:{" "}
-                          {formatCurrency(results.requiredIncome)}
-                        </p>
-                        <p className="text-blue-600 text-xs">
-                          Based on 33% debt-to-income ratio
-                        </p>
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span>Monthly payment:</span>
-                          <span>{formatCurrency(results.monthlyPayment)}</span>
+              <TabsContent value="breakdown">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card className="border-0 shadow-lg">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Icons.PieChart className="w-5 h-5 text-blue-600" />
+                        Payment Breakdown
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                          <span className="text-blue-700 font-medium">
+                            Principal Amount
+                          </span>
+                          <span className="text-blue-900 font-bold">
+                            {formatCurrency(loanInputs.loanAmount)}
+                          </span>
                         </div>
-                        <div className="flex justify-between text-sm">
-                          <span>As % of $5k income:</span>
-                          <span
-                            className={
-                              results.monthlyPayment / 5000 > 0.33
-                                ? "text-red-600"
-                                : "text-green-600"
-                            }
-                          >
-                            {formatPercent(
-                              (results.monthlyPayment / 5000) * 100
-                            )}
+                        <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg">
+                          <span className="text-orange-700 font-medium">
+                            Total Interest
+                          </span>
+                          <span className="text-orange-900 font-bold">
+                            {formatCurrency(results.totalInterest)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg border-2 border-purple-200">
+                          <span className="text-purple-700 font-bold">
+                            Total Cost
+                          </span>
+                          <span className="text-purple-900 font-bold text-lg">
+                            {formatCurrency(results.totalPayment)}
                           </span>
                         </div>
                       </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-0 shadow-lg">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Icons.Info className="w-5 h-5 text-emerald-600" />
+                        Loan Summary
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Effective APR:</span>
+                          <span className="font-semibold">
+                            {formatPercent(loanInputs.interestRate)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">
+                            Interest Cost Ratio:
+                          </span>
+                          <span className="font-semibold">
+                            {formatPercent(
+                              (results.totalInterest / loanInputs.loanAmount) *
+                                100
+                            )}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Payoff Time:</span>
+                          <span className="font-semibold">
+                            {Math.floor(loanInputs.loanTerm / 12)} years{" "}
+                            {loanInputs.loanTerm % 12} months
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">
+                            Min Income Required:
+                          </span>
+                          <span className="font-semibold">
+                            {formatCurrency(results.requiredIncome)}
+                          </span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="insights">
+                <Card className="border-0 shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Icons.Eye className="w-5 h-5 text-indigo-600" />
+                      Financial Insights & Recommendations
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div
+                        className={`p-4 rounded-lg border-l-4 ${
+                          loanInputs.ltvRatio <= 60
+                            ? "bg-green-50 border-green-500"
+                            : loanInputs.ltvRatio <= 75
+                              ? "bg-blue-50 border-blue-500"
+                              : "bg-orange-50 border-orange-500"
+                        }`}
+                      >
+                        <h4 className="font-semibold mb-2">
+                          LTV Risk Assessment
+                        </h4>
+                        <p className="text-sm">
+                          {loanInputs.ltvRatio <= 60
+                            ? "Conservative - Lower risk, better terms available"
+                            : loanInputs.ltvRatio <= 75
+                              ? "Standard - Good balance of risk and leverage"
+                              : "Aggressive - Higher risk, consider reducing loan amount"}
+                        </p>
+                      </div>
+
+                      <div
+                        className={`p-4 rounded-lg border-l-4 ${
+                          loanInputs.interestRate <= 5
+                            ? "bg-green-50 border-green-500"
+                            : loanInputs.interestRate <= 7
+                              ? "bg-blue-50 border-blue-500"
+                              : "bg-red-50 border-red-500"
+                        }`}
+                      >
+                        <h4 className="font-semibold mb-2">
+                          Rate Competitiveness
+                        </h4>
+                        <p className="text-sm">
+                          {loanInputs.interestRate <= 5
+                            ? "Excellent rate - well below market average"
+                            : loanInputs.interestRate <= 7
+                              ? "Competitive rate - within market range"
+                              : "Above market - consider shopping for better rates"}
+                        </p>
+                      </div>
+
+                      <div
+                        className={`p-4 rounded-lg border-l-4 ${
+                          results.totalInterest / loanInputs.loanAmount < 0.3
+                            ? "bg-green-50 border-green-500"
+                            : results.totalInterest / loanInputs.loanAmount <
+                                0.6
+                              ? "bg-blue-50 border-blue-500"
+                              : "bg-orange-50 border-orange-500"
+                        }`}
+                      >
+                        <h4 className="font-semibold mb-2">Cost Efficiency</h4>
+                        <p className="text-sm">
+                          {results.totalInterest / loanInputs.loanAmount < 0.3
+                            ? "Efficient - Interest cost is reasonable"
+                            : results.totalInterest / loanInputs.loanAmount <
+                                0.6
+                              ? "Moderate - Consider shorter term"
+                              : "High cost - Significantly consider alternatives"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50 p-6 rounded-lg">
+                      <h4 className="font-semibold mb-3 flex items-center gap-2">
+                        <Icons.Target className="w-5 h-5 text-blue-600" />
+                        Optimization Suggestions
+                      </h4>
+                      <ul className="space-y-2 text-sm">
+                        <li className="flex items-start gap-2">
+                          <Icons.Clock className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                          <span>
+                            Reducing loan term to{" "}
+                            {Math.max(6, loanInputs.loanTerm - 12)} months could
+                            save approximately{" "}
+                            <span className="font-semibold text-green-600">
+                              {formatCurrency(results.totalInterest * 0.15)}
+                            </span>{" "}
+                            in interest
+                          </span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <Icons.Percent className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
+                          <span>
+                            A 1% rate reduction would save{" "}
+                            <span className="font-semibold text-green-600">
+                              {formatCurrency(
+                                results.monthlyPayment *
+                                  loanInputs.loanTerm *
+                                  0.12
+                              )}
+                            </span>{" "}
+                            over the loan term
+                          </span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <Icons.DollarSign className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
+                          <span>
+                            Making extra monthly payments of{" "}
+                            <span className="font-semibold text-blue-600">
+                              {formatCurrency(results.monthlyPayment * 0.1)}
+                            </span>{" "}
+                            could reduce total interest by 15-20%
+                          </span>
+                        </li>
+                      </ul>
                     </div>
                   </CardContent>
                 </Card>
-              </div>
-            </TabsContent>
-          </Tabs>
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
       </div>
     </div>
