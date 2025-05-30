@@ -34,7 +34,7 @@ export default async function Navbar() {
   return (
     <>
       {/* Top announcement bar */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2 px-4 text-center text-sm font-medium">
+      {/* <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2 px-4 text-center text-sm font-medium">
         <div className="flex items-center justify-center gap-2">
           <Sparkles className="w-4 h-4" />
           <span>
@@ -44,7 +44,7 @@ export default async function Navbar() {
             Explore →
           </Link>
         </div>
-      </div>
+      </div> */}
 
       <nav className="sticky top-0 z-50 w-full border-b border-gray-200/80 bg-white/95 backdrop-blur-md shadow-sm">
         <div className="container mx-auto px-4">
