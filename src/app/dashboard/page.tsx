@@ -465,25 +465,25 @@ export default async function Dashboard({
                 <InfoIcon className="h-6 w-6 text-blue-600 mt-0.5 flex-shrink-0" />
                 <div className="space-y-2">
                   <p className="text-sm font-semibold text-blue-900">
-                    Multi-Chain Asset Management
+                    RWA Tokenization & NFT Lending Platform
                   </p>
                   <p className="text-sm text-blue-700">
-                    Your assets and positions are tracked across Ethereum,
-                    Polygon, and other supported networks
+                    Tokenize real-world assets into NFTs, use them as collateral
+                    to borrow stablecoins, and manage automated EMI payments
                   </p>
                   <div className="flex items-center gap-4 mt-3">
                     <Badge
                       variant="outline"
                       className="bg-blue-50 text-blue-700 border-blue-200"
                     >
-                      {recentAssetsCount} assets added this month
+                      {recentAssetsCount} NFTs minted this month
                     </Badge>
                     {upcomingPayments > 0 && (
                       <Badge
                         variant="outline"
                         className="bg-yellow-50 text-yellow-700 border-yellow-200"
                       >
-                        {upcomingPayments} payments due soon
+                        {upcomingPayments} EMI payments due soon
                       </Badge>
                     )}
                   </div>
@@ -613,7 +613,7 @@ export default async function Dashboard({
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2 text-xl">
                     <FileCheck className="h-6 w-6 text-blue-600" />
-                    Tokenized Assets
+                    Tokenized Asset NFTs
                   </CardTitle>
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className="text-xs">
@@ -622,7 +622,7 @@ export default async function Dashboard({
                     </Badge>
                     <Button variant="outline" size="sm" asChild>
                       <Link href="/dashboard/assets">
-                        View All
+                        View All NFTs
                         <ArrowUpRight className="h-3 w-3 ml-1" />
                       </Link>
                     </Button>
@@ -637,9 +637,17 @@ export default async function Dashboard({
                       className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-blue-50/30 rounded-xl border border-gray-200 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
                     >
                       <div className="space-y-2">
-                        <p className="font-semibold text-gray-900">
-                          {asset.name}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-gray-900">
+                            {asset.name}
+                          </p>
+                          <Badge
+                            variant="outline"
+                            className="text-xs bg-purple-50 text-purple-700 border-purple-200"
+                          >
+                            NFT
+                          </Badge>
+                        </div>
                         <p className="text-sm text-muted-foreground">
                           {asset.asset_type} • {asset.location}
                         </p>
@@ -648,17 +656,25 @@ export default async function Dashboard({
                           <Badge variant="outline" className="text-xs bg-white">
                             {asset.blockchain}
                           </Badge>
+                          <Badge
+                            variant="outline"
+                            className={`text-xs ${asset.collateralization_status === "collateralized" ? "bg-orange-50 text-orange-700 border-orange-200" : "bg-green-50 text-green-700 border-green-200"}`}
+                          >
+                            {asset.collateralization_status === "collateralized"
+                              ? "Used as Collateral"
+                              : "Available for Lending"}
+                          </Badge>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          Added {formatTimeAgo(asset.created_at)}
+                          Minted {formatTimeAgo(asset.created_at)}
                         </p>
                       </div>
                       <div className="text-right space-y-1">
                         <p className="font-bold text-lg text-gray-900">
                           ${asset.current_value.toLocaleString()}
                         </p>
-                        <p className="text-sm text-muted-foreground capitalize">
-                          {asset.collateralization_status}
+                        <p className="text-sm text-muted-foreground">
+                          NFT Value
                         </p>
                       </div>
                     </div>
@@ -668,19 +684,19 @@ export default async function Dashboard({
                     <FileCheck className="h-16 w-16 mx-auto mb-4 opacity-40" />
                     <p className="text-lg font-medium mb-2">
                       {searchQuery
-                        ? "No matching assets found"
-                        : "No assets found"}
+                        ? "No matching NFTs found"
+                        : "No asset NFTs found"}
                     </p>
                     <p className="text-sm mb-6">
                       {searchQuery
                         ? "Try adjusting your search terms"
-                        : "Start by tokenizing your first real-world asset"}
+                        : "Start by tokenizing your first real-world asset into an NFT"}
                     </p>
                     {!searchQuery && (
                       <Button asChild className="bg-blue-600 hover:bg-blue-700">
                         <Link href="/dashboard/assets/new">
                           <Plus className="h-4 w-4 mr-2" />
-                          Tokenize Asset
+                          Mint Asset NFT
                         </Link>
                       </Button>
                     )}
@@ -695,7 +711,7 @@ export default async function Dashboard({
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2 text-xl">
                     <Landmark className="h-6 w-6 text-orange-600" />
-                    Active Loans
+                    Stablecoin Loans
                   </CardTitle>
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className="text-xs">
@@ -704,7 +720,7 @@ export default async function Dashboard({
                     </Badge>
                     <Button variant="outline" size="sm" asChild>
                       <Link href="/dashboard/loans">
-                        View All
+                        View All Loans
                         <ArrowUpRight className="h-3 w-3 ml-1" />
                       </Link>
                     </Button>
@@ -728,18 +744,23 @@ export default async function Dashboard({
                       >
                         <div className="flex items-center justify-between">
                           <div className="space-y-1">
-                            <p className="font-semibold text-gray-900">
-                              ${loan.loan_amount.toLocaleString()} Loan
-                            </p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-semibold text-gray-900">
+                                ${loan.loan_amount.toLocaleString()} USDC Loan
+                              </p>
+                              <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                                Stablecoin
+                              </Badge>
+                            </div>
                             <p className="text-sm text-muted-foreground">
-                              {loan.interest_rate}% APR • {loan.blockchain}
+                              {loan.interest_rate}% APR • {loan.blockchain} • NFT Collateralized
                             </p>
                           </div>
                           <div className="flex items-center gap-2">
                             {getStatusBadge(loan.loan_status)}
                             {isPaymentDue && (
                               <Badge variant="destructive" className="text-xs">
-                                Payment Due
+                                EMI Due
                               </Badge>
                             )}
                           </div>
@@ -748,22 +769,27 @@ export default async function Dashboard({
                           <div className="flex justify-between text-sm">
                             <span className="text-muted-foreground">
                               Outstanding: $
-                              {loan.outstanding_balance.toLocaleString()}
+                              {loan.outstanding_balance.toLocaleString()} USDC
                             </span>
                             <span className="font-medium">
-                              Next: ${loan.monthly_payment.toLocaleString()}
+                              Next EMI: ${loan.monthly_payment.toLocaleString()} USDC
                             </span>
                           </div>
                           <Progress value={paymentProgress} className="h-2" />
                           <div className="flex justify-between items-center">
                             <p className="text-xs text-muted-foreground">
-                              Next payment:{" "}
+                              Next EMI payment:{" "}
                               {new Date(
                                 loan.next_payment_date
                               ).toLocaleDateString()}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              {paymentProgress.toFixed(1)}% paid off
+                              {paymentProgress.toFixed(1)}% repaid
+                            </p>
+                          </div>
+                          <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                            <p className="text-xs text-orange-700">
+                              🔒 Collateral: NFT #{loan.id.slice(-6)} locked until loan completion
                             </p>
                           </div>
                         </div>
@@ -776,12 +802,12 @@ export default async function Dashboard({
                     <p className="text-lg font-medium mb-2">
                       {searchQuery
                         ? "No matching loans found"
-                        : "No active loans"}
+                        : "No stablecoin loans"}
                     </p>
                     <p className="text-sm mb-6">
                       {searchQuery
                         ? "Try adjusting your search terms"
-                        : "Use your assets as collateral to secure loans"}
+                        : "Use your asset NFTs as collateral to borrow stablecoins"}
                     </p>
                     {!searchQuery && (
                       <Button
@@ -791,7 +817,7 @@ export default async function Dashboard({
                       >
                         <Link href="/dashboard/loans/new">
                           <Plus className="h-4 w-4 mr-2" />
-                          Apply for Loan
+                          Borrow Stablecoins
                         </Link>
                       </Button>
                     )}
@@ -904,9 +930,9 @@ export default async function Dashboard({
           {/* Enhanced Quick Actions */}
           <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
             <CardHeader className="border-b border-gray-100">
-              <CardTitle className="text-xl">Quick Actions</CardTitle>
+              <CardTitle className="text-xl">RWA Lending Workflow</CardTitle>
               <CardDescription className="text-base">
-                Common tasks and shortcuts to manage your portfolio
+                Complete workflow from asset tokenization to automated loan repayment
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6">
@@ -918,17 +944,7 @@ export default async function Dashboard({
                 >
                   <Link href="/dashboard/assets/new">
                     <FileCheck className="h-8 w-8 group-hover:scale-110 transition-transform" />
-                    <span className="text-sm font-medium">Tokenize Asset</span>
-                  </Link>
-                </Button>
-                <Button
-                  variant="outline"
-                  className="h-24 flex-col gap-3 border-orange-200 text-orange-700 hover:bg-orange-50 hover:border-orange-300 transition-all duration-200 group"
-                  asChild
-                >
-                  <Link href="/dashboard/payments">
-                    <Coins className="h-8 w-8 group-hover:scale-110 transition-transform" />
-                    <span className="text-sm font-medium">Make Payment</span>
+                    <span className="text-sm font-medium">Mint Asset NFT</span>
                   </Link>
                 </Button>
                 <Button
@@ -938,7 +954,17 @@ export default async function Dashboard({
                 >
                   <Link href="/dashboard/loans/new">
                     <Landmark className="h-8 w-8 group-hover:scale-110 transition-transform" />
-                    <span className="text-sm font-medium">Request Loan</span>
+                    <span className="text-sm font-medium">Borrow USDC</span>
+                  </Link>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-24 flex-col gap-3 border-orange-200 text-orange-700 hover:bg-orange-50 hover:border-orange-300 transition-all duration-200 group"
+                  asChild
+                >
+                  <Link href="/dashboard/payments">
+                    <Coins className="h-8 w-8 group-hover:scale-110 transition-transform" />
+                    <span className="text-sm font-medium">Setup Auto-EMI</span>
                   </Link>
                 </Button>
                 <Button
@@ -948,7 +974,7 @@ export default async function Dashboard({
                 >
                   <Link href="/dashboard/cross-chain">
                     <Globe className="h-8 w-8 group-hover:scale-110 transition-transform" />
-                    <span className="text-sm font-medium">Cross-Chain</span>
+                    <span className="text-sm font-medium">Multi-Chain</span>
                   </Link>
                 </Button>
               </div>

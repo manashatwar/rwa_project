@@ -405,10 +405,10 @@ export default function DashboardNavbar() {
                     </div>
                     <div>
                       <p className="font-medium text-gray-900">
-                        Tokenize Asset
+                        Mint Asset NFT
                       </p>
                       <p className="text-xs text-gray-500">
-                        Convert real estate to NFT
+                        Convert real-world assets to NFTs
                       </p>
                     </div>
                   </Link>
@@ -423,10 +423,10 @@ export default function DashboardNavbar() {
                     </div>
                     <div>
                       <p className="font-medium text-gray-900">
-                        Apply for Loan
+                        Borrow Stablecoins
                       </p>
                       <p className="text-xs text-gray-500">
-                        Get funding with collateral
+                        Use NFTs as collateral for USDC loans
                       </p>
                     </div>
                   </Link>
@@ -440,9 +440,11 @@ export default function DashboardNavbar() {
                       <Coins className="w-4 h-4 text-emerald-600" />
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">Make Payment</p>
+                      <p className="font-medium text-gray-900">
+                        Setup Auto-EMI
+                      </p>
                       <p className="text-xs text-gray-500">
-                        Pay loan installments
+                        Automated stablecoin repayments
                       </p>
                     </div>
                   </Link>
@@ -593,11 +595,11 @@ export default function DashboardNavbar() {
                   size="sm"
                   className="flex items-center gap-2 hover:bg-gray-50 transition-colors"
                 >
-                  <div className="w-6 h-6 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-sm">
+                  {/* <div className="w-6 h-6 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-sm">
                     <span className="text-white text-xs font-bold">
                       {getUserInitials()}
                     </span>
-                  </div>
+                  </div> */}
                   <span className="hidden md:block text-sm font-medium">
                     {getUserDisplayName()}
                   </span>
