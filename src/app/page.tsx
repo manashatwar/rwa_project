@@ -45,7 +45,98 @@ import {
 } from "lucide-react";
 import { createClient } from "../../supabase/client";
 import Link from "next/link";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+
+// Custom hook for scroll-based animations
+function useScrollAnimation(threshold = 0) {
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold, rootMargin: "100px 0px 0px 0px" }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => {
+      if (ref.current) {
+        observer.unobserve(ref.current);
+      }
+    };
+  }, [threshold]);
+
+  return [ref, isVisible] as const;
+}
+
+// Enhanced scroll animations hook with stagger support
+function useStaggeredAnimation(itemCount: number, delay = 100) {
+  const [visibleItems, setVisibleItems] = useState<boolean[]>(
+    new Array(itemCount).fill(false)
+  );
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          // Stagger the animation of items
+          for (let i = 0; i < itemCount; i++) {
+            setTimeout(() => {
+              setVisibleItems((prev) => {
+                const newState = [...prev];
+                newState[i] = true;
+                return newState;
+              });
+            }, i * delay);
+          }
+        }
+      },
+      { threshold: 0, rootMargin: "50px 0px 0px 0px" }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => {
+      if (ref.current) {
+        observer.unobserve(ref.current);
+      }
+    };
+  }, [itemCount, delay]);
+
+  return [ref, visibleItems] as const;
+}
+
+// Parallax scroll hook
+function useParallax(factor = 0.5) {
+  const [transform, setTransform] = useState("translateY(0px)");
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (ref.current) {
+        const rect = ref.current.getBoundingClientRect();
+        const scrolled = window.pageYOffset;
+        const rate = scrolled * factor;
+        setTransform(`translateY(${rate}px)`);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [factor]);
+
+  return [ref, transform] as const;
+}
 
 // Animated Counter Component
 function AnimatedCounter({
@@ -64,8 +155,11 @@ function AnimatedCounter({
   decimals?: number;
 }) {
   const [currentValue, setCurrentValue] = useState(0);
+  const [ref, isVisible] = useScrollAnimation(0);
 
   useEffect(() => {
+    if (!isVisible) return;
+
     const startTime = Date.now();
     const startValue = 0;
 
@@ -87,10 +181,10 @@ function AnimatedCounter({
 
     const timer = setTimeout(() => {
       requestAnimationFrame(updateValue);
-    }, 300);
+    }, 100);
 
     return () => clearTimeout(timer);
-  }, [targetValue, duration]);
+  }, [targetValue, duration, isVisible]);
 
   const formatNumber = (num: number) => {
     if (decimals > 0) {
@@ -100,15 +194,17 @@ function AnimatedCounter({
   };
 
   return (
-    <span className={className}>
-      {prefix}
-      {formatNumber(currentValue)}
-      {suffix}
-    </span>
+    <div ref={ref}>
+      <span className={className}>
+        {prefix}
+        {formatNumber(currentValue)}
+        {suffix}
+      </span>
+    </div>
   );
 }
 
-// Animated Stat Card Component
+// Animated Stat Card Component with scroll trigger
 function AnimatedStatCard({
   value,
   label,
@@ -122,15 +218,7 @@ function AnimatedStatCard({
   color?: "blue" | "purple" | "green" | "orange";
   suffix?: string;
 }) {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsVisible(true);
-    }, delay);
-
-    return () => clearTimeout(timer);
-  }, [delay]);
+  const [ref, isVisible] = useScrollAnimation(0.2);
 
   const colorClasses = {
     blue: "bg-blue-50 border-blue-200 text-blue-600",
@@ -141,26 +229,45 @@ function AnimatedStatCard({
 
   return (
     <div
-      className={`bg-white rounded-xl p-6 border shadow-lg transition-all duration-700 ease-out ${
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+      ref={ref}
+      className={`bg-white rounded-xl p-6 border shadow-lg transition-all duration-1000 ease-out ${
+        isVisible
+          ? "opacity-100 translate-y-0 scale-100"
+          : "opacity-0 translate-y-12 scale-95"
       }`}
+      style={{ transitionDelay: `${delay}ms` }}
     >
       <div
-        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mb-4 ${colorClasses[color]}`}
+        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mb-4 transition-all duration-700 ${
+          isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"
+        } ${colorClasses[color]}`}
+        style={{ transitionDelay: `${delay + 200}ms` }}
       >
         <TrendingUp className="w-4 h-4 mr-1" />
         Live
       </div>
 
-      <AnimatedCounter
-        targetValue={value}
-        suffix={suffix}
-        duration={2000}
-        decimals={suffix === "%" ? 1 : 0}
-        className="text-2xl font-bold text-gray-900 mb-2 block"
-      />
+      <div
+        className={`transition-all duration-700 ${isVisible ? "opacity-100" : "opacity-0"}`}
+        style={{ transitionDelay: `${delay + 400}ms` }}
+      >
+        <AnimatedCounter
+          targetValue={value}
+          suffix={suffix}
+          duration={2000}
+          decimals={suffix === "%" ? 1 : 0}
+          className="text-2xl font-bold text-gray-900 mb-2 block"
+        />
+      </div>
 
-      <div className="text-gray-600 text-sm font-medium">{label}</div>
+      <div
+        className={`text-gray-600 text-sm font-medium transition-all duration-700 ${
+          isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+        }`}
+        style={{ transitionDelay: `${delay + 600}ms` }}
+      >
+        {label}
+      </div>
     </div>
   );
 }
@@ -181,15 +288,7 @@ function LiveMetric({
   icon: any;
   color?: "green" | "blue" | "purple" | "emerald";
 }) {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsVisible(true);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
+  const [ref, isVisible] = useScrollAnimation(0);
 
   const colorClasses = {
     green: "text-green-600 bg-green-50",
@@ -198,36 +297,61 @@ function LiveMetric({
     emerald: "text-emerald-600 bg-emerald-50",
   };
 
-  const trendColor =
-    trend.startsWith("+") || trend.startsWith("-")
-      ? trend.startsWith("+")
-        ? "text-green-500"
-        : "text-red-500"
-      : "text-gray-500";
-
   return (
     <div
-      className={`bg-white rounded-xl p-6 border border-gray-200 shadow-sm transition-all duration-700 ease-out ${
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+      ref={ref}
+      className={`bg-white rounded-xl p-6 border border-gray-200 shadow-lg transition-all duration-700 ease-out ${
+        isVisible
+          ? "opacity-100 translate-y-0 rotate-0"
+          : "opacity-0 translate-y-8 -rotate-2"
       }`}
     >
       <div
-        className={`w-10 h-10 rounded-lg flex items-center justify-center mb-4 ${colorClasses[color]}`}
+        className={`flex items-center justify-between mb-4 transition-all duration-500 ${
+          isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"
+        }`}
+        style={{ transitionDelay: "100ms" }}
       >
-        <Icon className={`w-5 h-5 ${colorClasses[color].split(" ")[0]}`} />
+        <div
+          className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-500 ${
+            isVisible ? "scale-100 rotate-0" : "scale-0 rotate-180"
+          } ${colorClasses[color]}`}
+          style={{ transitionDelay: "200ms" }}
+        >
+          <Icon className="w-6 h-6" />
+        </div>
+        <div
+          className={`text-right transition-all duration-500 ${
+            isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4"
+          }`}
+          style={{ transitionDelay: "300ms" }}
+        >
+          <div className="text-sm text-gray-500">{trend}</div>
+        </div>
       </div>
 
-      <AnimatedCounter
-        targetValue={value}
-        suffix={suffix}
-        duration={2500}
-        decimals={suffix === "%" || suffix === "s" ? 2 : 0}
-        className="text-xl font-bold text-gray-900 mb-1 block"
-      />
+      <div
+        className={`transition-all duration-500 ${
+          isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+        }`}
+        style={{ transitionDelay: "400ms" }}
+      >
+        <AnimatedCounter
+          targetValue={value}
+          suffix={suffix}
+          duration={1500}
+          className="text-3xl font-bold text-gray-900 mb-2 block"
+        />
+      </div>
 
-      <div className="text-gray-600 text-sm font-medium mb-2">{label}</div>
-
-      <div className={`text-xs font-medium ${trendColor}`}>{trend}</div>
+      <div
+        className={`text-gray-600 font-medium transition-all duration-500 ${
+          isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+        }`}
+        style={{ transitionDelay: "500ms" }}
+      >
+        {label}
+      </div>
     </div>
   );
 }
@@ -242,23 +366,23 @@ function AnimatedText({
   delay?: number;
   className?: string;
 }) {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsVisible(true);
-    }, delay);
-
-    return () => clearTimeout(timer);
-  }, [delay]);
+  const [ref, isVisible] = useScrollAnimation(0);
+  const words = text.split(" ");
 
   return (
-    <div
-      className={`transition-all duration-1000 ease-out ${
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-      } ${className}`}
-    >
-      {text}
+    <div ref={ref} className={className}>
+      {words.map((word, index) => (
+        <span
+          key={index}
+          className={`inline-block transition-all duration-500 ease-out ${
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+          }`}
+          style={{ transitionDelay: `${delay + index * 50}ms` }}
+        >
+          {word}
+          {index < words.length - 1 && "\u00A0"}
+        </span>
+      ))}
     </div>
   );
 }
@@ -843,6 +967,14 @@ export default function Home() {
     getUser();
   }, []);
 
+  // Scroll animation refs for major sections
+  const [tokenizationRef, tokenizationVisible] = useScrollAnimation(0);
+  const [tvlRef, tvlVisible] = useScrollAnimation(0);
+  const [analyticsRef, analyticsVisible] = useScrollAnimation(0);
+  const [featuresRef, featuresVisible] = useStaggeredAnimation(4, 100);
+  const [statsRef, statsVisible] = useStaggeredAnimation(4, 100);
+  const [parallaxRef, parallaxTransform] = useParallax(-0.3);
+
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
@@ -851,95 +983,138 @@ export default function Home() {
       <CarouselHero user={user} />
 
       {/* Tokenization Platform Section */}
-      <section className="py-24 bg-gray-50">
-        <div className="container mx-auto px-4">
+      <section className="py-24 bg-gray-50 relative overflow-hidden">
+        {/* Animated background elements */}
+        <div
+          ref={parallaxRef}
+          className="absolute inset-0 opacity-5"
+          style={{ transform: parallaxTransform }}
+        >
+          <div className="absolute top-20 left-10 w-32 h-32 bg-blue-500 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 right-10 w-48 h-48 bg-purple-500 rounded-full blur-3xl"></div>
+        </div>
+
+        <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-6xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-16 items-center">
               {/* Left Content */}
-              <div>
-                <div className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium mb-6">
+              <div ref={tokenizationRef}>
+                <div
+                  className={`inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium mb-6 transition-all duration-700 ${
+                    tokenizationVisible
+                      ? "opacity-100 translate-y-0 scale-100"
+                      : "opacity-0 translate-y-8 scale-90"
+                  }`}
+                >
                   <FileCheck className="w-4 h-4 mr-2" />
                   Asset Tokenization
                 </div>
 
-                <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-                  The only asset tokenization platform you'll ever need
-                </h2>
+                <AnimatedText
+                  text="The only asset tokenization platform you'll ever need"
+                  className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6"
+                  delay={100}
+                />
 
-                <div className="space-y-6 mb-8">
-                  <div className="flex items-start gap-4">
-                    <div className="w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                      <Upload className="w-4 h-4 text-blue-600" />
+                <div className="space-y-6 mb-8" ref={featuresRef}>
+                  {[
+                    {
+                      icon: Upload,
+                      title: "Upload and verify with ease",
+                      description:
+                        "Submit documentation for your real-world assets including deeds, certificates, and valuations.",
+                    },
+                    {
+                      icon: Sparkles,
+                      title: "Mint verified NFTs",
+                      description:
+                        "AI-powered verification system creates immutable blockchain tokens of your assets.",
+                    },
+                    {
+                      icon: DollarSign,
+                      title: "Access instant liquidity",
+                      description:
+                        "Use your NFTs as collateral to borrow USDC with automated EMI repayments.",
+                    },
+                    {
+                      icon: Globe,
+                      title: "Connect to multi-chain DeFi",
+                      description:
+                        "Deploy across Ethereum, Polygon, BSC, and Arbitrum for optimal rates and liquidity.",
+                    },
+                  ].map((feature, index) => (
+                    <div
+                      key={index}
+                      className={`flex items-start gap-4 transition-all duration-700 ease-out ${
+                        featuresVisible[index]
+                          ? "opacity-100 translate-x-0"
+                          : "opacity-0 -translate-x-12"
+                      }`}
+                    >
+                      <div
+                        className={`w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-1 transition-all duration-500 ${
+                          featuresVisible[index]
+                            ? "scale-100 rotate-0"
+                            : "scale-0 rotate-180"
+                        }`}
+                        style={{ transitionDelay: `${index * 100 + 150}ms` }}
+                      >
+                        <feature.icon className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <h3
+                          className={`font-semibold text-gray-900 mb-2 transition-all duration-500 ${
+                            featuresVisible[index]
+                              ? "opacity-100 translate-y-0"
+                              : "opacity-0 translate-y-4"
+                          }`}
+                          style={{ transitionDelay: `${index * 100 + 250}ms` }}
+                        >
+                          {feature.title}
+                        </h3>
+                        <p
+                          className={`text-gray-600 transition-all duration-500 ${
+                            featuresVisible[index]
+                              ? "opacity-100 translate-y-0"
+                              : "opacity-0 translate-y-4"
+                          }`}
+                          style={{ transitionDelay: `${index * 100 + 350}ms` }}
+                        >
+                          {feature.description}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-2">
-                        Upload and verify with ease
-                      </h3>
-                      <p className="text-gray-600">
-                        Submit documentation for your real-world assets
-                        including deeds, certificates, and valuations.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4">
-                    <div className="w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                      <Sparkles className="w-4 h-4 text-blue-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-2">
-                        Mint verified NFTs
-                      </h3>
-                      <p className="text-gray-600">
-                        AI-powered verification system creates immutable
-                        blockchain tokens of your assets.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4">
-                    <div className="w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                      <DollarSign className="w-4 h-4 text-blue-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-2">
-                        Access instant liquidity
-                      </h3>
-                      <p className="text-gray-600">
-                        Use your NFTs as collateral to borrow USDC with
-                        automated EMI repayments.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4">
-                    <div className="w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                      <Globe className="w-4 h-4 text-blue-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-2">
-                        Connect to multi-chain DeFi
-                      </h3>
-                      <p className="text-gray-600">
-                        Deploy across Ethereum, Polygon, BSC, and Arbitrum for
-                        optimal rates and liquidity.
-                      </p>
-                    </div>
-                  </div>
+                  ))}
                 </div>
 
-                <Link
-                  href={user ? "/dashboard" : "/sign-up"}
-                  className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors"
+                <div
+                  className={`transition-all duration-700 ${
+                    tokenizationVisible
+                      ? "opacity-100 translate-y-0"
+                      : "opacity-0 translate-y-8"
+                  }`}
+                  style={{ transitionDelay: "500ms" }}
                 >
-                  Get Started
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Link>
+                  <Link
+                    href={user ? "/dashboard" : "/sign-up"}
+                    className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                  >
+                    Get Started
+                    <ArrowRight className="ml-2 w-5 h-5" />
+                  </Link>
+                </div>
               </div>
 
               {/* Right Content - Dashboard Preview */}
-              <div className="relative">
-                <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
+              <div
+                className={`relative transition-all duration-1500 ease-out ${
+                  tokenizationVisible
+                    ? "opacity-100 translate-x-0 rotate-0"
+                    : "opacity-0 translate-x-12 rotate-3"
+                }`}
+                style={{ transitionDelay: "600ms" }}
+              >
+                <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden transform hover:scale-105 transition-transform duration-500">
                   {/* Dashboard Header */}
                   <div className="bg-gray-900 px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -951,16 +1126,29 @@ export default function Home() {
                       </span>
                     </div>
                     <div className="flex gap-2">
-                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                      <div
+                        className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"
+                        style={{ animationDelay: "500ms" }}
+                      ></div>
+                      <div
+                        className="w-3 h-3 bg-green-500 rounded-full animate-pulse"
+                        style={{ animationDelay: "1000ms" }}
+                      ></div>
                     </div>
                   </div>
 
                   {/* Dashboard Content */}
                   <div className="p-6">
                     <div className="grid grid-cols-2 gap-4 mb-6">
-                      <div className="bg-blue-50 rounded-xl p-4">
+                      <div
+                        className={`bg-blue-50 rounded-xl p-4 transition-all duration-700 ${
+                          tokenizationVisible
+                            ? "opacity-100 translate-y-0"
+                            : "opacity-0 translate-y-4"
+                        }`}
+                        style={{ transitionDelay: "1200ms" }}
+                      >
                         <div className="text-2xl font-bold text-blue-600 mb-1">
                           $2.5M
                         </div>
@@ -968,7 +1156,14 @@ export default function Home() {
                           Assets Tokenized
                         </div>
                       </div>
-                      <div className="bg-green-50 rounded-xl p-4">
+                      <div
+                        className={`bg-green-50 rounded-xl p-4 transition-all duration-700 ${
+                          tokenizationVisible
+                            ? "opacity-100 translate-y-0"
+                            : "opacity-0 translate-y-4"
+                        }`}
+                        style={{ transitionDelay: "1400ms" }}
+                      >
                         <div className="text-2xl font-bold text-green-600 mb-1">
                           $850K
                         </div>
@@ -979,51 +1174,60 @@ export default function Home() {
                     </div>
 
                     <div className="space-y-3">
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                            <Building className="w-4 h-4 text-orange-600" />
-                          </div>
-                          <div>
-                            <div className="font-medium text-gray-900">
-                              Manhattan Apartment
+                      {[
+                        {
+                          name: "Manhattan Apartment",
+                          type: "Real Estate • Verified",
+                          value: "$750K",
+                          change: "+2.1%",
+                        },
+                        {
+                          name: "Gold Reserve",
+                          type: "Commodity • Pending",
+                          value: "$425K",
+                          change: "+5.7%",
+                        },
+                        {
+                          name: "Tesla Model S",
+                          type: "Vehicle • Verified",
+                          value: "$85K",
+                          change: "-1.2%",
+                        },
+                      ].map((asset, index) => (
+                        <div
+                          key={index}
+                          className={`flex items-center justify-between p-3 bg-gray-50 rounded-lg transition-all duration-700 ${
+                            tokenizationVisible
+                              ? "opacity-100 translate-x-0"
+                              : "opacity-0 -translate-x-4"
+                          }`}
+                          style={{ transitionDelay: `${1600 + index * 200}ms` }}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                              <Building className="w-4 h-4 text-orange-600" />
                             </div>
-                            <div className="text-gray-500 text-sm">
-                              Real Estate • Verified
+                            <div>
+                              <div className="font-medium text-gray-900">
+                                {asset.name}
+                              </div>
+                              <div className="text-gray-500 text-sm">
+                                {asset.type}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-semibold text-gray-900">
+                              {asset.value}
+                            </div>
+                            <div
+                              className={`text-sm ${asset.change.startsWith("+") ? "text-green-600" : "text-red-600"}`}
+                            >
+                              {asset.change}
                             </div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="font-semibold text-gray-900">
-                            $750K
-                          </div>
-                          <div className="text-green-600 text-sm">
-                            Available
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
-                            <Coins className="w-4 h-4 text-yellow-600" />
-                          </div>
-                          <div>
-                            <div className="font-medium text-gray-900">
-                              Gold Reserves
-                            </div>
-                            <div className="text-gray-500 text-sm">
-                              Commodity • Verified
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-semibold text-gray-900">
-                            $125K
-                          </div>
-                          <div className="text-blue-600 text-sm">Borrowed</div>
-                        </div>
-                      </div>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -1032,6 +1236,120 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Total Value Locked Section */}
+      <section className="py-24 bg-white relative overflow-hidden">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto text-center">
+            <div ref={tvlRef}>
+              <AnimatedCounter
+                targetValue={3847652891234}
+                prefix="$"
+                duration={3000}
+                className={`text-6xl lg:text-8xl font-mono font-bold text-gray-900 mb-4 tracking-wider transition-all duration-1500 ${
+                  tvlVisible ? "opacity-100 scale-100" : "opacity-0 scale-50"
+                }`}
+              />
+              <div
+                className={`flex items-center justify-center gap-2 mb-16 transition-all duration-1000 ${
+                  tvlVisible
+                    ? "opacity-100 translate-y-0"
+                    : "opacity-0 translate-y-8"
+                }`}
+                style={{ transitionDelay: "500ms" }}
+              >
+                <h3 className="text-lg font-semibold text-gray-600 uppercase tracking-wide">
+                  TOTAL VALUE LOCKED IN RWA PROTOCOLS
+                </h3>
+                <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
+              </div>
+            </div>
+
+            <div className="grid lg:grid-cols-2 gap-16 items-start">
+              <div
+                className={`text-left transition-all duration-1200 ${
+                  tvlVisible
+                    ? "opacity-100 translate-x-0"
+                    : "opacity-0 -translate-x-12"
+                }`}
+                style={{ transitionDelay: "800ms" }}
+              >
+                <AnimatedText
+                  text="Why TangibleFi is the RWA standard"
+                  className="text-4xl lg:text-5xl font-bold text-gray-900 mb-8"
+                  delay={1000}
+                />
+
+                <div className="space-y-8">
+                  {[
+                    {
+                      title: "Institutional-grade security",
+                      description:
+                        "TangibleFi protocols are secured by enterprise-level security audits with a proven track record of protecting billions in tokenized assets.",
+                    },
+                    {
+                      title: "Cross-chain compatibility",
+                      description:
+                        "TangibleFi connects existing RWA ecosystems to any public or private blockchain and enables seamless multi-chain asset management.",
+                    },
+                    {
+                      title: "Enterprise-ready infrastructure",
+                      description:
+                        "TangibleFi provides institutions across all major asset classes with comprehensive documentation, dedicated support, and proven scalability.",
+                    },
+                  ].map((item, index) => (
+                    <div
+                      key={index}
+                      className={`transition-all duration-1000 ${
+                        tvlVisible
+                          ? "opacity-100 translate-y-0"
+                          : "opacity-0 translate-y-8"
+                      }`}
+                      style={{ transitionDelay: `${1200 + index * 300}ms` }}
+                    >
+                      <h4 className="text-xl font-bold text-gray-900 mb-3">
+                        {item.title}
+                      </h4>
+                      <p className="text-gray-600 leading-relaxed">
+                        {item.description}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-6" ref={statsRef}>
+                <AnimatedStatCard
+                  value={12847}
+                  label="Assets Tokenized"
+                  delay={statsVisible[0] ? 0 : 1000}
+                  color="blue"
+                />
+                <AnimatedStatCard
+                  value={247}
+                  label="Institutional Partners"
+                  delay={statsVisible[1] ? 200 : 1000}
+                  color="purple"
+                />
+                <AnimatedStatCard
+                  value={98.7}
+                  suffix="%"
+                  label="Uptime Guarantee"
+                  delay={statsVisible[2] ? 400 : 1000}
+                  color="green"
+                />
+                <AnimatedStatCard
+                  value={157}
+                  label="Countries Supported"
+                  delay={statsVisible[3] ? 600 : 1000}
+                  color="orange"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Portfolio Performance Section */}
       <section className="py-24 bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 relative overflow-hidden">
         {/* Background Elements */}
@@ -1216,168 +1534,140 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-24 bg-white relative overflow-hidden">
-        <div className="container mx-auto px-4">
-          <div className="max-w-6xl mx-auto text-center">
-            <AnimatedCounter
-              targetValue={3847652891234}
-              prefix="$"
-              duration={3000}
-              className="text-6xl lg:text-8xl font-mono font-bold text-gray-900 mb-4 tracking-wider"
-            />
-            <div className="flex items-center justify-center gap-2 mb-16">
-              <h3 className="text-lg font-semibold text-gray-600 uppercase tracking-wide">
-                TOTAL VALUE LOCKED IN RWA PROTOCOLS
-              </h3>
-              <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
-            </div>
-
-            <div className="grid lg:grid-cols-2 gap-16 items-start">
-              <div className="text-left">
-                <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-8">
-                  Why TangibleFi is the RWA standard
-                </h2>
-
-                <div className="space-y-8">
-                  <div>
-                    <h4 className="text-xl font-bold text-gray-900 mb-3">
-                      Institutional-grade security
-                    </h4>
-                    <p className="text-gray-600 leading-relaxed">
-                      TangibleFi protocols are secured by enterprise-level
-                      security audits with a proven track record of protecting
-                      billions in tokenized assets.
-                    </p>
-                  </div>
-
-                  <div>
-                    <h4 className="text-xl font-bold text-gray-900 mb-3">
-                      Cross-chain compatibility
-                    </h4>
-                    <p className="text-gray-600 leading-relaxed">
-                      TangibleFi connects existing RWA ecosystems to any public
-                      or private blockchain and enables seamless multi-chain
-                      asset management.
-                    </p>
-                  </div>
-
-                  <div>
-                    <h4 className="text-xl font-bold text-gray-900 mb-3">
-                      Enterprise-ready infrastructure
-                    </h4>
-                    <p className="text-gray-600 leading-relaxed">
-                      TangibleFi provides institutions across all major asset
-                      classes with comprehensive documentation, dedicated
-                      support, and proven scalability.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-6">
-                <AnimatedStatCard
-                  value={12847}
-                  label="Assets Tokenized"
-                  delay={500}
-                  color="blue"
-                />
-                <AnimatedStatCard
-                  value={247}
-                  label="Institutional Partners"
-                  delay={700}
-                  color="purple"
-                />
-                <AnimatedStatCard
-                  value={98.7}
-                  suffix="%"
-                  label="Uptime Guarantee"
-                  delay={900}
-                  color="green"
-                />
-                <AnimatedStatCard
-                  value={157}
-                  label="Countries Supported"
-                  delay={1100}
-                  color="orange"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
       {/* Analytics Section */}
-      <section className="py-48 bg-gray-50">
-        <div className="container mx-auto px-4">
+      <section className="py-48 bg-gray-50 relative overflow-hidden">
+        {/* Animated background */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-orange-500 rounded-full blur-3xl animate-pulse"></div>
+          <div
+            className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-red-500 rounded-full blur-3xl animate-pulse"
+            style={{ animationDelay: "2s" }}
+          ></div>
+        </div>
+
+        <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-6xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-16 items-center">
               {/* Left Content */}
-              <div>
-                <div className="inline-flex items-center px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-medium mb-6">
+              <div ref={analyticsRef}>
+                <div
+                  className={`inline-flex items-center px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-medium mb-6 transition-all duration-1000 ${
+                    analyticsVisible
+                      ? "opacity-100 translate-y-0 scale-100"
+                      : "opacity-0 translate-y-8 scale-90"
+                  }`}
+                >
                   <Activity className="w-4 h-4 mr-2" />
                   Analytics
                 </div>
 
-                <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-                  RWA data is in our DNA
-                </h2>
+                <AnimatedText
+                  text="RWA data is in our DNA"
+                  className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6"
+                  delay={200}
+                />
 
-                <div className="space-y-6 mb-8">
+                <div
+                  className={`space-y-6 mb-8 transition-all duration-1000 ${
+                    analyticsVisible
+                      ? "opacity-100 translate-y-0"
+                      : "opacity-0 translate-y-8"
+                  }`}
+                  style={{ transitionDelay: "400ms" }}
+                >
                   <p className="text-xl text-gray-600 leading-relaxed">
                     Explore the top tokenized assets, analyze the market, or
                     simply learn more about real-world asset tokenization.
                   </p>
 
                   <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <span className="text-gray-700">
-                        Comprehensive asset data API
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <span className="text-gray-700">
-                        Industry-leading analytics dashboard
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <span className="text-gray-700">
-                        Real-time asset valuations
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <span className="text-gray-700">
-                        Market trend analysis
-                      </span>
-                    </div>
+                    {[
+                      "Comprehensive asset data API",
+                      "Industry-leading analytics dashboard",
+                      "Real-time asset valuations",
+                      "Market trend analysis",
+                    ].map((feature, index) => (
+                      <div
+                        key={index}
+                        className={`flex items-center gap-3 transition-all duration-700 ${
+                          analyticsVisible
+                            ? "opacity-100 translate-x-0"
+                            : "opacity-0 -translate-x-8"
+                        }`}
+                        style={{ transitionDelay: `${600 + index * 150}ms` }}
+                      >
+                        <div
+                          className={`w-2 h-2 bg-blue-500 rounded-full transition-all duration-500 ${
+                            analyticsVisible ? "scale-100" : "scale-0"
+                          }`}
+                          style={{ transitionDelay: `${800 + index * 150}ms` }}
+                        ></div>
+                        <span className="text-gray-700">{feature}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
-                <Link
-                  href="/dashboard"
-                  className="inline-flex items-center px-6 py-3 bg-orange-500 text-white font-semibold rounded-xl hover:bg-orange-600 transition-colors"
+                <div
+                  className={`transition-all duration-1000 ${
+                    analyticsVisible
+                      ? "opacity-100 translate-y-0"
+                      : "opacity-0 translate-y-8"
+                  }`}
+                  style={{ transitionDelay: "1200ms" }}
                 >
-                  Explore Analytics
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Link>
+                  <Link
+                    href="/dashboard"
+                    className="inline-flex items-center px-6 py-3 bg-orange-500 text-white font-semibold rounded-xl hover:bg-orange-600 transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                  >
+                    Explore Analytics
+                    <ArrowRight className="ml-2 w-5 h-5" />
+                  </Link>
+                </div>
               </div>
 
               {/* Right Content - Analytics Dashboard */}
-              <div className="relative">
-                <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
+              <div
+                className={`relative transition-all duration-1500 ease-out ${
+                  analyticsVisible
+                    ? "opacity-100 translate-x-0 rotate-0"
+                    : "opacity-0 translate-x-12 rotate-3"
+                }`}
+                style={{ transitionDelay: "600ms" }}
+              >
+                <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden transform hover:scale-105 transition-transform duration-500">
                   {/* Dashboard Header */}
                   <div className="bg-slate-800 px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
+                      <div
+                        className={`w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center transition-all duration-700 ${
+                          analyticsVisible
+                            ? "scale-100 rotate-0"
+                            : "scale-0 rotate-180"
+                        }`}
+                        style={{ transitionDelay: "1000ms" }}
+                      >
                         <BarChart3 className="w-4 h-4 text-white" />
                       </div>
-                      <span className="text-white font-medium">
+                      <span
+                        className={`text-white font-medium transition-all duration-700 ${
+                          analyticsVisible
+                            ? "opacity-100 translate-x-0"
+                            : "opacity-0 -translate-x-4"
+                        }`}
+                        style={{ transitionDelay: "1200ms" }}
+                      >
                         RWA Analytics Dashboard
                       </span>
                     </div>
-                    <div className="text-orange-400 text-sm font-medium">
+                    <div
+                      className={`text-orange-400 text-sm font-medium transition-all duration-700 ${
+                        analyticsVisible
+                          ? "opacity-100 translate-x-0"
+                          : "opacity-0 translate-x-4"
+                      }`}
+                      style={{ transitionDelay: "1400ms" }}
+                    >
                       Live Data
                     </div>
                   </div>
@@ -1385,56 +1675,91 @@ export default function Home() {
                   {/* Dashboard Content */}
                   <div className="p-6">
                     <div className="grid grid-cols-3 gap-4 mb-6">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-gray-900 mb-1">
-                          $2.5B
+                      {[
+                        {
+                          value: "$2.5B",
+                          label: "Assets Tokenized",
+                          color: "text-gray-900",
+                        },
+                        {
+                          value: "25.7K",
+                          label: "NFTs Minted",
+                          color: "text-blue-600",
+                        },
+                        {
+                          value: "99.8%",
+                          label: "Success Rate",
+                          color: "text-green-600",
+                        },
+                      ].map((stat, index) => (
+                        <div
+                          key={index}
+                          className={`text-center transition-all duration-700 ${
+                            analyticsVisible
+                              ? "opacity-100 translate-y-0"
+                              : "opacity-0 translate-y-4"
+                          }`}
+                          style={{ transitionDelay: `${1600 + index * 200}ms` }}
+                        >
+                          <div
+                            className={`text-2xl font-bold mb-1 ${stat.color}`}
+                          >
+                            {stat.value}
+                          </div>
+                          <div className="text-gray-500 text-sm">
+                            {stat.label}
+                          </div>
                         </div>
-                        <div className="text-gray-500 text-sm">
-                          Assets Tokenized
-                        </div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-blue-600 mb-1">
-                          25.7K
-                        </div>
-                        <div className="text-gray-500 text-sm">NFTs Minted</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600 mb-1">
-                          99.8%
-                        </div>
-                        <div className="text-gray-500 text-sm">
-                          Success Rate
-                        </div>
-                      </div>
+                      ))}
                     </div>
 
                     {/* Chart Area */}
-                    <div className="bg-gray-50 rounded-xl p-4 h-32 flex items-center justify-center mb-4">
+                    <div
+                      className={`bg-gray-50 rounded-xl p-4 h-32 flex items-center justify-center mb-4 transition-all duration-1000 ${
+                        analyticsVisible
+                          ? "opacity-100 scale-100"
+                          : "opacity-0 scale-95"
+                      }`}
+                      style={{ transitionDelay: "2200ms" }}
+                    >
                       <div className="flex items-end gap-2">
-                        <div className="w-4 h-16 bg-blue-500 rounded-t"></div>
-                        <div className="w-4 h-20 bg-blue-600 rounded-t"></div>
-                        <div className="w-4 h-12 bg-blue-400 rounded-t"></div>
-                        <div className="w-4 h-24 bg-blue-700 rounded-t"></div>
-                        <div className="w-4 h-18 bg-blue-500 rounded-t"></div>
-                        <div className="w-4 h-22 bg-blue-600 rounded-t"></div>
-                        <div className="w-4 h-14 bg-blue-400 rounded-t"></div>
+                        {[16, 20, 12, 24, 18, 22, 14].map((height, index) => (
+                          <div
+                            key={index}
+                            className={`w-4 bg-blue-500 rounded-t transition-all duration-1000 ease-out ${
+                              analyticsVisible ? "opacity-100" : "opacity-0"
+                            }`}
+                            style={{
+                              height: `${height * 4}px`,
+                              transitionDelay: `${2400 + index * 100}ms`,
+                              backgroundColor: `hsl(${210 + index * 10}, 70%, ${50 + index * 5}%)`,
+                            }}
+                          ></div>
+                        ))}
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Real Estate</span>
-                        <span className="font-medium text-gray-900">68.4%</span>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Commodities</span>
-                        <span className="font-medium text-gray-900">23.1%</span>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Equipment</span>
-                        <span className="font-medium text-gray-900">8.5%</span>
-                      </div>
+                      {[
+                        { category: "Real Estate", percentage: "68.4%" },
+                        { category: "Commodities", percentage: "23.1%" },
+                        { category: "Equipment", percentage: "8.5%" },
+                      ].map((item, index) => (
+                        <div
+                          key={index}
+                          className={`flex items-center justify-between text-sm transition-all duration-700 ${
+                            analyticsVisible
+                              ? "opacity-100 translate-x-0"
+                              : "opacity-0 -translate-x-4"
+                          }`}
+                          style={{ transitionDelay: `${3000 + index * 200}ms` }}
+                        >
+                          <span className="text-gray-600">{item.category}</span>
+                          <span className="font-medium text-gray-900">
+                            {item.percentage}
+                          </span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
