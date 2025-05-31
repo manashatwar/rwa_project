@@ -45,6 +45,20 @@ export default function MetaMaskConnect({
   const router = useRouter();
   const supabase = createClient();
 
+  // Check if Supabase is properly configured
+  const isSupabaseConfigured = () => {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    return (
+      url &&
+      key &&
+      url !== "https://placeholder.supabase.co" &&
+      key !== "placeholder-key" &&
+      !url.includes("your-project") &&
+      !key.includes("your-anon-key")
+    );
+  };
+
   useEffect(() => {
     checkMetaMaskInstallation();
     checkExistingConnection();
@@ -183,6 +197,29 @@ This request will not trigger any blockchain transaction or cost any gas fees.`;
 
       // Step 5: Handle wallet-based authentication with strict wallet address validation
       try {
+        // Check if Supabase is properly configured
+        if (!isSupabaseConfigured()) {
+          console.warn("Supabase not configured, using offline mode");
+          // Store wallet info locally for offline mode
+          const walletData = {
+            address: walletAddress,
+            signature,
+            timestamp: Date.now(),
+            chainId,
+            mode: "offline",
+          };
+
+          localStorage.setItem("wallet_connection", JSON.stringify(walletData));
+          console.log("Wallet data stored locally for offline access");
+          setError(null);
+          if (onSuccess) {
+            onSuccess();
+          } else {
+            setTimeout(() => router.push("/dashboard"), 500);
+          }
+          return;
+        }
+
         // Check if this wallet address is already registered
         const { data: existingUserByWallet, error: walletCheckError } =
           await supabase
@@ -191,9 +228,56 @@ This request will not trigger any blockchain transaction or cost any gas fees.`;
             .eq("wallet_address", walletAddress)
             .maybeSingle();
 
+        // Better error handling for different types of errors
         if (walletCheckError) {
-          console.error("Wallet check error:", walletCheckError);
-          throw new Error("Database connection failed. Please try again.");
+          console.warn("Wallet check error:", walletCheckError);
+
+          // Check if it's a meaningful error that should stop the process
+          const isSignificantError =
+            walletCheckError.message &&
+            !walletCheckError.message.includes("JWT") &&
+            !walletCheckError.message.includes("connection") &&
+            !walletCheckError.message.includes("table") &&
+            !walletCheckError.message.includes("schema") &&
+            walletCheckError.code !== "PGRST116"; // No rows found
+
+          // If it's a 400 error or table doesn't exist, fall back to offline mode
+          if (
+            walletCheckError.message?.includes("400") ||
+            walletCheckError.message?.includes("does not exist") ||
+            walletCheckError.message?.includes("relation") ||
+            Object.keys(walletCheckError).length === 0
+          ) {
+            console.warn("Database table not accessible, using offline mode");
+
+            // Store wallet info locally for offline mode
+            const walletData = {
+              address: walletAddress,
+              signature,
+              timestamp: Date.now(),
+              chainId,
+              mode: "offline",
+            };
+
+            localStorage.setItem(
+              "wallet_connection",
+              JSON.stringify(walletData)
+            );
+            console.log("Wallet data stored locally for offline access");
+            setError(null);
+            if (onSuccess) {
+              onSuccess();
+            } else {
+              setTimeout(() => router.push("/dashboard"), 500);
+            }
+            return;
+          }
+
+          // Only throw for truly significant errors
+          if (isSignificantError) {
+            console.error("Significant wallet check error:", walletCheckError);
+            throw new Error("Database query failed. Please try again.");
+          }
         }
 
         if (existingUserByWallet) {
@@ -323,15 +407,56 @@ This request will not trigger any blockchain transaction or cost any gas fees.`;
           throw new Error("Failed to create user account. Please try again.");
         }
       } catch (dbError: any) {
-        console.error("Database operation failed:", dbError);
+        console.warn("Database operation encountered an issue:", dbError);
 
         // Enhanced error handling with specific messages
-        if (dbError.message.includes("wallet")) {
+        if (
+          dbError.message.includes("wallet") ||
+          dbError.message.includes("already linked")
+        ) {
+          // These are business logic errors that should be shown to user
           throw new Error(dbError.message);
-        } else if (dbError.message.includes("already linked")) {
-          throw new Error(dbError.message);
+        } else if (
+          dbError.message.includes("400") ||
+          dbError.message.includes("does not exist") ||
+          dbError.message.includes("relation") ||
+          dbError.message.includes("table") ||
+          dbError.message.includes("schema") ||
+          dbError.message.includes("Database query failed")
+        ) {
+          // Database configuration or schema issues - use offline mode
+          console.warn(
+            "Database schema/configuration issue, using offline mode"
+          );
+          const walletData = {
+            address: walletAddress,
+            signature,
+            timestamp: Date.now(),
+            chainId,
+            mode: "offline",
+          };
+
+          try {
+            localStorage.setItem(
+              "wallet_connection",
+              JSON.stringify(walletData)
+            );
+            console.log("Wallet data stored locally for offline access");
+            setError(null);
+            if (onSuccess) {
+              onSuccess();
+            } else {
+              setTimeout(() => router.push("/dashboard"), 500);
+            }
+            return;
+          } catch (storageError) {
+            console.error("Failed to store wallet data locally:", storageError);
+            throw new Error(
+              "Authentication failed. Please check your internet connection and try again."
+            );
+          }
         } else {
-          // Fallback: Store wallet info locally for offline mode
+          // Other database errors - still try offline mode as fallback
           console.warn("Database unavailable, using offline mode");
           const walletData = {
             address: walletAddress,

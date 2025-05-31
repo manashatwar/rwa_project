@@ -38,16 +38,33 @@ export default function WalletConnectPage() {
   const [hasMetaMask, setHasMetaMask] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [supabaseHealth, setSupabaseHealth] = useState<any>(null);
+  const [particles, setParticles] = useState<
+    Array<{
+      left: string;
+      top: string;
+      animationDelay: string;
+      animationDuration: string;
+    }>
+  >([]);
 
   useEffect(() => {
     checkMetaMaskInstallation();
     checkDatabaseHealth();
+    // Generate particles on client side only to avoid hydration mismatch
+    const newParticles = [...Array(50)].map(() => ({
+      left: `${Math.random() * 100}%`,
+      top: `${Math.random() * 100}%`,
+      animationDelay: `${Math.random() * 3}s`,
+      animationDuration: `${2 + Math.random() * 2}s`,
+    }));
+    setParticles(newParticles);
   }, []);
 
   const checkMetaMaskInstallation = () => {
     setIsLoading(true);
     setTimeout(() => {
-      const installed = typeof window !== "undefined" && window.ethereum?.isMetaMask;
+      const installed =
+        typeof window !== "undefined" && window.ethereum?.isMetaMask;
       setHasMetaMask(installed);
       setIsLoading(false);
     }, 500);
@@ -62,7 +79,7 @@ export default function WalletConnectPage() {
       setSupabaseHealth({
         isHealthy: false,
         message: "Health check failed",
-        details: error
+        details: error,
       });
     }
   };
@@ -84,7 +101,7 @@ export default function WalletConnectPage() {
       chainId: 1,
       logo: "🔷",
       status: "live",
-      color: "from-blue-500 to-blue-600"
+      color: "from-blue-500 to-blue-600",
     },
     {
       name: "Polygon",
@@ -92,7 +109,7 @@ export default function WalletConnectPage() {
       chainId: 137,
       logo: "🟣",
       status: "live",
-      color: "from-purple-500 to-purple-600"
+      color: "from-purple-500 to-purple-600",
     },
     {
       name: "BNB Chain",
@@ -100,7 +117,7 @@ export default function WalletConnectPage() {
       chainId: 56,
       logo: "🟡",
       status: "live",
-      color: "from-yellow-500 to-yellow-600"
+      color: "from-yellow-500 to-yellow-600",
     },
     {
       name: "Arbitrum",
@@ -108,7 +125,7 @@ export default function WalletConnectPage() {
       chainId: 42161,
       logo: "🔵",
       status: "live",
-      color: "from-blue-400 to-blue-500"
+      color: "from-blue-400 to-blue-500",
     },
   ];
 
@@ -116,44 +133,45 @@ export default function WalletConnectPage() {
     {
       icon: Shield,
       title: "Secure Authentication",
-      description: "Login with your MetaMask wallet using cryptographic signatures",
+      description:
+        "Login with your MetaMask wallet using cryptographic signatures",
       color: "from-emerald-500/20 to-emerald-600/20",
-      iconColor: "text-emerald-400"
+      iconColor: "text-emerald-400",
     },
     {
       icon: Globe,
       title: "Multi-Chain Access",
       description: "Access your assets across multiple blockchain networks",
       color: "from-blue-500/20 to-blue-600/20",
-      iconColor: "text-blue-400"
+      iconColor: "text-blue-400",
     },
     {
       icon: Zap,
       title: "Instant Connection",
       description: "Connect instantly without lengthy registration processes",
       color: "from-yellow-500/20 to-yellow-600/20",
-      iconColor: "text-yellow-400"
+      iconColor: "text-yellow-400",
     },
     {
       icon: Lock,
       title: "Self-Custody",
       description: "You maintain full control of your private keys and assets",
       color: "from-purple-500/20 to-purple-600/20",
-      iconColor: "text-purple-400"
+      iconColor: "text-purple-400",
     },
-    {
-      icon: TrendingUp,
-      title: "Portfolio Tracking",
-      description: "View your tokenized real-world assets across all chains",
-      color: "from-indigo-500/20 to-indigo-600/20",
-      iconColor: "text-indigo-400"
-    },
+    // {
+    //   icon: TrendingUp,
+    //   title: "Portfolio Tracking",
+    //   description: "View your tokenized real-world assets across all chains",
+    //   color: "from-indigo-500/20 to-indigo-600/20",
+    //   iconColor: "text-indigo-400",
+    // },
     {
       icon: Coins,
       title: "Lending & Borrowing",
       description: "Use your crypto assets as collateral for RWA loans",
       color: "from-orange-500/20 to-orange-600/20",
-      iconColor: "text-orange-400"
+      iconColor: "text-orange-400",
     },
   ];
 
@@ -166,18 +184,18 @@ export default function WalletConnectPage() {
           <div className="absolute top-20 right-20 w-96 h-96 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute bottom-20 left-20 w-80 h-80 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-full blur-2xl animate-pulse delay-500"></div>
-          
+
           {/* Floating particles */}
           <div className="absolute inset-0">
-            {[...Array(50)].map((_, i) => (
+            {particles.map((particle, i) => (
               <div
                 key={i}
                 className="absolute w-1 h-1 bg-white/20 rounded-full animate-ping"
                 style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                  animationDelay: `${Math.random() * 3}s`,
-                  animationDuration: `${2 + Math.random() * 2}s`
+                  left: particle.left,
+                  top: particle.top,
+                  animationDelay: particle.animationDelay,
+                  animationDuration: particle.animationDuration,
                 }}
               />
             ))}
@@ -196,8 +214,8 @@ export default function WalletConnectPage() {
             </Link>
             <div className="text-center mb-8">
               <h1 className="text-6xl font-bold text-white mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-200">
-                Connect Your
-                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 mt-2">
+                Connect Your{" "}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
                   Wallet
                 </span>
               </h1>
@@ -214,7 +232,9 @@ export default function WalletConnectPage() {
             <div className="flex justify-center items-center py-20">
               <div className="text-center">
                 <RefreshCw className="w-8 h-8 text-blue-400 animate-spin mx-auto mb-4" />
-                <p className="text-blue-200">Checking MetaMask installation...</p>
+                <p className="text-blue-200">
+                  Checking MetaMask installation...
+                </p>
               </div>
             </div>
           )}
@@ -222,7 +242,7 @@ export default function WalletConnectPage() {
           {!isLoading && (
             <>
               {/* Database Health Status */}
-              {supabaseHealth && (
+              {/* {supabaseHealth && (
                 <div className="mb-8">
                   <Card className={`bg-white/10 backdrop-blur-lg border-white/20 ${
                     supabaseHealth.isHealthy 
@@ -276,9 +296,9 @@ export default function WalletConnectPage() {
                     </CardContent>
                   </Card>
                 </div>
-              )}
+              )} */}
 
-              <div className="grid lg:grid-cols-2 gap-12 items-start mb-16">
+              <div className="grid lg:grid-cols-2 gap-12 items-start mb-8">
                 {/* Left Side - Connection */}
                 <div className="space-y-8">
                   <Card className="bg-white/10 backdrop-blur-lg border-white/20 shadow-2xl hover:shadow-3xl transition-all duration-300">
@@ -299,7 +319,8 @@ export default function WalletConnectPage() {
                         <Alert className="bg-amber-500/20 border-amber-400/30 backdrop-blur-sm">
                           <Download className="h-4 w-4 text-amber-400" />
                           <AlertDescription className="text-amber-100">
-                            MetaMask is not installed. Please install MetaMask to continue.
+                            MetaMask is not installed. Please install MetaMask
+                            to continue.
                           </AlertDescription>
                         </Alert>
                       )}
@@ -317,7 +338,12 @@ export default function WalletConnectPage() {
                       <div className="space-y-4">
                         {!hasMetaMask ? (
                           <Button
-                            onClick={() => window.open("https://metamask.io/download/", "_blank")}
+                            onClick={() =>
+                              window.open(
+                                "https://metamask.io/download/",
+                                "_blank"
+                              )
+                            }
                             size="lg"
                             className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold text-lg py-6 transition-all duration-300 hover:scale-105"
                           >
@@ -326,7 +352,7 @@ export default function WalletConnectPage() {
                             <ExternalLink className="ml-3 h-4 w-4" />
                           </Button>
                         ) : (
-                          <MetaMaskConnect 
+                          <MetaMaskConnect
                             onSuccess={handleConnectionSuccess}
                             variant="button"
                           />
@@ -342,15 +368,14 @@ export default function WalletConnectPage() {
                             </span>
                           </div>
                           <p className="text-green-200 text-sm">
-                            You can now access your dashboard and manage your tokenized assets across multiple networks.
+                            You can now access your dashboard and manage your
+                            tokenized assets across multiple networks.
                           </p>
                           <Button
                             asChild
                             className="mt-4 w-full bg-green-600 hover:bg-green-700 text-white"
                           >
-                            <Link href="/dashboard">
-                              Go to Dashboard
-                            </Link>
+                            <Link href="/dashboard">Go to Dashboard</Link>
                           </Button>
                         </div>
                       )}
@@ -358,32 +383,32 @@ export default function WalletConnectPage() {
                   </Card>
 
                   {/* Enhanced Security Notice */}
-                  <Card className="bg-gradient-to-br from-amber-500/10 to-amber-600/10 backdrop-blur-lg border-amber-400/30 hover:border-amber-400/50 transition-all duration-300">
+                  <Card className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 backdrop-blur-lg border-amber-400/30 hover:border-amber-400/50 transition-all duration-300">
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center">
-                          <Shield className="w-6 h-6 text-amber-900" />
+                        <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                          <Shield className="w-6 h-6 text-amber-600" />
                         </div>
-                        <div>
-                          <h3 className="font-semibold text-amber-600 mb-2 text-lg">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-amber-800 mb-2 text-lg">
                             Security Notice
                           </h3>
-                          <p className="text-amber-400 text-sm leading-relaxed mb-4">
-                            We will never ask for your seed phrase or private keys.
-                            Only connect to trusted websites and always verify the
-                            URL before connecting your wallet.
+                          <p className="text-amber-700 text-sm leading-relaxed mb-4">
+                            We will never ask for your seed phrase or private
+                            keys. Only connect to trusted websites and always
+                            verify the URL before connecting your wallet.
                           </p>
                           <div className="space-y-2">
-                            <div className="flex items-center gap-2 text-amber-400 text-xs">
-                              <CheckCircle className="w-3 h-3" />
+                            <div className="flex items-center gap-2 text-amber-700 text-xs">
+                              <CheckCircle className="w-3 h-3 text-green-600" />
                               SSL encrypted connection
                             </div>
-                            <div className="flex items-center gap-2 text-amber-400 text-xs">
-                              <CheckCircle className="w-3 h-3" />
+                            <div className="flex items-center gap-2 text-amber-700 text-xs">
+                              <CheckCircle className="w-3 h-3 text-green-600" />
                               Verified smart contracts
                             </div>
-                            <div className="flex items-center gap-2 text-amber-400 text-xs">
-                              <CheckCircle className="w-3 h-3" />
+                            <div className="flex items-center gap-2 text-amber-700 text-xs">
+                              <CheckCircle className="w-3 h-3 text-green-600" />
                               No seed phrase required
                             </div>
                           </div>
@@ -395,12 +420,13 @@ export default function WalletConnectPage() {
 
                 {/* Right Side - Benefits */}
                 <div className="space-y-6">
-                  <div className="mb-8">
+                  <div className="mb-6">
                     <h2 className="text-4xl font-bold text-white mb-4">
                       Why Connect Your Wallet?
                     </h2>
                     <p className="text-blue-100 text-lg">
-                      Unlock the full potential of decentralized asset management with institutional-grade security
+                      Unlock the full potential of decentralized asset
+                      management with institutional-grade security
                     </p>
                   </div>
 
@@ -412,8 +438,12 @@ export default function WalletConnectPage() {
                       >
                         <CardContent className="p-6">
                           <div className="flex items-start gap-4">
-                            <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${benefit.color} flex items-center justify-center`}>
-                              <benefit.icon className={`w-7 h-7 ${benefit.iconColor}`} />
+                            <div
+                              className={`w-14 h-14 rounded-xl bg-gradient-to-br ${benefit.color} flex items-center justify-center`}
+                            >
+                              <benefit.icon
+                                className={`w-7 h-7 ${benefit.iconColor}`}
+                              />
                             </div>
                             <div>
                               <h3 className="font-semibold text-white mb-2 text-lg">
@@ -432,13 +462,14 @@ export default function WalletConnectPage() {
               </div>
 
               {/* Enhanced Supported Networks */}
-              <Card className="bg-white/5 backdrop-blur-lg border-white/10 mb-16">
+              <Card className="bg-white/5 backdrop-blur-lg border-white/10 mb-8">
                 <CardHeader className="text-center">
                   <CardTitle className="text-3xl font-bold text-white mb-2">
                     Supported Networks
                   </CardTitle>
                   <CardDescription className="text-blue-100 text-lg">
-                    Access your assets across multiple blockchain networks with seamless interoperability
+                    Access your assets across multiple blockchain networks with
+                    seamless interoperability
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -474,9 +505,9 @@ export default function WalletConnectPage() {
                     Ready to Get Started?
                   </h2>
                   <p className="text-blue-100 text-xl mb-8 max-w-3xl mx-auto leading-relaxed">
-                    Connect your wallet to access tokenized real-world assets, secure
-                    loans with competitive rates, and manage your diversified portfolio 
-                    across multiple blockchain networks.
+                    Connect your wallet to access tokenized real-world assets,
+                    secure loans with competitive rates, and manage your
+                    diversified portfolio across multiple blockchain networks.
                   </p>
                   <div className="flex gap-6 justify-center flex-wrap">
                     <Button
@@ -490,7 +521,7 @@ export default function WalletConnectPage() {
                       asChild
                       variant="outline"
                       size="lg"
-                      className="border-white/20 text-white hover:bg-white/10 px-8 py-4 text-lg transition-all duration-300 hover:scale-105"
+                      className="border-white/20 text-black hover:bg-white/10 hover:text-white px-8 py-4 text-lg transition-all duration-300 hover:scale-105"
                     >
                       <Link href="/dashboard">Explore Dashboard</Link>
                     </Button>
