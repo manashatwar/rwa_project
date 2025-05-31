@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -552,54 +558,256 @@ export default function LoanCalculatorPage() {
                   <CardHeader className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 border-b border-gray-100">
                     <CardTitle className="flex items-center gap-2">
                       <Calendar className="w-5 h-5 text-blue-600" />
-                      Amortization Schedule (First 24 Months)
+                      Payment Schedule Calendar (First 24 Months)
                     </CardTitle>
+                    <CardDescription className="mt-2">
+                      Visual monthly payment schedule with color-coded payment
+                      amounts
+                    </CardDescription>
                   </CardHeader>
-                  <CardContent className="p-0">
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead className="bg-gray-50 border-b">
-                          <tr>
-                            <th className="text-left p-4 font-semibold text-gray-700">
-                              Month
-                            </th>
-                            <th className="text-right p-4 font-semibold text-gray-700">
-                              Payment
-                            </th>
-                            <th className="text-right p-4 font-semibold text-gray-700">
-                              Principal
-                            </th>
-                            <th className="text-right p-4 font-semibold text-gray-700">
-                              Interest
-                            </th>
-                            <th className="text-right p-4 font-semibold text-gray-700">
-                              Balance
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {amortizationSchedule.map((row, index) => (
-                            <tr
-                              key={index}
-                              className="border-b hover:bg-gray-50 transition-colors"
-                            >
-                              <td className="p-4 font-medium">{row.month}</td>
-                              <td className="p-4 text-right">
-                                {formatCurrency(row.payment)}
-                              </td>
-                              <td className="p-4 text-right text-blue-600">
-                                {formatCurrency(row.principal)}
-                              </td>
-                              <td className="p-4 text-right text-orange-600">
-                                {formatCurrency(row.interest)}
-                              </td>
-                              <td className="p-4 text-right font-semibold">
-                                {formatCurrency(row.balance)}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                  <CardContent className="p-6">
+                    {/* Calendar Grid Layout */}
+                    <div className="space-y-6">
+                      {/* Legend */}
+                      <div className="flex flex-wrap items-center gap-4 p-4 bg-gray-50 rounded-lg border">
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-blue-500 rounded"></div>
+                          <span className="text-sm text-gray-700">
+                            Low Balance Period
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-emerald-500 rounded"></div>
+                          <span className="text-sm text-gray-700">
+                            Mid Balance Period
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-orange-500 rounded"></div>
+                          <span className="text-sm text-gray-700">
+                            High Balance Period
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-purple-500 rounded"></div>
+                          <span className="text-sm text-gray-700">
+                            Initial Period
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Year 1 (Months 1-12) */}
+                      <div className="space-y-3">
+                        <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                          <Calendar className="w-5 h-5 text-blue-600" />
+                          Year 1 (Months 1-12)
+                        </h3>
+                        <div className="grid grid-cols-4 md:grid-cols-6 gap-3">
+                          {amortizationSchedule
+                            .slice(0, 12)
+                            .map((payment, index) => {
+                              // Color coding based on remaining balance percentage
+                              const balanceRatio =
+                                payment.balance / loanInputs.loanAmount;
+                              let colorClasses = "";
+                              if (balanceRatio > 0.75) {
+                                colorClasses =
+                                  "bg-gradient-to-br from-purple-100 to-purple-200 border-purple-300 text-purple-900";
+                              } else if (balanceRatio > 0.5) {
+                                colorClasses =
+                                  "bg-gradient-to-br from-orange-100 to-orange-200 border-orange-300 text-orange-900";
+                              } else if (balanceRatio > 0.25) {
+                                colorClasses =
+                                  "bg-gradient-to-br from-emerald-100 to-emerald-200 border-emerald-300 text-emerald-900";
+                              } else {
+                                colorClasses =
+                                  "bg-gradient-to-br from-blue-100 to-blue-200 border-blue-300 text-blue-900";
+                              }
+
+                              return (
+                                <div
+                                  key={index}
+                                  className={`p-4 rounded-lg border-2 hover:shadow-lg transition-all duration-200 hover:scale-105 ${colorClasses}`}
+                                >
+                                  <div className="space-y-2">
+                                    <div className="font-bold text-sm">
+                                      Month {payment.month}
+                                    </div>
+                                    <div className="space-y-1 text-xs">
+                                      <div className="flex justify-between">
+                                        <span className="opacity-75">
+                                          Payment:
+                                        </span>
+                                        <span className="font-semibold">
+                                          {formatCurrency(payment.payment)}
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="opacity-75">
+                                          Principal:
+                                        </span>
+                                        <span className="font-medium">
+                                          {formatCurrency(payment.principal)}
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="opacity-75">
+                                          Interest:
+                                        </span>
+                                        <span className="font-medium">
+                                          {formatCurrency(payment.interest)}
+                                        </span>
+                                      </div>
+                                      <div className="border-t pt-1 mt-2">
+                                        <div className="flex justify-between">
+                                          <span className="opacity-75">
+                                            Balance:
+                                          </span>
+                                          <span className="font-bold text-xs">
+                                            {formatCurrency(payment.balance)}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                        </div>
+                      </div>
+
+                      {/* Year 2 (Months 13-24) */}
+                      {amortizationSchedule.length > 12 && (
+                        <div className="space-y-3">
+                          <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                            <Calendar className="w-5 h-5 text-emerald-600" />
+                            Year 2 (Months 13-24)
+                          </h3>
+                          <div className="grid grid-cols-4 md:grid-cols-6 gap-3">
+                            {amortizationSchedule
+                              .slice(12, 24)
+                              .map((payment, index) => {
+                                // Color coding based on remaining balance percentage
+                                const balanceRatio =
+                                  payment.balance / loanInputs.loanAmount;
+                                let colorClasses = "";
+                                if (balanceRatio > 0.75) {
+                                  colorClasses =
+                                    "bg-gradient-to-br from-purple-100 to-purple-200 border-purple-300 text-purple-900";
+                                } else if (balanceRatio > 0.5) {
+                                  colorClasses =
+                                    "bg-gradient-to-br from-orange-100 to-orange-200 border-orange-300 text-orange-900";
+                                } else if (balanceRatio > 0.25) {
+                                  colorClasses =
+                                    "bg-gradient-to-br from-emerald-100 to-emerald-200 border-emerald-300 text-emerald-900";
+                                } else {
+                                  colorClasses =
+                                    "bg-gradient-to-br from-blue-100 to-blue-200 border-blue-300 text-blue-900";
+                                }
+
+                                return (
+                                  <div
+                                    key={index + 12}
+                                    className={`p-4 rounded-lg border-2 hover:shadow-lg transition-all duration-200 hover:scale-105 ${colorClasses}`}
+                                  >
+                                    <div className="space-y-2">
+                                      <div className="font-bold text-sm">
+                                        Month {payment.month}
+                                      </div>
+                                      <div className="space-y-1 text-xs">
+                                        <div className="flex justify-between">
+                                          <span className="opacity-75">
+                                            Payment:
+                                          </span>
+                                          <span className="font-semibold">
+                                            {formatCurrency(payment.payment)}
+                                          </span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="opacity-75">
+                                            Principal:
+                                          </span>
+                                          <span className="font-medium">
+                                            {formatCurrency(payment.principal)}
+                                          </span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="opacity-75">
+                                            Interest:
+                                          </span>
+                                          <span className="font-medium">
+                                            {formatCurrency(payment.interest)}
+                                          </span>
+                                        </div>
+                                        <div className="border-t pt-1 mt-2">
+                                          <div className="flex justify-between">
+                                            <span className="opacity-75">
+                                              Balance:
+                                            </span>
+                                            <span className="font-bold text-xs">
+                                              {formatCurrency(payment.balance)}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Progress Overview */}
+                      <div className="mt-8 p-6 bg-gradient-to-r from-gray-50 to-blue-50/30 rounded-xl border border-gray-200">
+                        <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                          <TrendingUp className="h-5 w-5 text-blue-600" />
+                          Loan Progress Overview
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="text-center p-4 bg-white rounded-lg border border-gray-200">
+                            <p className="text-sm text-gray-600 mb-1">
+                              Total Payments (24 months)
+                            </p>
+                            <p className="text-xl font-bold text-gray-900">
+                              {formatCurrency(
+                                results.monthlyPayment *
+                                  Math.min(24, loanInputs.loanTerm)
+                              )}
+                            </p>
+                          </div>
+                          <div className="text-center p-4 bg-white rounded-lg border border-gray-200">
+                            <p className="text-sm text-gray-600 mb-1">
+                              Interest Paid (24 months)
+                            </p>
+                            <p className="text-xl font-bold text-orange-600">
+                              {formatCurrency(
+                                amortizationSchedule
+                                  .slice(0, 24)
+                                  .reduce(
+                                    (sum, payment) => sum + payment.interest,
+                                    0
+                                  )
+                              )}
+                            </p>
+                          </div>
+                          <div className="text-center p-4 bg-white rounded-lg border border-gray-200">
+                            <p className="text-sm text-gray-600 mb-1">
+                              Principal Paid (24 months)
+                            </p>
+                            <p className="text-xl font-bold text-blue-600">
+                              {formatCurrency(
+                                amortizationSchedule
+                                  .slice(0, 24)
+                                  .reduce(
+                                    (sum, payment) => sum + payment.principal,
+                                    0
+                                  )
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

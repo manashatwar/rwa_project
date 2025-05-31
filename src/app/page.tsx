@@ -1,3 +1,5 @@
+"use client";
+
 import Footer from "@/components/footer";
 import Hero from "@/components/hero";
 import Navbar from "@/components/navbar";
@@ -39,309 +41,814 @@ import {
   LineChart,
   PieChart,
   Activity,
+  Clock,
 } from "lucide-react";
-import { createClient } from "../../supabase/server";
+import { createClient } from "../../supabase/client";
 import Link from "next/link";
+import React, { useState, useEffect } from "react";
 
-export default async function Home() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+// Animated Counter Component
+function AnimatedCounter({
+  targetValue,
+  duration = 2000,
+  prefix = "",
+  suffix = "",
+  className = "",
+  decimals = 0,
+}: {
+  targetValue: number;
+  duration?: number;
+  prefix?: string;
+  suffix?: string;
+  className?: string;
+  decimals?: number;
+}) {
+  const [currentValue, setCurrentValue] = useState(0);
+
+  useEffect(() => {
+    const startTime = Date.now();
+    const startValue = 0;
+
+    const updateValue = () => {
+      const now = Date.now();
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      // Easing function for smooth animation
+      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+
+      const newValue = startValue + (targetValue - startValue) * easeOutQuart;
+      setCurrentValue(newValue);
+
+      if (progress < 1) {
+        requestAnimationFrame(updateValue);
+      }
+    };
+
+    const timer = setTimeout(() => {
+      requestAnimationFrame(updateValue);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [targetValue, duration]);
+
+  const formatNumber = (num: number) => {
+    if (decimals > 0) {
+      return num.toFixed(decimals);
+    }
+    return Math.floor(num).toLocaleString();
+  };
+
+  return (
+    <span className={className}>
+      {prefix}
+      {formatNumber(currentValue)}
+      {suffix}
+    </span>
+  );
+}
+
+// Animated Stat Card Component
+function AnimatedStatCard({
+  value,
+  label,
+  delay = 0,
+  color = "blue",
+  suffix = "",
+}: {
+  value: number;
+  label: string;
+  delay?: number;
+  color?: "blue" | "purple" | "green" | "orange";
+  suffix?: string;
+}) {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [delay]);
+
+  const colorClasses = {
+    blue: "bg-blue-50 border-blue-200 text-blue-600",
+    purple: "bg-purple-50 border-purple-200 text-purple-600",
+    green: "bg-green-50 border-green-200 text-green-600",
+    orange: "bg-orange-50 border-orange-200 text-orange-600",
+  };
+
+  return (
+    <div
+      className={`bg-white rounded-xl p-6 border shadow-lg transition-all duration-700 ease-out ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+      }`}
+    >
+      <div
+        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mb-4 ${colorClasses[color]}`}
+      >
+        <TrendingUp className="w-4 h-4 mr-1" />
+        Live
+      </div>
+
+      <AnimatedCounter
+        targetValue={value}
+        suffix={suffix}
+        duration={2000}
+        decimals={suffix === "%" ? 1 : 0}
+        className="text-2xl font-bold text-gray-900 mb-2 block"
+      />
+
+      <div className="text-gray-600 text-sm font-medium">{label}</div>
+    </div>
+  );
+}
+
+// Live Metric Component
+function LiveMetric({
+  value,
+  label,
+  suffix = "",
+  trend,
+  icon: Icon,
+  color = "blue",
+}: {
+  value: number;
+  label: string;
+  suffix?: string;
+  trend: string;
+  icon: any;
+  color?: "green" | "blue" | "purple" | "emerald";
+}) {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  const colorClasses = {
+    green: "text-green-600 bg-green-50",
+    blue: "text-blue-600 bg-blue-50",
+    purple: "text-purple-600 bg-purple-50",
+    emerald: "text-emerald-600 bg-emerald-50",
+  };
+
+  const trendColor =
+    trend.startsWith("+") || trend.startsWith("-")
+      ? trend.startsWith("+")
+        ? "text-green-500"
+        : "text-red-500"
+      : "text-gray-500";
+
+  return (
+    <div
+      className={`bg-white rounded-xl p-6 border border-gray-200 shadow-sm transition-all duration-700 ease-out ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+      }`}
+    >
+      <div
+        className={`w-10 h-10 rounded-lg flex items-center justify-center mb-4 ${colorClasses[color]}`}
+      >
+        <Icon className={`w-5 h-5 ${colorClasses[color].split(" ")[0]}`} />
+      </div>
+
+      <AnimatedCounter
+        targetValue={value}
+        suffix={suffix}
+        duration={2500}
+        decimals={suffix === "%" || suffix === "s" ? 2 : 0}
+        className="text-xl font-bold text-gray-900 mb-1 block"
+      />
+
+      <div className="text-gray-600 text-sm font-medium mb-2">{label}</div>
+
+      <div className={`text-xs font-medium ${trendColor}`}>{trend}</div>
+    </div>
+  );
+}
+
+// Animated Text Component
+function AnimatedText({
+  text,
+  delay = 0,
+  className = "",
+}: {
+  text: string;
+  delay?: number;
+  className?: string;
+}) {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [delay]);
+
+  return (
+    <div
+      className={`transition-all duration-1000 ease-out ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+      } ${className}`}
+    >
+      {text}
+    </div>
+  );
+}
+
+// Portfolio Chart Component with Full Animation
+function PortfolioChart() {
+  const [isAnimated, setIsAnimated] = useState(false);
+  const [currentValue, setCurrentValue] = useState(0);
+  const [currentPercentage, setCurrentPercentage] = useState(0);
+
+  // Sample data points for the chart line
+  const dataPoints = [
+    { month: "Jan", value: 850000, percentage: 0 },
+    { month: "Feb", value: 920000, percentage: 8.2 },
+    { month: "Mar", value: 1100000, percentage: 19.6 },
+    { month: "Apr", value: 1050000, percentage: -4.5 },
+    { month: "May", value: 1280000, percentage: 21.9 },
+    { month: "Jun", value: 1450000, percentage: 13.3 },
+    { month: "Jul", value: 1620000, percentage: 11.7 },
+    { month: "Aug", value: 1850000, percentage: 14.2 },
+  ];
+
+  const finalValue = 1850000;
+  const finalGrowth = 117.6;
+
+  // Animation effect on component mount
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsAnimated(true);
+    }, 500);
+
+    // Animate the numbers
+    const valueInterval = setInterval(() => {
+      setCurrentValue((prev) => {
+        if (prev < finalValue) {
+          return Math.min(prev + 25000, finalValue);
+        }
+        return finalValue;
+      });
+    }, 50);
+
+    const percentageInterval = setInterval(() => {
+      setCurrentPercentage((prev) => {
+        if (prev < finalGrowth) {
+          return Math.min(prev + 2, finalGrowth);
+        }
+        return finalGrowth;
+      });
+    }, 80);
+
+    return () => {
+      clearTimeout(timer);
+      clearInterval(valueInterval);
+      clearInterval(percentageInterval);
+    };
+  }, []);
+
+  return (
+    <div className="bg-white/5 backdrop-blur-sm rounded-3xl border border-white/10 p-8 lg:p-12">
+      {/* Portfolio Stats Header */}
+      <div className="grid lg:grid-cols-3 gap-8 mb-12">
+        <div className="text-center lg:text-left">
+          <div className="text-white/70 text-sm font-medium mb-2">
+            Total Portfolio Value
+          </div>
+          <div className="text-3xl lg:text-4xl font-bold text-white">
+            ${currentValue.toLocaleString()}
+          </div>
+        </div>
+
+        <div className="text-center">
+          <div className="text-white/70 text-sm font-medium mb-2">
+            Total Growth
+          </div>
+          <div className="text-3xl lg:text-4xl font-bold text-green-400">
+            +{currentPercentage.toFixed(1)}%
+          </div>
+        </div>
+
+        <div className="text-center lg:text-right">
+          <div className="text-white/70 text-sm font-medium mb-2">
+            Monthly Return
+          </div>
+          <div className="text-3xl lg:text-4xl font-bold text-blue-400">
+            +14.2%
+          </div>
+        </div>
+      </div>
+
+      {/* Chart Container */}
+      <div className="relative h-80 bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
+        {/* Grid Lines */}
+        <div className="absolute inset-0">
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-full border-t border-white/10"
+              style={{ top: `${(i + 1) * 16.66}%` }}
+            />
+          ))}
+          {[...Array(8)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute h-full border-l border-white/10"
+              style={{ left: `${(i + 1) * 12.5}%` }}
+            />
+          ))}
+        </div>
+
+        {/* Chart Line */}
+        <svg
+          className="absolute inset-0 w-full h-full"
+          style={{ overflow: "visible" }}
+        >
+          {/* Gradient Definition */}
+          <defs>
+            <linearGradient
+              id="chartGradient"
+              x1="0%"
+              y1="0%"
+              x2="0%"
+              y2="100%"
+            >
+              <stop
+                offset="0%"
+                stopColor="rgb(59, 130, 246)"
+                stopOpacity="0.3"
+              />
+              <stop
+                offset="100%"
+                stopColor="rgb(59, 130, 246)"
+                stopOpacity="0"
+              />
+            </linearGradient>
+          </defs>
+
+          {/* Chart Path */}
+          <path
+            d="M 60 240 Q 120 220 180 180 Q 240 160 300 140 Q 360 120 420 100 Q 480 85 540 70"
+            fill="none"
+            stroke="rgb(59, 130, 246)"
+            strokeWidth="3"
+            strokeLinecap="round"
+            className={`transition-all duration-3000 ease-out ${
+              isAnimated
+                ? "stroke-dasharray-none opacity-100"
+                : "stroke-dasharray-1000 stroke-dashoffset-1000 opacity-0"
+            }`}
+            style={{
+              strokeDasharray: isAnimated ? "none" : "1000",
+              strokeDashoffset: isAnimated ? "0" : "1000",
+              transition: "stroke-dashoffset 3s ease-out, opacity 1s ease-out",
+            }}
+          />
+
+          {/* Area Fill */}
+          <path
+            d="M 60 240 Q 120 220 180 180 Q 240 160 300 140 Q 360 120 420 100 Q 480 85 540 70 L 540 300 L 60 300 Z"
+            fill="url(#chartGradient)"
+            className={`transition-all duration-3000 ease-out ${
+              isAnimated ? "opacity-100" : "opacity-0"
+            }`}
+            style={{
+              transition: "opacity 2s ease-out 1s",
+            }}
+          />
+
+          {/* Data Points */}
+          {dataPoints.map((point, index) => (
+            <circle
+              key={index}
+              cx={60 + index * 70}
+              cy={240 - point.value / 25000}
+              r="4"
+              fill="rgb(59, 130, 246)"
+              className={`transition-all duration-500 ease-out ${
+                isAnimated ? "opacity-100 scale-100" : "opacity-0 scale-0"
+              }`}
+              style={{
+                transitionDelay: `${1.5 + index * 0.2}s`,
+              }}
+            />
+          ))}
+        </svg>
+
+        {/* Month Labels */}
+        <div className="absolute bottom-4 left-0 right-0 flex justify-between px-12 text-white/60 text-sm">
+          {dataPoints.map((point, index) => (
+            <div
+              key={point.month}
+              className={`transition-all duration-500 ease-out ${
+                isAnimated
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-4"
+              }`}
+              style={{
+                transitionDelay: `${2 + index * 0.1}s`,
+              }}
+            >
+              {point.month}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Performance Metrics */}
+      {/* <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+        <div
+          className={`bg-white/5 rounded-xl p-4 border border-white/10 transition-all duration-700 ease-out ${
+            isAnimated ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          }`}
+          style={{ transitionDelay: "2.5s" }}
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <Building className="w-4 h-4 text-orange-400" />
+            <span className="text-white/70 text-sm">Real Estate</span>
+          </div>
+          <div className="text-xl font-bold text-white">$1.2M</div>
+          <div className="text-green-400 text-sm">+12.3%</div>
+        </div>
+
+        <div
+          className={`bg-white/5 rounded-xl p-4 border border-white/10 transition-all duration-700 ease-out ${
+            isAnimated ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          }`}
+          style={{ transitionDelay: "2.7s" }}
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <Coins className="w-4 h-4 text-yellow-400" />
+            <span className="text-white/70 text-sm">Commodities</span>
+          </div>
+          <div className="text-xl font-bold text-white">$450K</div>
+          <div className="text-green-400 text-sm">+8.7%</div>
+        </div>
+
+        <div
+          className={`bg-white/5 rounded-xl p-4 border border-white/10 transition-all duration-700 ease-out ${
+            isAnimated ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          }`}
+          style={{ transitionDelay: "2.9s" }}
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <Settings className="w-4 h-4 text-blue-400" />
+            <span className="text-white/70 text-sm">Equipment</span>
+          </div>
+          <div className="text-xl font-bold text-white">$200K</div>
+          <div className="text-green-400 text-sm">+15.2%</div>
+        </div>
+
+        <div
+          className={`bg-white/5 rounded-xl p-4 border border-white/10 transition-all duration-700 ease-out ${
+            isAnimated ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          }`}
+          style={{ transitionDelay: "3.1s" }}
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <TrendingUp className="w-4 h-4 text-emerald-400" />
+            <span className="text-white/70 text-sm">Average APY</span>
+          </div>
+          <div className="text-xl font-bold text-white">18.9%</div>
+          <div className="text-emerald-400 text-sm">Industry Leading</div>
+        </div>
+      </div> */}
+    </div>
+  );
+}
+
+// Carousel Hero Component
+function CarouselHero({ user }: { user: any }) {
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const slides = [
+    {
+      badge: "New Partnership",
+      icon: Star,
+      title: "TangibleFi x DeFi Alliance",
+      description: "Multi-chain RWA tokenization with AI verification.",
+      link: "/partnership",
+    },
+    {
+      badge: "New Feature",
+      icon: Sparkles,
+      title: "AI-Powered Valuations",
+      description: "Real-time asset pricing using machine learning.",
+      link: "/features/ai-valuations",
+    },
+    {
+      badge: "Update",
+      icon: Globe,
+      title: "Multi-Chain Support",
+      description: "Now supporting 5 blockchain networks.",
+      link: "/features/multi-chain",
+    },
+  ];
+
+  const totalSlides = slides.length;
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % totalSlides);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
+  };
+
+  // Auto-advance slides
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % totalSlides);
+    }, 5000); // Change slide every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [totalSlides]);
+
+  const CurrentIcon = slides[currentSlide].icon;
+
+  return (
+    <section className="relative min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 overflow-hidden">
+      {/* Geometric Background Elements */}
+      <div className="absolute inset-0">
+        {/* Floating 3D Geometric Shapes */}
+        <div className="absolute top-20 left-20 w-32 h-32 transform rotate-45 animate-pulse opacity-20">
+          <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-500 transform perspective-1000 rotateX-45 rotateY-45 shadow-2xl"></div>
+        </div>
+
+        <div
+          className="absolute top-40 right-32 w-24 h-24 transform -rotate-12 animate-pulse opacity-30"
+          style={{ animationDelay: "1s" }}
+        >
+          <div className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 transform perspective-1000 rotateX-30 rotateY-30 shadow-xl"></div>
+        </div>
+
+        <div
+          className="absolute bottom-32 left-32 w-40 h-40 transform rotate-12 animate-pulse opacity-15"
+          style={{ animationDelay: "2s" }}
+        >
+          <div className="w-full h-full bg-gradient-to-br from-cyan-500 to-blue-500 transform perspective-1000 rotateX-60 rotateY-45 shadow-2xl"></div>
+        </div>
+
+        <div
+          className="absolute bottom-40 right-20 w-28 h-28 transform -rotate-45 animate-pulse opacity-25"
+          style={{ animationDelay: "3s" }}
+        >
+          <div className="w-full h-full bg-gradient-to-br from-emerald-500 to-teal-500 transform perspective-1000 rotateX-45 rotateY-60 shadow-xl"></div>
+        </div>
+
+        <div
+          className="absolute top-1/2 left-1/4 w-16 h-16 transform rotate-90 animate-pulse opacity-20"
+          style={{ animationDelay: "1.5s" }}
+        >
+          <div className="w-full h-full bg-gradient-to-br from-orange-500 to-red-500 transform perspective-1000 rotateX-30 rotateY-45 shadow-lg"></div>
+        </div>
+
+        <div
+          className="absolute top-1/3 right-1/4 w-20 h-20 transform -rotate-30 animate-pulse opacity-30"
+          style={{ animationDelay: "2.5s" }}
+        >
+          <div className="w-full h-full bg-gradient-to-br from-violet-500 to-purple-500 transform perspective-1000 rotateX-45 rotateY-30 shadow-xl"></div>
+        </div>
+
+        {/* Subtle Grid Pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:100px_100px]"></div>
+      </div>
+
+      <div className="relative z-10 container mx-auto px-4 pt-32 pb-20">
+        <div className="max-w-6xl mx-auto text-center">
+          {/* Announcement Badge */}
+          <div className="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-sm text-blue-200 rounded-full text-sm font-medium mb-8 border border-white/20">
+            <Sparkles className="w-4 h-4 mr-2" />
+            Introducing: Aggregated Blockchains
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </div>
+
+          {/* Main Headline */}
+          <h1 className="text-6xl lg:text-7xl font-bold text-white mb-8 leading-tight">
+            RWA, Aggregated.
+          </h1>
+
+          {/* Subtitle */}
+          <p className="text-xl lg:text-2xl text-gray-300 mb-16 max-w-4xl mx-auto leading-relaxed">
+            Enabling an infinitely scalable ecosystem of real-world assets that
+            feels like a single marketplace. Powered by AI-driven tokenization.
+          </p>
+
+          {/* Three Main Action Cards */}
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            {/* Tokenize Card */}
+            <div className="group bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 hover:border-white/20 transition-all duration-300 hover:bg-white/10">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-bold text-white">Tokenize</h3>
+                <ArrowRight className="w-6 h-6 text-gray-400 group-hover:text-white group-hover:translate-x-1 transition-all duration-300" />
+              </div>
+              <p className="text-gray-300 mb-8 text-left">
+                Convert real estate, commodities, and equipment into digital
+                tokens with institutional-grade compliance.
+              </p>
+              <div className="text-left">
+                <Link
+                  href="/dashboard/assets/new"
+                  className="inline-flex items-center text-blue-400 hover:text-blue-300 font-medium group-hover:text-blue-300 transition-colors"
+                >
+                  Get started tokenizing
+                  <ArrowRight className="w-4 h-4 ml-1" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Lend Card */}
+            <div className="group bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 hover:border-white/20 transition-all duration-300 hover:bg-white/10">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-bold text-white">Lend</h3>
+                <ArrowRight className="w-6 h-6 text-gray-400 group-hover:text-white group-hover:translate-x-1 transition-all duration-300" />
+              </div>
+              <p className="text-gray-300 mb-8 text-left">
+                Access instant USDC liquidity by lending against your tokenized
+                assets with competitive rates.
+              </p>
+              <div className="text-left">
+                <Link
+                  href="/dashboard/lending"
+                  className="inline-flex items-center text-purple-400 hover:text-purple-300 font-medium group-hover:text-purple-300 transition-colors"
+                >
+                  Start lending now
+                  <ArrowRight className="w-4 h-4 ml-1" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Trade Card */}
+            <div className="group bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 hover:border-white/20 transition-all duration-300 hover:bg-white/10">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-bold text-white">Trade</h3>
+                <ArrowRight className="w-6 h-6 text-gray-400 group-hover:text-white group-hover:translate-x-1 transition-all duration-300" />
+              </div>
+              <p className="text-gray-300 mb-8 text-left">
+                Buy, sell and manage your portfolio of tokenized real-world
+                assets on our unified platform.
+              </p>
+              <div className="text-left">
+                <Link
+                  href="/dashboard/portfolio"
+                  className="inline-flex items-center text-emerald-400 hover:text-emerald-300 font-medium group-hover:text-emerald-300 transition-colors"
+                >
+                  Explore marketplace
+                  <ArrowRight className="w-4 h-4 ml-1" />
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Carousel Section */}
+          <div className="mt-16 max-w-6xl mx-auto">
+            {/* Carousel Container */}
+            <div className="relative bg-black/20 backdrop-blur-sm rounded-3xl border border-white/10 overflow-hidden">
+              {/* Slide Indicators */}
+              <div className="absolute top-8 left-8 z-20 flex items-center gap-2">
+                <span className="text-white/70 text-sm font-medium">
+                  0{currentSlide + 1}
+                </span>
+                <div className="w-8 h-0.5 bg-white/30"></div>
+                <span className="text-white/70 text-sm font-medium">
+                  0{totalSlides}
+                </span>
+              </div>
+
+              {/* Slide Content */}
+              <div className="relative h-80 flex items-center">
+                {/* Background Gradient */}
+                <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/40 via-purple-800/30 to-indigo-900/40"></div>
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/10 to-black/20"></div>
+
+                {/* Content */}
+                <div className="relative z-10 w-full px-16 py-12">
+                  <div className="grid lg:grid-cols-2 gap-8 items-center max-w-5xl">
+                    {/* Left Content */}
+                    <div>
+                      <div className="inline-flex items-center px-3 py-1.5 bg-white/15 backdrop-blur-md text-white rounded-full text-sm font-medium mb-4 border border-white/20">
+                        <CurrentIcon className="w-4 h-4 mr-2" />
+                        {slides[currentSlide].badge}
+                      </div>
+
+                      <h3 className="text-3xl lg:text-4xl font-bold text-white mb-4 leading-tight drop-shadow-lg">
+                        {slides[currentSlide].title}
+                      </h3>
+
+                      <p className="text-lg text-white/90 mb-6 leading-relaxed drop-shadow-md">
+                        {slides[currentSlide].description}
+                      </p>
+
+                      <Link
+                        href={slides[currentSlide].link}
+                        className="inline-flex items-center px-5 py-2.5 bg-white/15 backdrop-blur-md text-white font-medium rounded-xl border border-white/25 hover:bg-white/25 hover:border-white/40 transition-all duration-300 shadow-lg hover:shadow-xl"
+                      >
+                        Learn More
+                        <ArrowRight className="ml-2 w-4 h-4" />
+                      </Link>
+                    </div>
+
+                    {/* Right Content - Stats Grid */}
+                    <div className="grid grid-cols-2 gap-3 ml-0 lg:ml-0">
+                      <div className="bg-white/15 backdrop-blur-md rounded-xl p-4 border border-white/20 hover:bg-white/20 transition-all duration-300 shadow-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Building className="w-5 h-5 text-blue-300 drop-shadow-sm" />
+                          <span className="text-white font-semibold text-xs drop-shadow-sm">
+                            Real Estate
+                          </span>
+                        </div>
+                        <div className="text-xl font-bold text-white drop-shadow-sm">
+                          $2.1B
+                        </div>
+                        <div className="text-white/80 text-xs">Volume</div>
+                      </div>
+
+                      <div className="bg-white/15 backdrop-blur-md rounded-xl p-4 border border-white/20 hover:bg-white/20 transition-all duration-300 shadow-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Coins className="w-5 h-5 text-yellow-300 drop-shadow-sm" />
+                          <span className="text-white font-semibold text-xs drop-shadow-sm">
+                            Commodities
+                          </span>
+                        </div>
+                        <div className="text-xl font-bold text-white drop-shadow-sm">
+                          $580M
+                        </div>
+                        <div className="text-white/80 text-xs">Volume</div>
+                      </div>
+
+                      <div className="bg-white/15 backdrop-blur-md rounded-xl p-4 border border-white/20 hover:bg-white/20 transition-all duration-300 shadow-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Settings className="w-5 h-5 text-emerald-300 drop-shadow-sm" />
+                          <span className="text-white font-semibold text-xs drop-shadow-sm">
+                            Equipment
+                          </span>
+                        </div>
+                        <div className="text-xl font-bold text-white drop-shadow-sm">
+                          $340M
+                        </div>
+                        <div className="text-white/80 text-xs">Volume</div>
+                      </div>
+
+                      <div className="bg-white/15 backdrop-blur-md rounded-xl p-4 border border-white/20 hover:bg-white/20 transition-all duration-300 shadow-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <TrendingUp className="w-5 h-5 text-purple-300 drop-shadow-sm" />
+                          <span className="text-white font-semibold text-xs drop-shadow-sm">
+                            Growth
+                          </span>
+                        </div>
+                        <div className="text-xl font-bold text-white drop-shadow-sm">
+                          +247%
+                        </div>
+                        <div className="text-white/80 text-xs">YoY</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export default function Home() {
+  const [user, setUser] = useState<any>(null);
+
+  // Get user data on component mount
+  useEffect(() => {
+    const getUser = async () => {
+      try {
+        const supabase = createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        setUser(user);
+      } catch (error) {
+        console.warn("Auth error:", error);
+        setUser(null);
+      }
+    };
+
+    getUser();
+  }, []);
 
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 overflow-hidden">
-        {/* Geometric Background Elements */}
-        <div className="absolute inset-0">
-          <div className="absolute top-20 right-20 w-96 h-96 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-20 left-20 w-80 h-80 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full blur-3xl"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-full blur-2xl"></div>
-
-          {/* Additional 3D Geometric Shapes */}
-          <div className="absolute top-40 left-1/4 w-32 h-32 bg-gradient-to-br from-emerald-400/30 to-teal-500/30 transform rotate-45 rounded-3xl blur-lg animate-pulse"></div>
-          <div
-            className="absolute bottom-40 right-1/4 w-24 h-24 bg-gradient-to-br from-orange-400/30 to-red-500/30 transform -rotate-12 rounded-2xl blur-lg animate-pulse"
-            style={{ animationDelay: "1s" }}
-          ></div>
-          <div
-            className="absolute top-1/3 right-1/3 w-40 h-40 bg-gradient-to-br from-indigo-400/20 to-purple-500/20 transform rotate-12 rounded-full blur-xl animate-pulse"
-            style={{ animationDelay: "2s" }}
-          ></div>
-
-          {/* Floating 3D Coins */}
-          <div
-            className="absolute top-32 left-1/3 w-16 h-16 transform animate-bounce"
-            style={{ animationDelay: "0.5s", animationDuration: "3s" }}
-          >
-            <div className="w-full h-full bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full shadow-2xl border-4 border-yellow-300/50 flex items-center justify-center">
-              <span className="text-yellow-100 font-bold text-xl">₿</span>
-            </div>
-          </div>
-
-          <div
-            className="absolute top-60 right-1/4 w-12 h-12 transform animate-bounce"
-            style={{ animationDelay: "1.5s", animationDuration: "4s" }}
-          >
-            <div className="w-full h-full bg-gradient-to-br from-purple-400 to-purple-600 rounded-full shadow-2xl border-4 border-purple-300/50 flex items-center justify-center">
-              <span className="text-purple-100 font-bold text-lg">Ξ</span>
-            </div>
-          </div>
-
-          <div
-            className="absolute bottom-1/3 left-1/5 w-14 h-14 transform animate-bounce"
-            style={{ animationDelay: "2.5s", animationDuration: "3.5s" }}
-          >
-            <div className="w-full h-full bg-gradient-to-br from-blue-400 to-blue-600 rounded-full shadow-2xl border-4 border-blue-300/50 flex items-center justify-center">
-              <span className="text-blue-100 font-bold text-lg">◉</span>
-            </div>
-          </div>
-
-          <div
-            className="absolute top-2/3 right-1/5 w-10 h-10 transform animate-bounce"
-            style={{ animationDelay: "3s", animationDuration: "2.5s" }}
-          >
-            <div className="w-full h-full bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full shadow-2xl border-4 border-emerald-300/50 flex items-center justify-center">
-              <span className="text-emerald-100 font-bold text-sm">⬟</span>
-            </div>
-          </div>
-
-          <div
-            className="absolute bottom-20 right-1/2 w-8 h-8 transform animate-bounce"
-            style={{ animationDelay: "4s", animationDuration: "4.5s" }}
-          >
-            <div className="w-full h-full bg-gradient-to-br from-pink-400 to-pink-600 rounded-full shadow-2xl border-4 border-pink-300/50 flex items-center justify-center">
-              <span className="text-pink-100 font-bold text-xs">$</span>
-            </div>
-          </div>
-
-          {/* Floating Particles */}
-          <div className="absolute top-40 left-10 w-4 h-4 bg-blue-400/60 rounded-full animate-ping"></div>
-          <div
-            className="absolute top-80 right-20 w-3 h-3 bg-purple-400/60 rounded-full animate-ping"
-            style={{ animationDelay: "1s" }}
-          ></div>
-          <div
-            className="absolute bottom-60 left-1/3 w-5 h-5 bg-emerald-400/60 rounded-full animate-ping"
-            style={{ animationDelay: "2s" }}
-          ></div>
-          <div
-            className="absolute bottom-32 right-10 w-2 h-2 bg-yellow-400/60 rounded-full animate-ping"
-            style={{ animationDelay: "3s" }}
-          ></div>
-
-          {/* Grid Pattern Overlay */}
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
-
-          {/* 3D Floating Cubes */}
-          <div
-            className="absolute top-1/4 left-1/6 w-8 h-8 transform rotate-45 animate-spin"
-            style={{ animationDuration: "8s" }}
-          >
-            <div className="w-full h-full bg-gradient-to-br from-cyan-400/40 to-blue-500/40 border border-cyan-300/30 rounded-lg shadow-xl"></div>
-          </div>
-
-          <div
-            className="absolute bottom-1/4 right-1/6 w-6 h-6 transform -rotate-45 animate-spin"
-            style={{ animationDuration: "12s", animationDirection: "reverse" }}
-          >
-            <div className="w-full h-full bg-gradient-to-br from-violet-400/40 to-purple-500/40 border border-violet-300/30 rounded-lg shadow-xl"></div>
-          </div>
-
-          <div
-            className="absolute top-3/4 left-1/2 w-10 h-10 transform rotate-12 animate-spin"
-            style={{ animationDuration: "10s" }}
-          >
-            <div className="w-full h-full bg-gradient-to-br from-rose-400/40 to-pink-500/40 border border-rose-300/30 rounded-lg shadow-xl"></div>
-          </div>
-        </div>
-
-        <div className="relative z-10 container mx-auto px-4 pt-20 pb-32">
-          <div className="max-w-6xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
-              {/* Left Content */}
-              <div>
-                <div className="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-sm text-blue-200 rounded-full text-sm font-medium mb-8 border border-white/20">
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Be early to the future of asset finance
-                </div>
-
-                <h1 className="text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
-                  Transform real assets into
-                  <span className="block bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                    digital tokens
-                  </span>
-                </h1>
-
-                <p className="text-xl text-blue-100 mb-8 leading-relaxed">
-                  Tokenize real estate, commodities, and equipment on a platform
-                  trusted by thousands. Access instant USDC liquidity through
-                  advanced DeFi protocols.
-                </p>
-
-                <div className="flex flex-col sm:flex-row gap-4 mb-12">
-                  <Link
-                    href={user ? "/dashboard" : "/sign-up"}
-                    className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-xl hover:shadow-blue-500/25 text-lg"
-                  >
-                    {user ? "Launch Dashboard" : "Get Started"}
-                    <ArrowRight className="ml-2 w-5 h-5" />
-                  </Link>
-                  <Link
-                    href="/dashboard"
-                    className="inline-flex items-center justify-center px-8 py-4 bg-white/10 backdrop-blur-sm text-white font-medium rounded-xl border border-white/20 hover:bg-white/20 transition-all duration-300 text-lg"
-                  >
-                    <Play className="mr-2 w-5 h-5" />
-                    Watch Demo
-                  </Link>
-                </div>
-
-                {/* Trust Indicators */}
-                <div className="flex items-center gap-8 text-blue-200">
-                  <div className="flex items-center gap-2">
-                    <Shield className="w-5 h-5 text-green-400" />
-                    <span className="text-sm font-medium">
-                      Bank-grade security
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Award className="w-5 h-5 text-yellow-400" />
-                    <span className="text-sm font-medium">
-                      Licensed & regulated
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="w-5 h-5 text-blue-400" />
-                    <span className="text-sm font-medium">25K+ users</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Content - Asset Price Cards */}
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center">
-                        <Building className="w-6 h-6 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-white">Real Estate</h3>
-                        <p className="text-blue-200 text-sm">REA</p>
-                      </div>
-                    </div>
-                    <div className="text-2xl font-bold text-white mb-1">
-                      $2,547.89
-                    </div>
-                    <div className="text-green-400 text-sm font-medium">
-                      +2.34%
-                    </div>
-                    <div className="flex gap-2 mt-4">
-                      <button className="flex-1 bg-blue-500 text-white text-sm font-medium py-2 rounded-lg hover:bg-blue-600 transition-colors">
-                        Tokenize
-                      </button>
-                      <button className="flex-1 bg-white/10 text-white text-sm font-medium py-2 rounded-lg hover:bg-white/20 transition-colors">
-                        Trade
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center">
-                        <Coins className="w-6 h-6 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-white">Gold</h3>
-                        <p className="text-blue-200 text-sm">GOLD</p>
-                      </div>
-                    </div>
-                    <div className="text-2xl font-bold text-white mb-1">
-                      $1,987.23
-                    </div>
-                    <div className="text-red-400 text-sm font-medium">
-                      -0.58%
-                    </div>
-                    <div className="flex gap-2 mt-4">
-                      <button className="flex-1 bg-blue-500 text-white text-sm font-medium py-2 rounded-lg hover:bg-blue-600 transition-colors">
-                        Tokenize
-                      </button>
-                      <button className="flex-1 bg-white/10 text-white text-sm font-medium py-2 rounded-lg hover:bg-white/20 transition-colors">
-                        Trade
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center">
-                        <Settings className="w-6 h-6 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-white">Equipment</h3>
-                        <p className="text-blue-200 text-sm">EQP</p>
-                      </div>
-                    </div>
-                    <div className="text-2xl font-bold text-white mb-1">
-                      $845.67
-                    </div>
-                    <div className="text-green-400 text-sm font-medium">
-                      +1.92%
-                    </div>
-                    <div className="flex gap-2 mt-4">
-                      <button className="flex-1 bg-blue-500 text-white text-sm font-medium py-2 rounded-lg hover:bg-blue-600 transition-colors">
-                        Tokenize
-                      </button>
-                      <button className="flex-1 bg-white/10 text-white text-sm font-medium py-2 rounded-lg hover:bg-white/20 transition-colors">
-                        Trade
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
-                        <DollarSign className="w-6 h-6 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-white">USDC</h3>
-                        <p className="text-blue-200 text-sm">Stablecoin</p>
-                      </div>
-                    </div>
-                    <div className="text-2xl font-bold text-white mb-1">
-                      $1.00
-                    </div>
-                    <div className="text-gray-400 text-sm font-medium">
-                      0.00%
-                    </div>
-                    <div className="flex gap-2 mt-4">
-                      <button className="flex-1 bg-blue-500 text-white text-sm font-medium py-2 rounded-lg hover:bg-blue-600 transition-colors">
-                        Borrow
-                      </button>
-                      <button className="flex-1 bg-white/10 text-white text-sm font-medium py-2 rounded-lg hover:bg-white/20 transition-colors">
-                        Lend
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="text-center">
-                  <Link
-                    href="/dashboard"
-                    className="inline-flex items-center text-blue-300 hover:text-blue-200 font-medium"
-                  >
-                    More Assets
-                    <ArrowRight className="ml-1 w-4 h-4" />
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <CarouselHero user={user} />
 
       {/* Tokenization Platform Section */}
       <section className="py-24 bg-gray-50">
@@ -525,7 +1032,36 @@ export default async function Home() {
           </div>
         </div>
       </section>
+      {/* Portfolio Performance Section */}
+      <section className="py-24 bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 relative overflow-hidden">
+        {/* Background Elements */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:80px_80px]"></div>
+        </div>
 
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-sm text-blue-200 rounded-full text-sm font-medium mb-8 border border-white/20">
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Portfolio Performance
+                <Sparkles className="w-4 h-4 ml-2" />
+              </div>
+
+              <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
+                Track Your Asset Growth
+              </h2>
+
+              <p className="text-xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
+                Real-time portfolio analytics with AI-powered insights and
+                performance tracking across all your tokenized assets.
+              </p>
+            </div>
+
+            <PortfolioChart />
+          </div>
+        </div>
+      </section>
       {/* Multi-Chain Trading Section */}
       <section className="py-24 bg-white">
         <div className="container mx-auto px-4">
@@ -680,6 +1216,95 @@ export default async function Home() {
         </div>
       </section>
 
+      <section className="py-24 bg-white relative overflow-hidden">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto text-center">
+            <AnimatedCounter
+              targetValue={3847652891234}
+              prefix="$"
+              duration={3000}
+              className="text-6xl lg:text-8xl font-mono font-bold text-gray-900 mb-4 tracking-wider"
+            />
+            <div className="flex items-center justify-center gap-2 mb-16">
+              <h3 className="text-lg font-semibold text-gray-600 uppercase tracking-wide">
+                TOTAL VALUE LOCKED IN RWA PROTOCOLS
+              </h3>
+              <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
+            </div>
+
+            <div className="grid lg:grid-cols-2 gap-16 items-start">
+              <div className="text-left">
+                <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-8">
+                  Why TangibleFi is the RWA standard
+                </h2>
+
+                <div className="space-y-8">
+                  <div>
+                    <h4 className="text-xl font-bold text-gray-900 mb-3">
+                      Institutional-grade security
+                    </h4>
+                    <p className="text-gray-600 leading-relaxed">
+                      TangibleFi protocols are secured by enterprise-level
+                      security audits with a proven track record of protecting
+                      billions in tokenized assets.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4 className="text-xl font-bold text-gray-900 mb-3">
+                      Cross-chain compatibility
+                    </h4>
+                    <p className="text-gray-600 leading-relaxed">
+                      TangibleFi connects existing RWA ecosystems to any public
+                      or private blockchain and enables seamless multi-chain
+                      asset management.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4 className="text-xl font-bold text-gray-900 mb-3">
+                      Enterprise-ready infrastructure
+                    </h4>
+                    <p className="text-gray-600 leading-relaxed">
+                      TangibleFi provides institutions across all major asset
+                      classes with comprehensive documentation, dedicated
+                      support, and proven scalability.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-6">
+                <AnimatedStatCard
+                  value={12847}
+                  label="Assets Tokenized"
+                  delay={500}
+                  color="blue"
+                />
+                <AnimatedStatCard
+                  value={247}
+                  label="Institutional Partners"
+                  delay={700}
+                  color="purple"
+                />
+                <AnimatedStatCard
+                  value={98.7}
+                  suffix="%"
+                  label="Uptime Guarantee"
+                  delay={900}
+                  color="green"
+                />
+                <AnimatedStatCard
+                  value={157}
+                  label="Countries Supported"
+                  delay={1100}
+                  color="orange"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
       {/* Analytics Section */}
       <section className="py-48 bg-gray-50">
         <div className="container mx-auto px-4">
@@ -820,8 +1445,8 @@ export default async function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 relative overflow-hidden">
-        {/* Geometric Background */}
+      {/* <section className="py-24 bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 relative overflow-hidden">
+        Geometric Background
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.1)_25%,rgba(255,255,255,0.1)_50%,transparent_50%,transparent_75%,rgba(255,255,255,0.1)_75%)] bg-[length:60px_60px]"></div>
         </div>
@@ -850,7 +1475,11 @@ export default async function Home() {
             </Link>
           </div>
         </div>
-      </section>
+      </section> */}
+
+      {/* Total Value Locked Section */}
+
+      {/* Platform Statistics Section */}
 
       <Footer />
     </div>

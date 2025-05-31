@@ -36,12 +36,18 @@ export default function Navbar() {
 
   useEffect(() => {
     const getUser = async () => {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUser(user);
-      setLoading(false);
+      try {
+  const supabase = createClient();
+  const {
+    data: { user },
+        } = await supabase.auth.getUser();
+        setUser(user);
+      } catch (error) {
+        console.warn("Supabase connection failed in navbar:", error);
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
     };
 
     getUser();
@@ -53,7 +59,7 @@ export default function Navbar() {
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent_50%)]"></div>
         <div className="relative flex items-center justify-center gap-4 text-sm">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
             <Sparkles className="w-4 h-4" />
           </div>
@@ -175,19 +181,19 @@ export default function Navbar() {
                         <DropdownMenuSeparator className="my-2" />
 
                         <DropdownMenuItem asChild>
-                          <Link
+            <Link
                             href="#analytics"
                             className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 transition-all duration-300"
-                          >
+            >
                             <BarChart3 className="w-4 h-4 text-gray-600" />
                             <span className="text-sm text-gray-700">
                               Advanced Analytics
                             </span>
-                          </Link>
+            </Link>
                         </DropdownMenuItem>
 
                         <DropdownMenuItem asChild>
-                          <Link
+            <Link
                             href="#api"
                             className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 transition-all duration-300"
                           >
@@ -207,9 +213,9 @@ export default function Navbar() {
                     <Button
                       variant="ghost"
                       className="flex items-center gap-2 h-10 text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-all duration-300"
-                    >
+            >
                       <Users className="w-4 h-4" />
-                      Solutions
+              Solutions
                       <ChevronDown className="w-3 h-3" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -583,24 +589,24 @@ export default function Navbar() {
                             <span className="text-sm text-gray-700">
                               Contact Us
                             </span>
-                          </Link>
+            </Link>
                         </DropdownMenuItem>
 
                         <DropdownMenuItem asChild>
-                          <Link
+            <Link
                             href="#blog"
                             className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-all duration-300"
-                          >
+            >
                             <Coins className="w-4 h-4 text-gray-600" />
                             <span className="text-sm text-gray-700">Blog</span>
-                          </Link>
+            </Link>
                         </DropdownMenuItem>
                       </div>
                     </div>
                   </DropdownMenuContent>
                 </DropdownMenu>
-              </div>
-            </div>
+          </div>
+        </div>
 
             {/* Right side actions */}
             <div className="flex items-center gap-3">
@@ -610,7 +616,7 @@ export default function Navbar() {
                   variant="outline"
                   size="sm"
                   className="w-64 justify-start text-gray-500 border-gray-300 bg-gray-50 hover:bg-gray-100 transition-all duration-300"
-                >
+              >
                   <Search className="w-4 h-4 mr-2" />
                   Search docs, features...
                 </Button>
@@ -621,13 +627,13 @@ export default function Navbar() {
 
               {/* Right: Auth Buttons */}
               <div className="flex items-center space-x-4">
-                <Link
+              <Link
                   href="/wallet-connect"
                   className="hidden lg:flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 bg-gradient-to-r from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 rounded-lg border border-orange-200 hover:border-orange-300 transition-all duration-200"
-                >
+              >
                   <Wallet className="w-4 h-4" />
                   Connect Wallet
-                </Link>
+              </Link>
               </div>
 
               {/* Mobile menu button */}
@@ -639,9 +645,9 @@ export default function Navbar() {
                 <Menu className="w-5 h-5" />
               </Button>
             </div>
-          </div>
         </div>
-      </nav>
+      </div>
+    </nav>
     </>
   );
 }
