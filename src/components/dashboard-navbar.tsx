@@ -608,7 +608,7 @@ export default function DashboardNavbar() {
                       >
                         <div className="flex items-start gap-3">
                           <div className="mt-0.5">
-                            {getNotificationIcon(notification.type)}
+                          {getNotificationIcon(notification.type)}
                           </div>
                           <div className="flex-1 min-w-0 space-y-1">
                             <div className="flex items-center justify-between">

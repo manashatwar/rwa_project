@@ -275,6 +275,18 @@ export default async function Dashboard({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  return (
+    <>
+      <DashboardContent searchParams={searchParams} />
+    </>
+  );
+}
+
+async function DashboardContent({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   const supabase = await createClient();
 
   const {
@@ -579,14 +591,22 @@ export default async function Dashboard({
                         strokeWidth="3"
                         fill="none"
                         strokeLinecap="round"
-                        className="animate-pulse"
+                        className="opacity-100"
+                        style={{
+                          strokeDasharray: "1000",
+                          strokeDashoffset: "1000",
+                          animation: "drawLine 2.5s ease-out forwards",
+                        }}
                       />
 
                       {/* Area under curve */}
                       <path
                         d="M 0 180 Q 60 120 120 100 T 240 80 T 360 90 T 480 70 L 480 256 L 0 256 Z"
                         fill="url(#chartGradient)"
-                        className="opacity-60"
+                        className="opacity-0"
+                        style={{
+                          animation: "fadeInArea 1s ease-out 2s forwards",
+                        }}
                       />
 
                       {/* Animated Data Points */}
@@ -597,10 +617,27 @@ export default async function Dashboard({
                           cy={[100, 80, 90, 70][i]}
                           r="4"
                           fill="#10b981"
-                          className="animate-ping"
-                          style={{ animationDelay: `${i * 0.5}s` }}
+                          className="opacity-0 scale-0"
+                          style={{
+                            animation: `fadeInScale 0.5s ease-out ${2.5 + i * 0.2}s forwards`,
+                          }}
                         />
                       ))}
+
+                      <style>{`
+                        @keyframes drawLine {
+                          from { stroke-dashoffset: 1000; }
+                          to { stroke-dashoffset: 0; }
+                        }
+                        @keyframes fadeInArea {
+                          from { opacity: 0; }
+                          to { opacity: 0.6; }
+                        }
+                        @keyframes fadeInScale {
+                          from { opacity: 0; transform: scale(0); }
+                          to { opacity: 1; transform: scale(1); }
+                        }
+                      `}</style>
                     </svg>
 
                     {/* Chart Labels */}

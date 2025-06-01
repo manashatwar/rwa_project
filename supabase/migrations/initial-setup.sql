@@ -11,7 +11,10 @@ CREATE TABLE IF NOT EXISTS public.users (
     updated_at timestamp with time zone,
     email text,
     name text,
-    full_name text
+    full_name text,
+    wallet_address text UNIQUE,
+    wallet_signature text,
+    auth_method text DEFAULT 'email'
 );
 
 -- Add RLS (Row Level Security) policies
@@ -47,6 +50,9 @@ BEGIN
     full_name,
     avatar_url,
     token_identifier,
+    wallet_address,
+    wallet_signature,
+    auth_method,
     created_at,
     updated_at
   ) VALUES (
@@ -57,6 +63,9 @@ BEGIN
     NEW.raw_user_meta_data->>'full_name',
     NEW.raw_user_meta_data->>'avatar_url',
     NEW.email,
+    NEW.raw_user_meta_data->>'wallet_address',
+    NEW.raw_user_meta_data->>'wallet_signature',
+    COALESCE(NEW.raw_user_meta_data->>'auth_method', 'email'),
     NEW.created_at,
     NEW.updated_at
   );

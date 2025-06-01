@@ -1,3 +1,53 @@
+-- Create users table for additional profile information
+CREATE TABLE IF NOT EXISTS public.users (
+    id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    email text UNIQUE NOT NULL,
+    full_name text,
+    wallet_address text UNIQUE,
+    wallet_signature text,
+    auth_method text DEFAULT 'email',
+    avatar_url text,
+    phone text,
+    company text,
+    job_title text,
+    bio text,
+    website text,
+    location text,
+    timezone text,
+    language text DEFAULT 'en',
+    notification_preferences jsonb DEFAULT '{"email": true, "push": true, "sms": false}',
+    kyc_status text DEFAULT 'pending',
+    kyc_documents jsonb DEFAULT '[]',
+    risk_profile text DEFAULT 'moderate',
+    investment_experience text DEFAULT 'beginner',
+    annual_income_range text,
+    net_worth_range text,
+    investment_goals jsonb DEFAULT '[]',
+    last_login timestamp with time zone,
+    login_count integer DEFAULT 0,
+    terms_accepted_at timestamp with time zone,
+    privacy_accepted_at timestamp with time zone,
+    marketing_consent boolean DEFAULT false,
+    two_factor_enabled boolean DEFAULT false,
+    account_status text DEFAULT 'active',
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),
+    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now())
+);
+
+-- Create indexes for users table
+CREATE INDEX IF NOT EXISTS idx_users_email ON public.users(email);
+CREATE INDEX IF NOT EXISTS idx_users_wallet_address ON public.users(wallet_address);
+CREATE INDEX IF NOT EXISTS idx_users_auth_method ON public.users(auth_method);
+
+-- Enable RLS for users table
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+
+-- Create policy for users table
+DROP POLICY IF EXISTS "Users can manage their own profile" ON public.users;
+CREATE POLICY "Users can manage their own profile"
+ON public.users FOR ALL
+USING (auth.uid() = id);
+
 CREATE TABLE IF NOT EXISTS public.assets (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,

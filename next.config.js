@@ -3,10 +3,14 @@
 const nextConfig = {
   images: {
     domains: ["images.unsplash.com"],
+    formats: ["image/webp", "image/avif"],
+    minimumCacheTTL: 60,
   },
   typescript: {
     ignoreBuildErrors: true,
   },
+  compress: true,
+  poweredByHeader: false,
   webpack: (config, { dev }) => {
     if (dev) {
       config.watchOptions = {
@@ -14,19 +18,45 @@ const nextConfig = {
         aggregateTimeout: 300,
       };
     }
+
     return config;
+  },
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+        ],
+      },
+      {
+        source: "/static/(.*)",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+    ];
   },
 };
 
 if (process.env.NEXT_PUBLIC_TEMPO) {
-    nextConfig["experimental"] = {
-        // NextJS 13.4.8 up to 14.1.3:
-        // swcPlugins: [[require.resolve("tempo-devtools/swc/0.86"), {}]],
-        // NextJS 14.1.3 to 14.2.11:
-        swcPlugins: [[require.resolve("tempo-devtools/swc/0.90"), {}]]
-
-        // NextJS 15+ (Not yet supported, coming soon)
-    }
+  nextConfig.experimental = {
+    swcPlugins: [[require.resolve("tempo-devtools/swc/0.90"), {}]],
+  };
 }
 
 module.exports = nextConfig;
