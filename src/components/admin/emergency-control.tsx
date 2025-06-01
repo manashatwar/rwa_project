@@ -115,6 +115,9 @@ export default function EmergencyControlSection({
       description: "Immediately halt all platform operations",
       color: "bg-red-600",
       textColor: "text-red-600",
+      hoverBg: "hover:bg-red-600",
+      hoverBorder: "hover:border-red-600",
+      hoverText: "hover:text-white",
       estimatedDowntime: "2-4 hours",
       affectedUsers: "All users",
       requiresApproval: true,
@@ -126,6 +129,9 @@ export default function EmergencyControlSection({
       description: "Suspend all trading and asset transfers",
       color: "bg-orange-600",
       textColor: "text-orange-600",
+      hoverBg: "hover:bg-orange-600",
+      hoverBorder: "hover:border-orange-600",
+      hoverText: "hover:text-white",
       estimatedDowntime: "30-60 minutes",
       affectedUsers: "Active traders",
       requiresApproval: true,
@@ -137,6 +143,9 @@ export default function EmergencyControlSection({
       description: "Temporarily disable new user registrations",
       color: "bg-yellow-600",
       textColor: "text-yellow-600",
+      hoverBg: "hover:bg-yellow-600",
+      hoverBorder: "hover:border-yellow-600",
+      hoverText: "hover:text-white",
       estimatedDowntime: "15-30 minutes",
       affectedUsers: "New users only",
       requiresApproval: false,
@@ -148,6 +157,9 @@ export default function EmergencyControlSection({
       description: "Enable maintenance mode with user notifications",
       color: "bg-blue-600",
       textColor: "text-blue-600",
+      hoverBg: "hover:bg-blue-600",
+      hoverBorder: "hover:border-blue-600",
+      hoverText: "hover:text-white",
       estimatedDowntime: "10-20 minutes",
       affectedUsers: "Read-only access",
       requiresApproval: false,
@@ -233,21 +245,27 @@ export default function EmergencyControlSection({
     switch (status) {
       case "active":
         return (
-          <Badge className="bg-green-100 text-green-700 border-0">Active</Badge>
+          <Badge className="bg-green-100 text-green-700 border-0 hover:bg-green-200 hover:text-green-800 transition-colors duration-200 cursor-default">
+            Active
+          </Badge>
         );
       case "throttled":
         return (
-          <Badge className="bg-yellow-100 text-yellow-700 border-0">
+          <Badge className="bg-yellow-100 text-yellow-700 border-0 hover:bg-yellow-200 hover:text-yellow-800 transition-colors duration-200 cursor-default">
             Throttled
           </Badge>
         );
       case "disabled":
         return (
-          <Badge className="bg-red-100 text-red-700 border-0">Disabled</Badge>
+          <Badge className="bg-red-100 text-red-700 border-0 hover:bg-red-200 hover:text-red-800 transition-colors duration-200 cursor-default">
+            Disabled
+          </Badge>
         );
       default:
         return (
-          <Badge className="bg-gray-100 text-gray-700 border-0">Unknown</Badge>
+          <Badge className="bg-gray-100 text-gray-700 border-0 hover:bg-gray-200 hover:text-gray-800 transition-colors duration-200 cursor-default">
+            Unknown
+          </Badge>
         );
     }
   };
@@ -356,42 +374,44 @@ export default function EmergencyControlSection({
                 key={protocol.id}
                 className={`border-2 ${
                   selectedProtocol === protocol.id
-                    ? "border-red-300 bg-red-50"
-                    : "border-gray-200 hover:border-gray-300"
-                } transition-all cursor-pointer`}
+                    ? "border-red-300 bg-red-50 shadow-lg"
+                    : "border-gray-200 hover:border-gray-300 hover:shadow-md"
+                } transition-all duration-300 cursor-pointer transform hover:scale-[1.02] group`}
                 onClick={() => handleProtocolActivation(protocol.id)}
               >
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <h3
-                        className={`font-bold text-lg ${protocol.textColor} mb-2`}
+                        className={`font-bold text-lg ${protocol.textColor} mb-2 group-hover:text-opacity-80 transition-colors duration-200`}
                       >
                         {protocol.name}
                       </h3>
-                      <p className="text-gray-600 text-sm mb-3">
+                      <p className="text-gray-600 text-sm mb-3 group-hover:text-gray-700 transition-colors duration-200">
                         {protocol.description}
                       </p>
-                      <div className="space-y-2 text-xs text-gray-500">
+                      <div className="space-y-2 text-xs text-gray-500 group-hover:text-gray-600 transition-colors duration-200">
                         <div>
                           Estimated downtime: {protocol.estimatedDowntime}
                         </div>
                         <div>Affected users: {protocol.affectedUsers}</div>
                         {protocol.requiresApproval && (
-                          <div className="text-red-600 font-medium">
+                          <div className="text-red-600 font-medium group-hover:text-red-700 transition-colors duration-200">
                             ⚠️ Requires approval
                           </div>
                         )}
                       </div>
                     </div>
-                    <Badge className={`${protocol.color} text-white border-0`}>
+                    <Badge
+                      className={`${protocol.color} text-white border-0 transition-transform duration-200 group-hover:scale-103`}
+                    >
                       {protocol.level.toUpperCase()}
                     </Badge>
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
-                    className={`w-full ${protocol.textColor} border-current hover:bg-current hover:text-white`}
+                    className={`w-full ${protocol.textColor} border-current ${protocol.hoverBg} ${protocol.hoverBorder} ${protocol.hoverText} hover:shadow-md transition-all duration-300 transform hover:scale-105`}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleProtocolActivation(protocol.id);
@@ -469,34 +489,40 @@ export default function EmergencyControlSection({
             {circuitBreakers.map((breaker) => (
               <div
                 key={breaker.id}
-                className={`flex items-center justify-between p-4 rounded-lg border ${breaker.bgColor} border-current`}
+                className={`flex items-center justify-between p-4 rounded-lg border ${breaker.bgColor} border-current transition-all duration-300 hover:shadow-md hover:scale-[1.01] group`}
               >
                 <div className="flex items-center gap-4">
                   <div
-                    className={`w-12 h-12 rounded-lg ${breaker.bgColor} flex items-center justify-center`}
+                    className={`w-12 h-12 rounded-lg ${breaker.bgColor} flex items-center justify-center group-hover:shadow-sm transition-shadow duration-200`}
                   >
-                    <breaker.icon className={`w-6 h-6 ${breaker.color}`} />
+                    <breaker.icon
+                      className={`w-6 h-6 ${breaker.color} transition-transform duration-200 group-hover:scale-110`}
+                    />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900">
+                    <h4 className="font-semibold text-gray-900 group-hover:text-gray-800 transition-colors duration-200">
                       {breaker.name}
                     </h4>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 group-hover:text-gray-700 transition-colors duration-200">
                       {breaker.description}
                     </p>
                     {breaker.lastTriggered && (
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-gray-500 mt-1 group-hover:text-gray-600 transition-colors duration-200">
                         Last triggered: {breaker.lastTriggered}
                       </p>
                     )}
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  {getStatusBadge(breaker.status)}
-                  <Switch
-                    checked={breaker.status === "active"}
-                    onCheckedChange={() => toggleCircuitBreaker(breaker.id)}
-                  />
+                  <div className="transition-transform duration-200 hover:scale-103">
+                    {getStatusBadge(breaker.status)}
+                  </div>
+                  <div className="transition-transform duration-200 hover:scale-110">
+                    <Switch
+                      checked={breaker.status === "active"}
+                      onCheckedChange={() => toggleCircuitBreaker(breaker.id)}
+                    />
+                  </div>
                 </div>
               </div>
             ))}
