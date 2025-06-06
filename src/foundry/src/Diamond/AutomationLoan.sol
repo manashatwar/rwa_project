@@ -1,5 +1,3 @@
-<<<<<<< Updated upstream
-=======
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
@@ -474,4 +472,3 @@ contract AutomationLoan is AutomationCompatibleInterface {
         emit LoanRepaid(loanId, msg.sender, remainingDebtToPay);
     }
 }
->>>>>>> Stashed changes
