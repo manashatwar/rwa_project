@@ -6,9 +6,6 @@ import "../../lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.s
 library DiamondStorage {
     //constant types
 
-<<<<<<< Updated upstream
-    struct UserAccount {
-=======
     //////Loan automation
     uint256 constant MIN_LOAN_DURATION = 30 days; // Updated minimum duration
     uint256 constant MAX_LOAN_DURATION = 365 days;
@@ -35,7 +32,6 @@ library DiamondStorage {
 
     struct UserAccount {
         // For AuthUser facet or general user account info
->>>>>>> Stashed changes
         bool isAuth;
         uint256 amount;
         uint256 duration;
@@ -54,8 +50,6 @@ library DiamondStorage {
         // NFT metadata tracking
         mapping(uint256 => string) tokenURIs;
         mapping(bytes4 => bool) supportedInterfaces;
-<<<<<<< Updated upstream
-=======
         /////Loan automation state
         mapping(uint256 => LoanData) loans; // NFT ID => Loan Data
         mapping(uint256 => uint256) loanIdToCollateralTokenId; // Loan ID => Collateral Token ID
@@ -86,7 +80,6 @@ library DiamondStorage {
         bool[] monthlyPayments; // Track monthly payments status
         address tokenAddress;
         /////
->>>>>>> Stashed changes
     }
 
     bytes32 constant DIAMOND_STORAGE_POSITION =

@@ -21,9 +21,6 @@ contract viewFacet {
         DiamondStorage.VaultState storage ds = DiamondStorage.getStorage();
         return ds.userNftIds[_user];
     }
-<<<<<<< Updated upstream
-
-=======
 
     /////
     function getLoanByAccountId(
@@ -121,7 +118,6 @@ contract viewFacet {
     }
 
     /////
->>>>>>> Stashed changes
     function getUserInvestments(
         address _user
     )
@@ -155,8 +151,6 @@ contract viewFacet {
 
         return (tokenIds, amounts, authStatuses);
     }
-<<<<<<< Updated upstream
-=======
 
     /////@karun's function for validating loan creation
     function validateLoanCreationView(
@@ -224,5 +218,4 @@ contract viewFacet {
             }
         }
     }
->>>>>>> Stashed changes
 }
