@@ -20,5 +20,6 @@
     "editor.defaultFormatter": "denoland.vscode-deno"
   },
   "github.copilot.chat.scopeSelection": true,
-  "github.copilot.chat.completionContext.typescript.mode": "on"
+  "github.copilot.chat.completionContext.typescript.mode": "on",
+  "postman.settings.dotenv-detection-notification-visibility": false
 }
