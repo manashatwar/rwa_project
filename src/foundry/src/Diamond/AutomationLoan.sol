@@ -48,7 +48,7 @@ contract AutomationLoan is AutomationCompatibleInterface {
         address tokenAddress
     ) external {
         DiamondStorage.VaultState storage ds = DiamondStorage.getStorage();
-
+        address borrower = msg.sender;
         // CHECKS - Use viewFacet's validation
         vf.validateLoanCreationView(tokenId, duration);
 
@@ -58,7 +58,7 @@ contract AutomationLoan is AutomationCompatibleInterface {
         }
 
         // Update the token address in the user account
-        ds.User[msg.sender][accountTokenId].tokenAddress = tokenAddress;
+        ds.User[borrower][accountTokenId].tokenAddress = tokenAddress;
 
         IERC20 token = IERC20(tokenAddress);
 
@@ -69,11 +69,12 @@ contract AutomationLoan is AutomationCompatibleInterface {
         );
 
         // Check ownership and allowance
-        if (nftContract.ownerOf(tokenId) != msg.sender) {
+        if (nftContract.ownerOf(tokenId) != borrower) {
             revert DiamondStorage.Unauthorized();
         }
         if (
-            token.allowance(msg.sender, address(this)) < (amount + bufferAmount)
+            token.allowance(borrower, address(this)) <
+            (amount + bufferAmount + bufferAmount)
         ) {
             revert DiamondStorage.InsufficientCollateral();
         }
@@ -111,7 +112,7 @@ contract AutomationLoan is AutomationCompatibleInterface {
 
         emit LoanCreated(
             loanId,
-            msg.sender,
+            borrower,
             tokenId,
             accountTokenId,
             amount,
@@ -132,7 +133,7 @@ contract AutomationLoan is AutomationCompatibleInterface {
     ) internal returns (uint256 loanId) {
         // Initialize monthly payments array
         bool[] memory monthlyPayments = new bool[](duration / 30 days);
-
+        address borrower = msg.sender;
         // Generate loan ID and calculate terms
         loanId = ++ds.currentLoanId;
         uint256 interestRate = vf.calculateInterestRate(duration);
@@ -146,7 +147,7 @@ contract AutomationLoan is AutomationCompatibleInterface {
             interestRate: interestRate,
             totalDebt: totalDebt,
             isActive: true,
-            borrower: msg.sender,
+            borrower: borrower,
             userAccountTokenId: accountTokenId,
             bufferAmount: bufferAmount,
             remainingBuffer: bufferAmount,
@@ -157,7 +158,7 @@ contract AutomationLoan is AutomationCompatibleInterface {
 
         // Link the generatedLoanId to the primary key (tokenId)
         ds.loanIdToCollateralTokenId[loanId] = tokenId;
-        ds.userLoans[msg.sender].push(loanId);
+        ds.userLoans[borrower].push(loanId);
         ds.accountToLoans[accountTokenId] = loanId;
         ds.totalActiveLoans++;
     }
@@ -173,20 +174,27 @@ contract AutomationLoan is AutomationCompatibleInterface {
     ) internal {
         bool success = false;
         IERC20 token = IERC20(tokenAddress);
-
-        try nftContract.transferFrom(msg.sender, address(this), tokenId) {
+        address borrower = msg.sender;
+        try nftContract.transferFrom(borrower, address(this), tokenId) {
             // Transfer NFT to contract
-            try
-                token.transferFrom(
-                    msg.sender,
-                    address(this),
-                    amount + bufferAmount
-                )
-            {
-                // Transfer token to contract
-                success = true;
+            try token.transferFrom(borrower, address(this), bufferAmount) {
+                // Transfer buffer amount from user to contract
+
+                // Disburse loan amount to user
+                try token.transfer(borrower, amount) {
+                    success = true;
+                } catch {
+                    // If loan disbursement fails, return buffer and NFT
+                    token.transfer(borrower, bufferAmount);
+                    nftContract.transferFrom(
+                        address(this),
+                        borrower,
+                        tokenId
+                    );
+                }
             } catch {
-                nftContract.transferFrom(address(this), msg.sender, tokenId);
+                // If buffer transfer fails, return NFT
+                nftContract.transferFrom(address(this),borrower, tokenId);
             }
         } catch {
             // NFT transfer failed
@@ -200,7 +208,7 @@ contract AutomationLoan is AutomationCompatibleInterface {
                 accountTokenId,
                 amount,
                 bufferAmount,
-                tokenAddress, // Pass token address
+                tokenAddress,
                 ds
             );
             revert DiamondStorage.TransferFailed();
@@ -219,9 +227,9 @@ contract AutomationLoan is AutomationCompatibleInterface {
     ) internal {
         delete ds.loans[tokenId];
         delete ds.loanIdToCollateralTokenId[loanId];
-
+         address borrower = msg.sender;
         // Clean user loans array - simplified to reduce stack variables
-        uint256[] storage userLoanIds = ds.userLoans[msg.sender];
+        uint256[] storage userLoanIds = ds.userLoans[borrower];
         for (uint j = userLoanIds.length; j > 0; j--) {
             //delete the loan ID from that user's loan array
             if (userLoanIds[j - 1] == loanId) {
@@ -256,12 +264,12 @@ contract AutomationLoan is AutomationCompatibleInterface {
         // Get accountTokenId before deleting loan data - fixed stack depth issue
         uint256 accountTokenId = ds.loans[tokenId].userAccountTokenId;
         address tokenAddress = ds.loans[tokenId].tokenAddress; // Add this line to get the token address
-
+        address borrower = msg.sender;
         delete ds.loans[tokenId];
         delete ds.loanIdToCollateralTokenId[loanId];
 
         // Clean user loans array - simplified to reduce stack variables
-        uint256[] storage userLoanIds = ds.userLoans[msg.sender];
+        uint256[] storage userLoanIds = ds.userLoans[borrower];
         for (uint j = userLoanIds.length; j > 0; j--) {
             //delete the loan ID from that user's loan array
             if (userLoanIds[j - 1] == loanId) {
