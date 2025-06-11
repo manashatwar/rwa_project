@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
-
 import "../../lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 
 library DiamondStorage {
     //constant types
-
     //////Loan automation
     uint256 constant MIN_LOAN_DURATION = 30 days; // Updated minimum duration
     uint256 constant MAX_LOAN_DURATION = 365 days;
@@ -25,10 +23,14 @@ library DiamondStorage {
     error TransferFailed();
     error InsufficientBuffer();
     error PaymentNotDue();
-
     // Errors added for internal consistency in AutomationLoan.sol:
     error LoanIdMismatch();
     error LoanDataNotFoundForLoanId();
+
+    // Cross-chain specific errors
+    error CrossChainNotEnabled();
+    error InvalidCrossChainSetup();
+    error CrossChainPaymentFailed();
 
     struct UserAccount {
         // For AuthUser facet or general user account info
@@ -41,7 +43,6 @@ library DiamondStorage {
 
     struct VaultState {
         // State variables
-
         uint256 _tokenIdCounter;
         address owner;
         mapping(address => mapping(uint256 => UserAccount)) User;
@@ -61,8 +62,15 @@ library DiamondStorage {
         uint256 totalERC20Locked;
         uint256 currentLoanId;
         uint256 totalBufferLocked;
-        //////
+        // Cross-chain integration flags
+        bool crossChainEnabled;
+        address crossChainFacet; // Address of the cross-chain facet for internal calls
+        // Cross-chain buffer balances (received from other chains)
+        mapping(address => uint256) crossChainBufferBalance;
+        // Track cross-chain EMI preferences per loan
+        mapping(uint256 => bool) loanUseCrossChainEmi; // loanId => use cross-chain EMI
     }
+
     ///// Loan data Structure
     struct LoanData {
         uint256 loanId; // Unique loan identifier
@@ -79,7 +87,11 @@ library DiamondStorage {
         uint256 lastPaymentTime; // Track last payment timestamp
         bool[] monthlyPayments; // Track monthly payments status
         address tokenAddress;
-        /////
+        // Cross-chain specific fields
+        bool useCrossChainBuffer; // Whether this loan uses cross-chain buffer
+        bool useCrossChainEmi; // Whether this loan uses cross-chain EMI
+        uint64 emiChainSelector; // Chain where EMI payments come from
+        address emiTokenAddress; // Token address on EMI chain
     }
 
     bytes32 constant DIAMOND_STORAGE_POSITION =

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 import {DiamondStorage} from "./DiamondStorage.sol";
 
-contract viewFacet {
+contract ViewFacet {
     function getUserNFTDetail(
         address _user,
         uint256 _tokenId
@@ -217,5 +217,117 @@ contract viewFacet {
                 }
             }
         }
+    }
+
+    // ========== CROSS-CHAIN VIEW FUNCTIONS ==========
+
+    function isCrossChainEnabled() external view returns (bool) {
+        DiamondStorage.VaultState storage ds = DiamondStorage.getStorage();
+        return ds.crossChainEnabled;
+    }
+
+    function getCrossChainBufferBalance(
+        address _user
+    ) external view returns (uint256) {
+        DiamondStorage.VaultState storage ds = DiamondStorage.getStorage();
+        return ds.crossChainBufferBalance[_user];
+    }
+
+    function getLoanCrossChainInfo(
+        uint256 _loanId
+    )
+        external
+        view
+        returns (
+            bool useCrossChainBuffer,
+            bool useCrossChainEmi,
+            uint64 emiChainSelector,
+            address emiTokenAddress
+        )
+    {
+        DiamondStorage.VaultState storage ds = DiamondStorage.getStorage();
+        uint256 collateralTokenId = ds.loanIdToCollateralTokenId[_loanId];
+        require(collateralTokenId != 0, "Loan does not exist");
+
+        DiamondStorage.LoanData storage loan = ds.loans[collateralTokenId];
+        return (
+            loan.useCrossChainBuffer,
+            loan.useCrossChainEmi,
+            loan.emiChainSelector,
+            loan.emiTokenAddress
+        );
+    }
+
+    function getCrossChainFacetAddress() external view returns (address) {
+        DiamondStorage.VaultState storage ds = DiamondStorage.getStorage();
+        return ds.crossChainFacet;
+    }
+
+    function getUserCrossChainLoans(
+        address _user
+    )
+        external
+        view
+        returns (
+            uint256[] memory loanIds,
+            bool[] memory useCrossChainBuffer,
+            bool[] memory useCrossChainEmi
+        )
+    {
+        DiamondStorage.VaultState storage ds = DiamondStorage.getStorage();
+        uint256[] memory userLoanIds = ds.userLoans[_user];
+        uint256 length = userLoanIds.length;
+
+        loanIds = userLoanIds;
+        useCrossChainBuffer = new bool[](length);
+        useCrossChainEmi = new bool[](length);
+
+        for (uint256 i = 0; i < length; i++) {
+            uint256 loanId = userLoanIds[i];
+            uint256 collateralTokenId = ds.loanIdToCollateralTokenId[loanId];
+            if (collateralTokenId != 0) {
+                DiamondStorage.LoanData storage loan = ds.loans[
+                    collateralTokenId
+                ];
+                useCrossChainBuffer[i] = loan.useCrossChainBuffer;
+                useCrossChainEmi[i] = loan.useCrossChainEmi;
+            }
+        }
+    }
+
+    function getLoanBufferStatus(
+        uint256 _loanId
+    )
+        external
+        view
+        returns (
+            uint256 totalBuffer,
+            uint256 remainingBuffer,
+            uint256 crossChainBuffer
+        )
+    {
+        DiamondStorage.VaultState storage ds = DiamondStorage.getStorage();
+        uint256 collateralTokenId = ds.loanIdToCollateralTokenId[_loanId];
+        require(collateralTokenId != 0, "Loan does not exist");
+
+        DiamondStorage.LoanData storage loan = ds.loans[collateralTokenId];
+        totalBuffer = loan.bufferAmount;
+        remainingBuffer = loan.remainingBuffer;
+
+        // Get cross-chain buffer for the borrower
+        if (loan.useCrossChainBuffer) {
+            crossChainBuffer = ds.crossChainBufferBalance[loan.borrower];
+        }
+    }
+
+    function canUseCrossChainForEmi(
+        uint256 _loanId
+    ) external view returns (bool) {
+        DiamondStorage.VaultState storage ds = DiamondStorage.getStorage();
+        uint256 collateralTokenId = ds.loanIdToCollateralTokenId[_loanId];
+        if (collateralTokenId == 0) return false;
+
+        DiamondStorage.LoanData storage loan = ds.loans[collateralTokenId];
+        return loan.useCrossChainEmi && loan.emiChainSelector != 0;
     }
 }
